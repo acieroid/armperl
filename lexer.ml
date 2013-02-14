@@ -70,7 +70,8 @@ let rec lex_string stream last l =
 let rec ignore_comment stream =
   match stream with parser
     | [< ''\n' >] -> ()
-    | [< c >] -> ignore_comment stream
+    | [< 'c >] -> ignore_comment stream
+    | [< >] -> ()
 
 let is_space = function
   | ' ' | '\n' | '\t' -> true
