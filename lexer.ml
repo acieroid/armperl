@@ -1,6 +1,3 @@
-(* 3, 18, 24, 35, 37
-   4, 7 *)
-
 type token =
   | VAR of string
   | INTEGER of int
@@ -49,6 +46,11 @@ let implode l =
     | [] ->  s
   in f 0 l
 
+let explode s =
+  let rec exp i l =
+    if i < 0 then l else exp (i - 1) (s.[i] :: l) in
+  exp (String.length s - 1) []
+
 let rec lex_identifier s l =
   match s with parser
     | [< ''a'..'z' as c >] -> lex_identifier s ([c] @ l)
@@ -77,9 +79,19 @@ let is_space = function
   | ' ' | '\n' | '\t' -> true
   | _ -> false
 
+let is_identifier_char = function
+  | 'a'..'z' | 'A'..'Z' | '0'..'9' -> true
+  | _ -> false
+
+let lex_keyword stream start kwd =
+  match stream with parser
+    | [< 'c when is_identifier_char c >] ->
+      IDENTIFIER (lex_identifier stream (List.rev (explode start)))
+    | [< >] -> kwd
+
 let rec lexer stream =
   match stream with parser
-    | [< 'c when is_space c >] -> lexer stream
+    | [< 'c when is_space c >] -> lexer stream (* drop spaces *)
     | [< ''#' >] -> ignore_comment stream; lexer stream
     (* Simple symbols *)
     | [< ''{' >] -> Some LBRACE
@@ -95,29 +107,38 @@ let rec lexer stream =
     | [< ''.' >] -> Some CONCAT
     (* Keywords *)
     (* TODO: handle identifiers starting with keywords *)
-    | [< ''r'; ''e'; ''t'; ''u'; ''r'; ''n' >] -> Some RETURN
-    | [< ''s'; ''u'; ''b' >] -> Some SUB
-    | [< ''i'; ''f' >] -> Some IF
-    | [< ''u'; ''n'; ''l'; ''e'; ''s'; ''s' >] -> Some UNLESS
+    | [< ''r'; ''e'; ''t'; ''u'; ''r'; ''n' >] ->
+      Some (lex_keyword stream "return" RETURN)
+    | [< ''s'; ''u'; ''b' >] ->
+      Some (lex_keyword stream "sub" SUB)
+    | [< ''i'; ''f' >] ->
+      Some (lex_keyword stream "if" IF)
+    | [< ''u'; ''n'; ''l'; ''e'; ''s'; ''s' >] ->
+      Some (lex_keyword stream "unless" UNLESS)
     | [< ''e' >] -> Some
       (match stream with parser
-        | [< ''q' >] -> STRING_EQUALS
+        | [< ''q' >] -> lex_keyword stream "eq" STRING_EQUALS
         | [< ''l'; ''s' >] ->
           (match stream with parser
-            | [< ''e' >] -> ELSE
-            | [< ''i'; ''f' >] -> ELSEIF))
+            | [< ''e' >] -> lex_keyword stream "else" ELSE
+            | [< ''i'; ''f' >] -> lex_keyword stream "elsif" ELSEIF
+            | [< 'c >] -> IDENTIFIER (lex_identifier stream [c; 's'; 'l'; 'e']))
+        | [< 'c >] -> IDENTIFIER (lex_identifier stream [c; 'e']))
     | [< ''n' >] -> Some
       (match stream with parser
-        | [< ''e' >] -> STRING_DIFFERENT
-        | [< ''o'; ''t' >] -> NOT2)
+        | [< ''e' >] -> lex_keyword stream "ne" STRING_DIFFERENT
+        | [< ''o'; ''t' >] -> lex_keyword stream "not" NOT2
+        | [< 'c >] -> IDENTIFIER (lex_identifier stream [c; 'n']))
     | [< ''g' >] -> Some
       (match stream with parser
-        | [< ''t' >] -> STRING_GREATER
-        | [< ''e' >] -> STRING_GREATER_EQUALS)
+        | [< ''t' >] -> lex_keyword stream "gt" STRING_GREATER
+        | [< ''e' >] -> lex_keyword stream "ge" STRING_GREATER_EQUALS
+        | [< 'c >] -> IDENTIFIER (lex_identifier stream [c; 'g']))
     | [< ''l' >] -> Some
       (match stream with parser
-        | [< ''t' >] -> STRING_LOWER
-        | [< ''e' >] -> STRING_LOWER_EQUALS)
+        | [< ''t' >] -> lex_keyword stream "lt" STRING_LOWER
+        | [< ''e' >] -> lex_keyword stream "le" STRING_LOWER_EQUALS
+        | [< 'c >] -> IDENTIFIER (lex_identifier stream [c; 'l']))
     (* Multi-character symbols *)
     | [< ''|'; ''|' >] -> Some LAZY_OR
     | [< ''&' >] -> Some
@@ -196,7 +217,10 @@ let rec loop s =
     | Some x -> print_token x; print_string " "; loop s
 
 let () =
-  while true do
-    loop (Stream.of_string (input_line stdin))
- done
+  try
+    while true do
+      loop (Stream.of_string (input_line stdin))
+    done
+  with
+    | End_of_file -> ()
 
