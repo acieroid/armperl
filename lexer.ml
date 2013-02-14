@@ -51,12 +51,13 @@ let explode s =
     if i < 0 then l else exp (i - 1) (s.[i] :: l) in
   exp (String.length s - 1) []
 
+let is_identifier_char = function
+  | 'a'..'z' | 'A'..'Z' | '0'..'9' | '_' -> true
+  | _ -> false
+
 let rec lex_identifier s l =
   match s with parser
-    | [< ''a'..'z' as c >] -> lex_identifier s ([c] @ l)
-    | [< ''A'..'Z' as c >] -> lex_identifier s ([c] @ l)
-    | [< ''0'..'9' as c >] -> lex_identifier s ([c] @ l)
-    | [< ''_' >] -> lex_identifier s (['_'] @ l)
+    | [< 'c when is_identifier_char c >] -> lex_identifier s ([c] @ l)
     | [< >] -> (implode (List.rev l))
 
 let rec lex_integer s n =
@@ -77,10 +78,6 @@ let rec ignore_comment stream =
 
 let is_space = function
   | ' ' | '\n' | '\t' -> true
-  | _ -> false
-
-let is_identifier_char = function
-  | 'a'..'z' | 'A'..'Z' | '0'..'9' -> true
   | _ -> false
 
 let lex_keyword stream start kwd =
@@ -106,7 +103,6 @@ let rec lexer stream =
     | [< ''/' >] -> Some DIVIDE
     | [< ''.' >] -> Some CONCAT
     (* Keywords *)
-    (* TODO: handle identifiers starting with keywords *)
     | [< ''r'; ''e'; ''t'; ''u'; ''r'; ''n' >] ->
       Some (lex_keyword stream "return" RETURN)
     | [< ''s'; ''u'; ''b' >] ->
@@ -167,7 +163,7 @@ let rec lexer stream =
     | [< 'c when c == '"' >] -> Some (STRING (lex_string stream '"' []))
     | [< 'c when c == '\'' >] -> Some (STRING (lex_string stream '\'' []))
     | [< ''$' >] -> Some (VAR (lex_identifier stream []))
-    | [< 'c >] -> Some (IDENTIFIER (lex_identifier stream [c])) (* TODO: change to a-zA-Z or something like that *)
+    | [< 'c when is_identifier_char c >] -> Some (IDENTIFIER (lex_identifier stream [c]))
     | [< >] -> None
 
 let print_token = function
