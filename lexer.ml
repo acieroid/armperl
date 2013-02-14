@@ -41,8 +41,6 @@ type token =
   | STRING_GREATER_EQUALS
   | STRING_LOWER_EQUALS
   | NOT2
-  | SPACE
-  | END
 
 let implode l =
   let s = String.create (List.length l) in
@@ -69,77 +67,86 @@ let rec lex_string stream last l =
     | [< 'c when c == last >] -> implode (List.rev l)
     | [< 'c >] -> lex_string stream last ([c] @ l)
 
-(* TODO: ignore comments and spaces *)
-let lexer stream =
+let rec ignore_comment stream =
   match stream with parser
-    | [< '' ' >] -> SPACE
+    | [< ''\n' >] -> ()
+    | [< c >] -> ignore_comment stream
+
+let is_space = function
+  | ' ' | '\n' | '\t' -> true
+  | _ -> false
+
+let rec lexer stream =
+  match stream with parser
+    | [< 'c when is_space c >] -> lexer stream
+    | [< ''#' >] -> ignore_comment stream; lexer stream
     (* Simple symbols *)
-    | [< ''{' >] -> LBRACE
-    | [< ''}' >] -> RBRACE
-    | [< ''(' >] -> LPAR
-    | [< '')' >] -> RPAR
-    | [< '';' >] -> SEMICOLON
-    | [< '',' >] -> COMMA
-    | [< ''+' >] -> PLUS
-    | [< ''-' >] -> MINUS
-    | [< ''*' >] -> TIMES
-    | [< ''/' >] -> DIVIDE
-    | [< ''.' >] -> CONCAT
+    | [< ''{' >] -> Some LBRACE
+    | [< ''}' >] -> Some RBRACE
+    | [< ''(' >] -> Some LPAR
+    | [< '')' >] -> Some RPAR
+    | [< '';' >] -> Some SEMICOLON
+    | [< '',' >] -> Some COMMA
+    | [< ''+' >] -> Some PLUS
+    | [< ''-' >] -> Some MINUS
+    | [< ''*' >] -> Some TIMES
+    | [< ''/' >] -> Some DIVIDE
+    | [< ''.' >] -> Some CONCAT
     (* Keywords *)
     (* TODO: handle identifiers starting with keywords *)
-    | [< ''r'; ''e'; ''t'; ''u'; ''r'; ''n' >] -> RETURN
-    | [< ''s'; ''u'; ''b' >] -> SUB
-    | [< ''i'; ''f' >] -> IF
-    | [< ''u'; ''n'; ''l'; ''e'; ''s'; ''s' >] -> UNLESS
-    | [< ''e' >] ->
+    | [< ''r'; ''e'; ''t'; ''u'; ''r'; ''n' >] -> Some RETURN
+    | [< ''s'; ''u'; ''b' >] -> Some SUB
+    | [< ''i'; ''f' >] -> Some IF
+    | [< ''u'; ''n'; ''l'; ''e'; ''s'; ''s' >] -> Some UNLESS
+    | [< ''e' >] -> Some
       (match stream with parser
         | [< ''q' >] -> STRING_EQUALS
         | [< ''l'; ''s' >] ->
           (match stream with parser
             | [< ''e' >] -> ELSE
             | [< ''i'; ''f' >] -> ELSEIF))
-    | [< ''n' >] ->
+    | [< ''n' >] -> Some
       (match stream with parser
         | [< ''e' >] -> STRING_DIFFERENT
         | [< ''o'; ''t' >] -> NOT2)
-    | [< ''g' >] ->
+    | [< ''g' >] -> Some
       (match stream with parser
         | [< ''t' >] -> STRING_GREATER
         | [< ''e' >] -> STRING_GREATER_EQUALS)
-    | [< ''l' >] ->
+    | [< ''l' >] -> Some
       (match stream with parser
         | [< ''t' >] -> STRING_LOWER
         | [< ''e' >] -> STRING_LOWER_EQUALS)
     (* Multi-character symbols *)
-    | [< ''|'; ''|' >] -> LAZY_OR
-    | [< ''&' >] ->
+    | [< ''|'; ''|' >] -> Some LAZY_OR
+    | [< ''&' >] -> Some
       (match stream with parser
         | [< ''&' >] -> LAZY_AND
         | [< >] -> CALL_MARK)
-    | [< ''=' >] ->
+    | [< ''=' >] -> Some
       (match stream with parser
         | [< ''=' >] -> EQUALS
         | [< >] -> ASSIGN)
-    | [< ''!' >] ->
+    | [< ''!' >] -> Some
       (match stream with parser
         | [< ''=' >] -> DIFFERENT
         | [< >] -> NOT)
-    | [< ''>' >] ->
+    | [< ''>' >] -> Some
       (match stream with parser
         | [< ''=' >] -> GREATER_EQUALS
         | [< >] -> GREATER)
-    | [< ''<' >] ->
+    | [< ''<' >] -> Some
       (match stream with parser
         | [< ''=' >] -> LOWER_EQUALS
         | [< >] -> LOWER)
     (* More complex tokens *)
-    | [< ''0'..'9' as n >] -> 
-        INTEGER (lex_integer stream ((int_of_char n) - int_of_char '0'))
-    | [< 'c when c == '"' >] -> STRING (lex_string stream '"' [])
-    | [< 'c when c == '\'' >] -> STRING (lex_string stream '\'' [])
-    | [< ''$' >] -> VAR (lex_identifier stream [])
-    | [< 'c >] -> IDENTIFIER (lex_identifier stream [c]) (* TODO: change to a-zA-Z or something like that *)
-    | [< >] -> END
+    | [< ''0'..'9' as n >] ->
+      Some (INTEGER (lex_integer stream ((int_of_char n) - int_of_char '0')))
+    | [< 'c when c == '"' >] -> Some (STRING (lex_string stream '"' []))
+    | [< 'c when c == '\'' >] -> Some (STRING (lex_string stream '\'' []))
+    | [< ''$' >] -> Some (VAR (lex_identifier stream []))
+    | [< 'c >] -> Some (IDENTIFIER (lex_identifier stream [c])) (* TODO: change to a-zA-Z or something like that *)
+    | [< >] -> None
 
 let print_token = function
   | VAR s -> print_string "VAR("; print_string s; print_string ")"
@@ -181,14 +188,11 @@ let print_token = function
   | STRING_GREATER_EQUALS -> print_string "STRING_GREATER_EQUALS"
   | STRING_LOWER_EQUALS -> print_string "STRING_LOWER_EQUALS"
   | NOT2 -> print_string "NOT2"
-  | SPACE -> print_string "SPACE"
-  | END -> print_string "END"
 
 let rec loop s =
   match (lexer s) with
-    | END -> ()
-    | SPACE -> loop s
-    | x -> print_token x; print_string " "; loop s
+    | None -> ()
+    | Some x -> print_token x; print_string " "; loop s
 
 let () =
   while true do
