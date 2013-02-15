@@ -1,3 +1,17 @@
+type ('a,'b) either = Left of 'a | Right of 'b;;
+
+let implode l =
+  let s = String.create (List.length l) in
+  let rec f n = function
+    | x :: xs -> s.[n] <- x; f (n+1) xs
+    | [] ->  s
+  in f 0 l
+
+let explode s =
+  let rec exp i l =
+    if i < 0 then l else exp (i - 1) (s.[i] :: l) in
+  exp (String.length s - 1) []
+
 type token =
   | VAR of string
   | INTEGER of int
@@ -39,18 +53,6 @@ type token =
   | STRING_LOWER_EQUALS
   | NOT2
 
-let implode l =
-  let s = String.create (List.length l) in
-  let rec f n = function
-    | x :: xs -> s.[n] <- x; f (n+1) xs
-    | [] ->  s
-  in f 0 l
-
-let explode s =
-  let rec exp i l =
-    if i < 0 then l else exp (i - 1) (s.[i] :: l) in
-  exp (String.length s - 1) []
-
 let is_identifier_char = function
   | 'a'..'z' | 'A'..'Z' | '0'..'9' | '_' -> true
   | _ -> false
@@ -87,31 +89,33 @@ let lex_keyword stream start kwd =
     | [< >] -> kwd
 
 let rec lexer stream =
+  let ret x = Some (Right x) in
   match stream with parser
     | [< 'c when is_space c >] -> lexer stream (* drop spaces *)
     | [< ''#' >] -> ignore_comment stream; lexer stream
     (* Simple symbols *)
-    | [< ''{' >] -> Some LBRACE
-    | [< ''}' >] -> Some RBRACE
-    | [< ''(' >] -> Some LPAR
-    | [< '')' >] -> Some RPAR
-    | [< '';' >] -> Some SEMICOLON
-    | [< '',' >] -> Some COMMA
-    | [< ''+' >] -> Some PLUS
-    | [< ''-' >] -> Some MINUS
-    | [< ''*' >] -> Some TIMES
-    | [< ''/' >] -> Some DIVIDE
-    | [< ''.' >] -> Some CONCAT
+    | [< ''{' >] -> ret LBRACE
+    | [< ''}' >] -> ret RBRACE
+    | [< ''(' >] -> ret LPAR
+    | [< '')' >] -> ret RPAR
+    | [< '';' >] -> ret SEMICOLON
+    | [< '',' >] -> ret COMMA
+    | [< ''+' >] -> ret PLUS
+    | [< ''-' >] -> ret MINUS
+    | [< ''*' >] -> ret TIMES
+    | [< ''/' >] -> ret DIVIDE
+    | [< ''.' >] -> ret CONCAT
     (* Keywords *)
+    (* TODO: fail with for example ssub *)
     | [< ''r'; ''e'; ''t'; ''u'; ''r'; ''n' >] ->
-      Some (lex_keyword stream "return" RETURN)
+      ret (lex_keyword stream "return" RETURN)
     | [< ''s'; ''u'; ''b' >] ->
-      Some (lex_keyword stream "sub" SUB)
+      ret (lex_keyword stream "sub" SUB)
     | [< ''i'; ''f' >] ->
-      Some (lex_keyword stream "if" IF)
+      ret (lex_keyword stream "if" IF)
     | [< ''u'; ''n'; ''l'; ''e'; ''s'; ''s' >] ->
-      Some (lex_keyword stream "unless" UNLESS)
-    | [< ''e' >] -> Some
+      ret (lex_keyword stream "unless" UNLESS)
+    | [< ''e' >] -> ret
       (match stream with parser
         | [< ''q' >] -> lex_keyword stream "eq" STRING_EQUALS
         | [< ''l'; ''s' >] ->
@@ -120,50 +124,51 @@ let rec lexer stream =
             | [< ''i'; ''f' >] -> lex_keyword stream "elsif" ELSEIF
             | [< 'c >] -> IDENTIFIER (lex_identifier stream [c; 's'; 'l'; 'e']))
         | [< 'c >] -> IDENTIFIER (lex_identifier stream [c; 'e']))
-    | [< ''n' >] -> Some
+    | [< ''n' >] -> ret
       (match stream with parser
         | [< ''e' >] -> lex_keyword stream "ne" STRING_DIFFERENT
         | [< ''o'; ''t' >] -> lex_keyword stream "not" NOT2
         | [< 'c >] -> IDENTIFIER (lex_identifier stream [c; 'n']))
-    | [< ''g' >] -> Some
+    | [< ''g' >] -> ret
       (match stream with parser
         | [< ''t' >] -> lex_keyword stream "gt" STRING_GREATER
         | [< ''e' >] -> lex_keyword stream "ge" STRING_GREATER_EQUALS
         | [< 'c >] -> IDENTIFIER (lex_identifier stream [c; 'g']))
-    | [< ''l' >] -> Some
+    | [< ''l' >] -> ret
       (match stream with parser
         | [< ''t' >] -> lex_keyword stream "lt" STRING_LOWER
         | [< ''e' >] -> lex_keyword stream "le" STRING_LOWER_EQUALS
         | [< 'c >] -> IDENTIFIER (lex_identifier stream [c; 'l']))
     (* Multi-character symbols *)
-    | [< ''|'; ''|' >] -> Some LAZY_OR
-    | [< ''&' >] -> Some
+    | [< ''|'; ''|' >] -> ret LAZY_OR
+    | [< ''&' >] -> ret
       (match stream with parser
         | [< ''&' >] -> LAZY_AND
         | [< >] -> CALL_MARK)
-    | [< ''=' >] -> Some
+    | [< ''=' >] -> ret
       (match stream with parser
         | [< ''=' >] -> EQUALS
         | [< >] -> ASSIGN)
-    | [< ''!' >] -> Some
+    | [< ''!' >] -> ret
       (match stream with parser
         | [< ''=' >] -> DIFFERENT
         | [< >] -> NOT)
-    | [< ''>' >] -> Some
+    | [< ''>' >] -> ret
       (match stream with parser
         | [< ''=' >] -> GREATER_EQUALS
         | [< >] -> GREATER)
-    | [< ''<' >] -> Some
+    | [< ''<' >] -> ret
       (match stream with parser
         | [< ''=' >] -> LOWER_EQUALS
         | [< >] -> LOWER)
     (* More complex tokens *)
     | [< ''0'..'9' as n >] ->
-      Some (INTEGER (lex_integer stream ((int_of_char n) - int_of_char '0')))
-    | [< 'c when c == '"' >] -> Some (STRING (lex_string stream '"' []))
-    | [< 'c when c == '\'' >] -> Some (STRING (lex_string stream '\'' []))
-    | [< ''$' >] -> Some (VAR (lex_identifier stream []))
-    | [< 'c when is_identifier_char c >] -> Some (IDENTIFIER (lex_identifier stream [c]))
+      ret (INTEGER (lex_integer stream ((int_of_char n) - int_of_char '0')))
+    | [< 'c when c == '"' >] -> ret (STRING (lex_string stream '"' []))
+    | [< 'c when c == '\'' >] -> ret (STRING (lex_string stream '\'' []))
+    | [< ''$' >] -> ret (VAR (lex_identifier stream []))
+    | [< 'c when is_identifier_char c >] -> ret (IDENTIFIER (lex_identifier stream [c]))
+    | [< 'c >] -> Some (Left ("no match: " ^ Char.escaped c))
     | [< >] -> None
 
 let print_token = function
@@ -207,15 +212,28 @@ let print_token = function
   | STRING_LOWER_EQUALS -> print_string "STRING_LOWER_EQUALS"
   | NOT2 -> print_string "NOT2"
 
-let rec loop s =
+let rec loop line s =
   match (lexer s) with
     | None -> ()
-    | Some x -> print_token x; print_string " "; loop s
+    | Some (Left err) ->
+      (* TODO: print the error like gcc ? or ocaml ? *)
+      print_newline ();
+      print_string "error when lexing character on line ";
+      print_int line;
+      print_string " at position ";
+      print_int (Stream.count s);
+      print_string ": ";
+      print_string err;
+      print_newline ();
+      ()
+    | Some (Right x) -> print_token x; print_string " "; loop line s
 
 let () =
+  let line = ref 0 in
   try
     while true do
-      loop (Stream.of_string (input_line stdin))
+      line := !line + 1;
+      loop !line (Stream.of_string (input_line stdin))
     done
   with
     | End_of_file -> ()
