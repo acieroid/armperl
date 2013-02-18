@@ -1,4 +1,4 @@
-TARGET=lexer
+TARGET=main
 OPTS=-pp camlp4o
 TAGS=annot,debug
 
