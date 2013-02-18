@@ -1,5 +1,6 @@
 TARGET=lexer
 OPTS=-pp camlp4o
+TAGS=annot,debug
 
 all:
-	ocamlbuild ${OPTS} ${TARGET}.native
+	ocamlbuild ${OPTS} -tags ${TAGS} ${TARGET}.native
