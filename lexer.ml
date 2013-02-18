@@ -228,12 +228,14 @@ let rec loop line s =
       ()
     | Some (Right x) -> print_token x; print_string " "; loop line s
 
+(* TODO: strings can be defined on multiple lines... *)
 let () =
   let line = ref 0 in
   try
     while true do
       line := !line + 1;
-      loop !line (Stream.of_string (input_line stdin))
+      loop !line (Stream.of_string (input_line stdin));
+      print_newline ()
     done
   with
     | End_of_file -> ()
