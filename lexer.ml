@@ -25,6 +25,7 @@ type token =
   | ELSE
   | ELSEIF
   | NOT
+  | NOT_WORD
   | PLUS
   | MINUS
   | TIMES
@@ -120,7 +121,7 @@ let rec lexer stream =
   | [< ''n' >] -> ret
         (match stream with parser
         | [< ''e' >] -> lex_keyword stream "ne" STRING_DIFFERENT
-        | [< ''o'; ''t' >] -> lex_keyword stream "not" NOT
+        | [< ''o'; ''t' >] -> lex_keyword stream "not" NOT_WORD
         | [< 'c >] -> IDENTIFIER (lex_identifier stream [c; 'n']))
   | [< ''g' >] -> ret
         (match stream with parser
@@ -183,6 +184,7 @@ let string_of_token = function
   | ELSE -> "ELSE"
   | ELSEIF -> "ELSEIF"
   | NOT -> "NOT"
+  | NOT_WORD -> "NOT_WORD"
   | PLUS -> "PLUS"
   | MINUS -> "MINUS"
   | TIMES -> "TIMES"

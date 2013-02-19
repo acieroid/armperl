@@ -20,6 +20,7 @@ type token =
   | ELSE
   | ELSEIF
   | NOT
+  | NOT_WORD
   | PLUS
   | MINUS
   | TIMES
