@@ -1,0 +1,97 @@
+<program>        -> <program> <function list>
+                 |  <program> <instruction list>
+                 |  <function list>
+                 |  <instruction list>
+
+<function list>  → <function list> <function>
+                 | <function>
+
+<function>       → 'sub' identifier <function args>
+                   '{' <instruction list> '}'
+
+<function args>  → '(' <arg list> ')'
+                 | ε
+
+<arg list>       → <arg list> ',' var
+                 | ε
+
+<instr list>     → <instr list> ';' <instr>
+                 | '{' <instr list> '}'
+                 | <instr> ';'
+                 | <instr>
+
+<funcall>        → '&' identifier
+                 | '&' identifier <funcall args>
+                 | identifier
+                 | identifier <funcall args>
+
+<funcall args>   → '(' <args call list> ')'
+                 | <args call list>
+                 | ε
+
+<args call list> → <args call list> ',' <expr>
+                 | <expr>
+                 | ε
+
+<instr>          → <cond>
+                 | <expr>
+                 | 'return' <expr>
+
+<cond>           → <expr> 'if' <expr>
+                 | <expr> 'unless' <expr>
+                 | 'if' <expr> '{' <instr list> '}' <cond end>
+                 | 'unless' <expr> '{' <instr list> '}' <cond end>
+
+<cond end>       → 'else' <expr> '{' <instr list> '}' <cond end>
+                 | 'elsif' <expr> '{' <instr list> '}' <cond end>
+                 | ε
+
+<simple expr>    → <funcall>
+                 | var
+                 | integer
+                 | string
+
+<expr>           → <simple expr>
+                 | 'not' <expr>
+                 | <expr-comma>
+
+<expr-comma>     → <expr-comma> ',' <expr-assign>
+                 | <expr-assign>
+
+<expr-assign>    → <expr-or> '=' <expr-assign>
+                 | <expr-or>
+
+<expr-or>        → <expr-or> '||' <expr-and>
+                 | <expr-and>
+
+<expr-and>       → <expr-and> '&&' <expr-eq>
+                 | <expr-eq>
+
+<expr-eq>        → <comp> '==' <comp>
+                 | <comp> '!=' <comp>
+                 | <comp> 'eq' <comp>
+                 | <comp> 'ne' <comp>
+                 | <comp>
+
+<comp>           → <calc> '>' <calc>
+                 | <calc> '<' <calc>
+                 | <calc> '>=' <calc>
+                 | <calc> '<=' <calc>
+                 | <calc> 'lt' <calc>
+                 | <calc> 'gt' <calc>
+                 | <calc> 'le' <calc>
+                 | <calc> 'ge' <calc>
+
+<calc>           → <calc> '+' <term>
+                 | <calc> '-' <term>
+                 | <calc> '.' <term>
+                 
+
+<term>           → <term> '*' <factor>
+                 | <term> '/' <factor>
+
+<factor>         → <simple expr>
+                 | '(' <expr> ')'
+                 | '!' <expr>
+                 | '+' <expr>
+                 | '-' <expr>
