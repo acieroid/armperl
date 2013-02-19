@@ -45,7 +45,6 @@ type token =
   | STRING_LOWER
   | STRING_GREATER_EQUALS
   | STRING_LOWER_EQUALS
-  | NOT_WORD
   | EOF
 
 let is_identifier_char = function
@@ -121,7 +120,7 @@ let rec lexer stream =
   | [< ''n' >] -> ret
         (match stream with parser
         | [< ''e' >] -> lex_keyword stream "ne" STRING_DIFFERENT
-        | [< ''o'; ''t' >] -> lex_keyword stream "not" NOT_WORD
+        | [< ''o'; ''t' >] -> lex_keyword stream "not" NOT
         | [< 'c >] -> IDENTIFIER (lex_identifier stream [c; 'n']))
   | [< ''g' >] -> ret
         (match stream with parser

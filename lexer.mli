@@ -40,7 +40,6 @@ type token =
   | STRING_LOWER
   | STRING_GREATER_EQUALS
   | STRING_LOWER_EQUALS
-  | NOT_WORD
   | EOF
 
 (** Return a string describing the given token *)
