@@ -103,8 +103,13 @@ let rec lexer stream =
         (* Keywords *)
   | [< ''r'; ''e'; ''t'; ''u'; ''r'; ''n' >] ->
       ret (lex_keyword stream "return" RETURN)
-  | [< ''s'; ''u'; ''b' >] ->
-      ret (lex_keyword stream "sub" SUB)
+  | [< ''s' >] -> ret
+            (match stream with parser
+            | [< ''u' >] ->
+		(match stream with parser
+		    | [< ''b' >] -> lex_keyword stream "sub" SUB
+		    | [< 'c >] -> IDENTIFIER (lex_identifier stream [c; 's'; 'u']))
+            | [< 'c >] -> IDENTIFIER (lex_identifier stream [c; 's']))
   | [< ''i'; ''f' >] ->
       ret (lex_keyword stream "if" IF)
   | [< ''u'; ''n'; ''l'; ''e'; ''s'; ''s' >] ->
