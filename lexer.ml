@@ -101,8 +101,21 @@ let rec lexer stream =
   | [< ''/' >] -> ret DIVIDE
   | [< ''.' >] -> ret CONCAT
         (* Keywords *)
-  | [< ''r'; ''e'; ''t'; ''u'; ''r'; ''n' >] ->
-      ret (lex_keyword stream "return" RETURN)
+  | [< ''r' >] -> ret
+	(match stream with parser
+            | [< ''e' >] ->
+		(match stream with parser
+		    | [< ''t' >] ->
+			(match stream with parser
+			| [< ''u' >] ->
+			    (match stream with parser
+			    | [< ''r' >] ->
+				  (match stream with parser
+				  | [< ''n' >] -> lex_keyword stream "return" RETURN
+				  | [< 'c >] -> IDENTIFIER (lex_identifier stream [c; 'r'; 'e'; 't'; 'u']))
+			   | [< 'c >] -> IDENTIFIER (lex_identifier stream [c; 'r'; 'e'; 't']))
+			| [< 'c >] -> IDENTIFIER (lex_identifier stream [c; 'r'; 'e']))
+            | [< 'c >] -> IDENTIFIER (lex_identifier stream [c; 'r']))
   | [< ''s' >] -> ret
             (match stream with parser
             | [< ''u' >] ->
@@ -110,8 +123,10 @@ let rec lexer stream =
 		    | [< ''b' >] -> lex_keyword stream "sub" SUB
 		    | [< 'c >] -> IDENTIFIER (lex_identifier stream [c; 's'; 'u']))
             | [< 'c >] -> IDENTIFIER (lex_identifier stream [c; 's']))
-  | [< ''i'; ''f' >] ->
-      ret (lex_keyword stream "if" IF)
+  | [< ''i' >] -> ret
+	(match stream with parser
+            | [< ''f' >] -> lex_keyword stream "if" IF
+            | [< 'c >] -> IDENTIFIER (lex_identifier stream [c; ''i']))
   | [< ''u'; ''n'; ''l'; ''e'; ''s'; ''s' >] ->
       ret (lex_keyword stream "unless" UNLESS)
   | [< ''e' >] -> ret
