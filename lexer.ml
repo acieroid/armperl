@@ -3,7 +3,7 @@
     - Count the lines, in order to do better error reporting. This
       would probably need a state structure that keeps track of the
       current line number
-    - It does not lex identifiers such as rreturn, ssub, etc.
+    - It does not lex identifiers such as unless.
 *)
 
 type token =
