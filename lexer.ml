@@ -138,7 +138,8 @@ let rec lex_string state last l =
 let lex_keyword state start kwd =
   match state.stream with parser
   | [< 'c when is_identifier_char c >] ->
-      IDENTIFIER (lex_identifier state (List.rev (explode start)))
+      IDENTIFIER (lex_identifier state
+                    ([c] @ (List.rev (explode start))))
   | [< >] -> kwd
 
 let rec try_lex_keyword state start kwd acc =
