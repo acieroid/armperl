@@ -5,6 +5,7 @@
       current line number
     - It does not lex identifiers such as rreturn, ssub, etc.
 *)
+open Utils
 
 type token =
   | VAR of string
@@ -107,7 +108,7 @@ let rec ignore_comment stream =
 let rec lex_identifier s l =
   match s with parser
   | [< 'c when is_identifier_char c >] -> lex_identifier s ([c] @ l)
-  | [< >] -> (Utils.implode (List.rev l))
+  | [< >] -> (implode (List.rev l))
 
 let rec lex_integer s n =
   match s with parser
@@ -116,18 +117,18 @@ let rec lex_integer s n =
 
 let rec lex_string stream last l =
   match stream with parser
-  | [< 'c when c == last >] -> Utils.implode (List.rev l)
+  | [< 'c when c == last >] -> implode (List.rev l)
   | [< 'c >] -> lex_string stream last ([c] @ l)
 
 let lex_keyword stream start kwd =
   match stream with parser
   | [< 'c when is_identifier_char c >] ->
-      IDENTIFIER (lex_identifier stream (List.rev (Utils.explode start)))
+      IDENTIFIER (lex_identifier stream (List.rev (explode start)))
   | [< >] -> kwd
 
 let rec lexer stream =
-  let ret x = Utils.Right x and
-      err x = Utils.Left x in
+  let ret x = Right x and
+      err x = Left x in
   match stream with parser
     (* Drop spaces and comment *)
   | [< 'c when is_space c >] -> lexer stream
