@@ -1,9 +1,3 @@
-(* TODO in this module:
-
-    - Count the lines, in order to do better error reporting. This
-      would probably need a state structure that keeps track of the
-      current line number
-*)
 open Utils
 
 type lexer_state = {
