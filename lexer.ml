@@ -6,6 +6,8 @@
 *)
 open Utils
 
+let line = ref 1
+
 type token =
   | VAR of string
   | INTEGER of int
@@ -100,7 +102,7 @@ let is_space = function
 
 let rec ignore_comment stream =
   match stream with parser
-  | [< ''\n' >] -> ()
+  | [< ''\n' >] -> line := !line+1
   | [< 'c >] -> ignore_comment stream
   | [< >] -> ()
 
@@ -117,6 +119,9 @@ let rec lex_integer s n =
 let rec lex_string stream last l =
   match stream with parser
   | [< 'c when c == last >] -> implode (List.rev l)
+  | [< ''\n' >] ->
+      line := !line + 1;
+      lex_string stream last (['\n'] @ l)
   | [< 'c >] -> lex_string stream last ([c] @ l)
 
 let lex_keyword stream start kwd =
@@ -139,7 +144,9 @@ let rec lexer stream =
       err x = Left x in
   match stream with parser
     (* Drop spaces and comment *)
-  | [< 'c when is_space c >] -> lexer stream
+  | [< 'c when is_space c >] -> 
+      if c == '\n' then line := !line+1 else (); (* count lines *)
+      lexer stream
   | [< ''#' >] -> ignore_comment stream; lexer stream
     (* Simple symbols *)
   | [< ''{' >] -> ret LBRACE
@@ -214,6 +221,7 @@ let rec lexer stream =
   | [< 'c when c == '\'' >] -> ret (STRING (lex_string stream '\'' []))
   | [< ''$' >] -> ret (VAR (lex_identifier stream []))
   | [< 'c when is_identifier_char c >] -> ret (IDENTIFIER (lex_identifier stream [c]))
-  | [< 'c >] -> err ("no match: " ^ Char.escaped c)
+  | [< 'c >] -> err ("no match: " ^ Char.escaped c ^
+                     " on line " ^ (string_of_int !line))
   | [< >] -> ret EOF
 
