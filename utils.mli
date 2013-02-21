@@ -8,6 +8,3 @@ val implode : char list -> string
 
 (** Convert a string to a list of characters *)
 val explode : string -> char list
-
-(** Return a stream that reads an input channel character by character *)
-val stream_of_input : in_channel -> char Stream.t
