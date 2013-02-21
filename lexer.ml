@@ -48,6 +48,48 @@ type token =
   | STRING_LOWER_EQUALS
   | EOF
 
+let string_of_token = function
+  | VAR s -> "VAR($" ^ s ^ ")"
+  | INTEGER n -> "INTEGER(" ^ string_of_int n ^ ")"
+  | STRING s -> "STRING(\"" ^ s ^ "\")"
+  | IDENTIFIER s -> "IDENTIFIER(" ^ s ^ ")"
+  | SUB -> "'sub'"
+  | RETURN -> "'return'"
+  | CALL_MARK -> "'&'"
+  | LBRACE -> "'{'"
+  | RBRACE -> "'}'"
+  | LPAR -> "'('"
+  | RPAR -> "')'"
+  | SEMICOLON -> "';'"
+  | COMMA -> "','"
+  | IF -> "'if'"
+  | UNLESS -> "'unless'"
+  | ELSE -> "'else'"
+  | ELSEIF -> "'elsif'"
+  | NOT -> "'!'"
+  | NOT_WORD -> "'not'"
+  | PLUS -> "'+'"
+  | MINUS -> "'-'"
+  | TIMES -> "'*'"
+  | DIVIDE -> "'/'"
+  | ASSIGN -> "'='"
+  | CONCAT -> "'.'"
+  | LAZY_OR -> "'||'"
+  | LAZY_AND -> "'&&'"
+  | EQUALS -> "'=='"
+  | DIFFERENT -> "'!='"
+  | GREATER -> "'>'"
+  | LOWER -> "'<'"
+  | GREATER_EQUALS -> "'>='"
+  | LOWER_EQUALS -> "'<='"
+  | STRING_EQUALS -> "'eq'"
+  | STRING_DIFFERENT -> "'ne'"
+  | STRING_GREATER -> "'gt'"
+  | STRING_LOWER -> "'lt'"
+  | STRING_GREATER_EQUALS -> "'ge'"
+  | STRING_LOWER_EQUALS -> "'le'"
+  | EOF -> "EOF"
+
 let is_identifier_char = function
   | 'a'..'z' | 'A'..'Z' | '0'..'9' | '_' -> true
   | _ -> false
@@ -84,11 +126,13 @@ let lex_keyword stream start kwd =
   | [< >] -> kwd
 
 let rec lexer stream =
-  let ret x = Utils.Right x in
+  let ret x = Utils.Right x and
+      err x = Utils.Left x in
   match stream with parser
-  | [< 'c when is_space c >] -> lexer stream (* drop spaces *)
+    (* Drop spaces and comment *)
+  | [< 'c when is_space c >] -> lexer stream
   | [< ''#' >] -> ignore_comment stream; lexer stream
-        (* Simple symbols *)
+    (* Simple symbols *)
   | [< ''{' >] -> ret LBRACE
   | [< ''}' >] -> ret RBRACE
   | [< ''(' >] -> ret LPAR
@@ -100,7 +144,7 @@ let rec lexer stream =
   | [< ''*' >] -> ret TIMES
   | [< ''/' >] -> ret DIVIDE
   | [< ''.' >] -> ret CONCAT
-        (* Keywords *)
+    (* Keywords *)
   | [< ''r'; ''e'; ''t'; ''u'; ''r'; ''n' >] ->
       ret (lex_keyword stream "return" RETURN)
   | [< ''s'; ''u'; ''b' >] ->
@@ -133,7 +177,7 @@ let rec lexer stream =
         | [< ''t' >] -> lex_keyword stream "lt" STRING_LOWER
         | [< ''e' >] -> lex_keyword stream "le" STRING_LOWER_EQUALS
         | [< 'c >] -> IDENTIFIER (lex_identifier stream [c; 'l']))
-        (* Multi-character symbols *)
+    (* Multi-character symbols *)
   | [< ''|'; ''|' >] -> ret LAZY_OR
   | [< ''&' >] -> ret
         (match stream with parser
@@ -155,55 +199,13 @@ let rec lexer stream =
         (match stream with parser
         | [< ''=' >] -> LOWER_EQUALS
         | [< >] -> LOWER)
-        (* More complex tokens *)
+    (* More complex tokens *)
   | [< ''0'..'9' as n >] ->
       ret (INTEGER (lex_integer stream ((int_of_char n) - int_of_char '0')))
   | [< 'c when c == '"' >] -> ret (STRING (lex_string stream '"' []))
   | [< 'c when c == '\'' >] -> ret (STRING (lex_string stream '\'' []))
   | [< ''$' >] -> ret (VAR (lex_identifier stream []))
   | [< 'c when is_identifier_char c >] -> ret (IDENTIFIER (lex_identifier stream [c]))
-  | [< 'c >] -> Utils.Left ("no match: " ^ Char.escaped c)
-  | [< >] -> Utils.Right EOF
+  | [< 'c >] -> err ("no match: " ^ Char.escaped c)
+  | [< >] -> ret EOF
 
-let string_of_token = function
-  | VAR s -> "VAR(" ^ s ^ ")"
-  | INTEGER n -> "INTEGER(" ^ string_of_int n ^ ")"
-  | STRING s -> "STRING(" ^ s ^ ")"
-  | IDENTIFIER s -> "IDENTIFIER(" ^ s ^ ")"
-  | SUB -> "SUB"
-  | RETURN -> "RETURN"
-  | CALL_MARK -> "CALL_MARK"
-  | LBRACE -> "LBRACE"
-  | RBRACE -> "RBRACE"
-  | LPAR -> "LPAR"
-  | RPAR -> "RPAR"
-  | SEMICOLON -> "SEMICOLON"
-  | COMMA -> "COMMA"
-  | IF -> "IF"
-  | UNLESS -> "UNLESS"
-  | ELSE -> "ELSE"
-  | ELSEIF -> "ELSEIF"
-  | NOT -> "NOT"
-  | NOT_WORD -> "NOT_WORD"
-  | PLUS -> "PLUS"
-  | MINUS -> "MINUS"
-  | TIMES -> "TIMES"
-  | DIVIDE -> "DIVIDE"
-  | ASSIGN -> "ASSIGN"
-  | CONCAT -> "CONCAT"
-  | LAZY_OR -> "LAZY_OR"
-  | LAZY_AND -> "LAZY_AND"
-  | EQUALS -> "EQUALS"
-  | DIFFERENT -> "DIFFERENT"
-  | GREATER -> "GREATER"
-  | LOWER -> "LOWER"
-  | GREATER_EQUALS -> "GREATER_EQUALS"
-  | LOWER_EQUALS -> "LOWER_EQUALS"
-  | STRING_EQUALS -> "STRING_EQUALS"
-  | STRING_DIFFERENT -> "STRING_DIFFERENT"
-  | STRING_GREATER -> "STRING_GREATER"
-  | STRING_LOWER -> "STRING_LOWER"
-  | STRING_GREATER_EQUALS -> "STRING_GREATER_EQUALS"
-  | STRING_LOWER_EQUALS -> "STRING_LOWER_EQUALS"
-  | NOT_WORD -> "NOT_WORD"
-  | EOF -> "EOF"
