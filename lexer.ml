@@ -148,7 +148,7 @@ let rec try_lex_keyword state start kwd acc =
       (match state.stream with parser
       | [< 'c when c == hd >] ->
           try_lex_keyword state tl kwd ([c] @ acc)
-      | [< 'c >] ->
+      | [< 'c when is_identifier_char c >] ->
           IDENTIFIER (lex_identifier state ([c] @ acc))
       | [< >] -> IDENTIFIER (implode (List.rev acc)))
 
@@ -189,24 +189,24 @@ let rec lexer state =
                 (match state.stream with parser
                 | [< ''e' >] -> lex_keyword state "else" ELSE
                 | [< ''i' >] -> try_lex_keyword state ['f'] ELSEIF ['i'; 's'; 'l'; 'e']
-                | [< 'c >] -> IDENTIFIER (lex_identifier state [c; 's'; 'l'; 'e']))
-            | [< 'c >] -> IDENTIFIER (lex_identifier state [c; 'l'; 'e']))
-        | [< 'c >] -> IDENTIFIER (lex_identifier state [c; 'e']))
+                | [< >] -> IDENTIFIER (lex_identifier state ['s'; 'l'; 'e']))
+            | [< >] -> IDENTIFIER (lex_identifier state ['l'; 'e']))
+        | [< >] -> IDENTIFIER (lex_identifier state ['e']))
   | [< ''n' >] -> ret
         (match state.stream with parser
         | [< ''e' >] -> lex_keyword state "ne" STRING_DIFFERENT
         | [< ''o' >] -> try_lex_keyword state ['t'] NOT_WORD ['o'; 'n']
-        | [< 'c >] -> IDENTIFIER (lex_identifier state [c; 'n']))
+        | [< >] -> IDENTIFIER (lex_identifier state ['n']))
   | [< ''g' >] -> ret
         (match state.stream with parser
         | [< ''t' >] -> lex_keyword state "gt" STRING_GREATER
         | [< ''e' >] -> lex_keyword state "ge" STRING_GREATER_EQUALS
-        | [< 'c >] -> IDENTIFIER (lex_identifier state [c; 'g']))
+        | [< >] -> IDENTIFIER (lex_identifier state ['g']))
   | [< ''l' >] -> ret
         (match state.stream with parser
         | [< ''t' >] -> lex_keyword state "lt" STRING_LOWER
         | [< ''e' >] -> lex_keyword state "le" STRING_LOWER_EQUALS
-        | [< 'c >] -> IDENTIFIER (lex_identifier state [c; 'l']))
+        | [< >] -> IDENTIFIER (lex_identifier state ['l']))
     (* Multi-character symbols *)
   | [< ''|'; ''|' >] -> ret LAZY_OR
   | [< ''&' >] -> ret
