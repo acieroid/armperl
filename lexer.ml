@@ -3,7 +3,6 @@
     - Count the lines, in order to do better error reporting. This
       would probably need a state structure that keeps track of the
       current line number
-    - It does not lex identifiers such as rreturn, ssub, etc.
 *)
 open Utils
 
@@ -126,6 +125,15 @@ let lex_keyword stream start kwd =
       IDENTIFIER (lex_identifier stream (List.rev (explode start)))
   | [< >] -> kwd
 
+let rec try_lex_keyword stream start kwd acc =
+  match start with
+  | [] -> lex_keyword stream (implode start) kwd
+  | (hd::tl) ->
+      (match stream with parser
+      | [< 'c when c == hd >] -> try_lex_keyword stream tl kwd ([c] @ acc)
+      | [< 'c >] -> IDENTIFIER (lex_identifier stream ([c] @ acc))
+      | [< >] -> IDENTIFIER (implode (List.rev acc)))
+
 let rec lexer stream =
   let ret x = Right x and
       err x = Left x in
@@ -146,27 +154,26 @@ let rec lexer stream =
   | [< ''/' >] -> ret DIVIDE
   | [< ''.' >] -> ret CONCAT
     (* Keywords *)
-  | [< ''r'; ''e'; ''t'; ''u'; ''r'; ''n' >] ->
-      ret (lex_keyword stream "return" RETURN)
-  | [< ''s'; ''u'; ''b' >] ->
-      ret (lex_keyword stream "sub" SUB)
-  | [< ''i'; ''f' >] ->
-      ret (lex_keyword stream "if" IF)
-  | [< ''u'; ''n'; ''l'; ''e'; ''s'; ''s' >] ->
-      ret (lex_keyword stream "unless" UNLESS)
+  | [< ''r' >] -> ret (try_lex_keyword stream ['e'; 't'; 'u'; 'r'; 'n'] RETURN ['r'])
+  | [< ''s' >] -> ret (try_lex_keyword stream ['u'; 'b'] SUB ['s'])
+  | [< ''i' >] -> ret (try_lex_keyword stream ['f'] IF ['i'])
+  | [< ''u' >] -> ret (try_lex_keyword stream ['n'; 'l'; 'e'; 's'; 's'] UNLESS ['u'])
   | [< ''e' >] -> ret
         (match stream with parser
         | [< ''q' >] -> lex_keyword stream "eq" STRING_EQUALS
-        | [< ''l'; ''s' >] ->
+        | [< ''l' >] ->
             (match stream with parser
-            | [< ''e' >] -> lex_keyword stream "else" ELSE
-            | [< ''i'; ''f' >] -> lex_keyword stream "elsif" ELSEIF
-            | [< 'c >] -> IDENTIFIER (lex_identifier stream [c; 's'; 'l'; 'e']))
+              [< ''s' >] ->
+                (match stream with parser
+                | [< ''e' >] -> lex_keyword stream "else" ELSE
+                | [< ''i' >] -> try_lex_keyword stream ['f'] ELSEIF ['i'; 's'; 'l'; 'e']
+                | [< 'c >] -> IDENTIFIER (lex_identifier stream [c; 's'; 'l'; 'e']))
+            | [< 'c >] -> IDENTIFIER (lex_identifier stream [c; 'l'; 'e']))
         | [< 'c >] -> IDENTIFIER (lex_identifier stream [c; 'e']))
   | [< ''n' >] -> ret
         (match stream with parser
         | [< ''e' >] -> lex_keyword stream "ne" STRING_DIFFERENT
-        | [< ''o'; ''t' >] -> lex_keyword stream "not" NOT_WORD
+        | [< ''o' >] -> try_lex_keyword stream ['t'] NOT_WORD ['o'; 'n']
         | [< 'c >] -> IDENTIFIER (lex_identifier stream [c; 'n']))
   | [< ''g' >] -> ret
         (match stream with parser
