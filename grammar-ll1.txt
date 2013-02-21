@@ -55,9 +55,7 @@
                  | 'not' <expr>
                  | <expr-comma>
 
-<expr-comma>     → <expr-comma> ',' <expr-assign>
-                 | <expr-assign>
-
+# fait jusqu'ici
 <expr-comma>     → <expr-assign> <expr-comma'>
 
 <expr-comma>     → ',' <expr-assign> <expr-comma'>
