@@ -29,8 +29,8 @@
                  | <args call list>
                  | ε
 
-<args call list> → <args call list> ',' <expr>
-                 | <expr>
+<args call list> → <args call list> ',' <instr>
+                 | <instr>
                  | ε
 
 <instr>          → <cond>
