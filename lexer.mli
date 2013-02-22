@@ -1,5 +1,11 @@
 open Utils
 
+(** The lexer state *)
+type lexer_state
+
+(** Create a lexer state from an input channel *)
+val state_of_channel : in_channel -> lexer_state
+
 (** All the possibles tokens *)
 type token =
   | VAR of string
@@ -46,6 +52,6 @@ type token =
 (** Return a string describing the given token *)
 val string_of_token : token -> string
 
-(** Lex a token from a stream of characters. Return a token on
+(** Lex a token from a state. Return a token on
     success, and a string describing the error on failure. *)
-val lexer : char Stream.t -> (string, token) either
+val lexer : lexer_state -> (string, token) either

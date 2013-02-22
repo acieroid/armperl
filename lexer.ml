@@ -1,10 +1,20 @@
-(* TODO in this module:
+open Utils
 
-    - Count the lines, in order to do better error reporting. This
-      would probably need a state structure that keeps track of the
-      current line number
-    - It does not lex identifiers such as unless.
-*)
+type lexer_state = {
+    line: int ref; (* the current line number *)
+    count: int ref; (* the number of character parsed before the current line *)
+    stream: char Stream.t (* the current stream *)
+  }
+
+let count_line state =
+  state.line := !(state.line) + 1;
+  state.count := Stream.count state.stream
+
+let state_of_channel channel = {
+  line = ref 1;
+  count = ref 0;
+  stream = Stream.of_channel channel
+}
 
 type token =
   | VAR of string
@@ -48,6 +58,48 @@ type token =
   | STRING_LOWER_EQUALS
   | EOF
 
+let string_of_token = function
+  | VAR s -> "VAR($" ^ s ^ ")"
+  | INTEGER n -> "INTEGER(" ^ string_of_int n ^ ")"
+  | STRING s -> "STRING(\"" ^ s ^ "\")"
+  | IDENTIFIER s -> "IDENTIFIER(" ^ s ^ ")"
+  | SUB -> "'sub'"
+  | RETURN -> "'return'"
+  | CALL_MARK -> "'&'"
+  | LBRACE -> "'{'"
+  | RBRACE -> "'}'"
+  | LPAR -> "'('"
+  | RPAR -> "')'"
+  | SEMICOLON -> "';'"
+  | COMMA -> "','"
+  | IF -> "'if'"
+  | UNLESS -> "'unless'"
+  | ELSE -> "'else'"
+  | ELSEIF -> "'elsif'"
+  | NOT -> "'!'"
+  | NOT_WORD -> "'not'"
+  | PLUS -> "'+'"
+  | MINUS -> "'-'"
+  | TIMES -> "'*'"
+  | DIVIDE -> "'/'"
+  | ASSIGN -> "'='"
+  | CONCAT -> "'.'"
+  | LAZY_OR -> "'||'"
+  | LAZY_AND -> "'&&'"
+  | EQUALS -> "'=='"
+  | DIFFERENT -> "'!='"
+  | GREATER -> "'>'"
+  | LOWER -> "'<'"
+  | GREATER_EQUALS -> "'>='"
+  | LOWER_EQUALS -> "'<='"
+  | STRING_EQUALS -> "'eq'"
+  | STRING_DIFFERENT -> "'ne'"
+  | STRING_GREATER -> "'gt'"
+  | STRING_LOWER -> "'lt'"
+  | STRING_GREATER_EQUALS -> "'ge'"
+  | STRING_LOWER_EQUALS -> "'le'"
+  | EOF -> "EOF"
+
 let is_identifier_char = function
   | 'a'..'z' | 'A'..'Z' | '0'..'9' | '_' -> true
   | _ -> false
@@ -56,39 +108,61 @@ let is_space = function
   | ' ' | '\n' | '\t' -> true
   | _ -> false
 
-let rec ignore_comment stream =
-  match stream with parser
-  | [< ''\n' >] -> ()
-  | [< 'c >] -> ignore_comment stream
+let rec ignore_comment state =
+  match state.stream with parser
+  | [< ''\n' >] -> count_line state
+  | [< 'c >] -> ignore_comment state
   | [< >] -> ()
 
-let rec lex_identifier s l =
-  match s with parser
-  | [< 'c when is_identifier_char c >] -> lex_identifier s ([c] @ l)
-  | [< >] -> (Utils.implode (List.rev l))
+let rec lex_identifier state l =
+  match state.stream with parser
+  | [< 'c when is_identifier_char c >] -> lex_identifier state ([c] @ l)
+  | [< >] -> (implode (List.rev l))
 
-let rec lex_integer s n =
-  match s with parser
-  | [< ''0'..'9' as x >] -> lex_integer s (n*10 + ((int_of_char x) - int_of_char '0'))
+let rec lex_integer state n =
+  match state.stream with parser
+  | [< ''0'..'9' as x >] ->
+      lex_integer state (n*10 + ((int_of_char x) - int_of_char '0'))
   | [< >] -> n
 
-let rec lex_string stream last l =
-  match stream with parser
-  | [< 'c when c == last >] -> Utils.implode (List.rev l)
-  | [< 'c >] -> lex_string stream last ([c] @ l)
+let rec lex_string state last l =
+  match state.stream with parser
+  | [< 'c when c == last >] ->
+      implode (List.rev l)
+  | [< ''\n' >] ->
+      count_line state;
+      lex_string state last (['\n'] @ l)
+  | [< 'c >] ->
+      lex_string state last ([c] @ l)
 
-let lex_keyword stream start kwd =
-  match stream with parser
+let lex_keyword state start kwd =
+  match state.stream with parser
   | [< 'c when is_identifier_char c >] ->
-      IDENTIFIER (lex_identifier stream (List.rev (Utils.explode start)))
+      IDENTIFIER (lex_identifier state
+                    ([c] @ (List.rev (explode start))))
   | [< >] -> kwd
 
-let rec lexer stream =
-  let ret x = Utils.Right x in
-  match stream with parser
-  | [< 'c when is_space c >] -> lexer stream (* drop spaces *)
-  | [< ''#' >] -> ignore_comment stream; lexer stream
-        (* Simple symbols *)
+let rec try_lex_keyword state start kwd acc =
+  match start with
+  | [] -> lex_keyword state (implode start) kwd
+  | (hd::tl) ->
+      (match state.stream with parser
+      | [< 'c when c == hd >] ->
+          try_lex_keyword state tl kwd ([c] @ acc)
+      | [< 'c when is_identifier_char c >] ->
+          IDENTIFIER (lex_identifier state ([c] @ acc))
+      | [< >] -> IDENTIFIER (implode (List.rev acc)))
+
+let rec lexer state =
+  let ret x = Right x and
+      err x = Left x in
+  match state.stream with parser
+    (* Drop spaces and comment *)
+  | [< 'c when is_space c >] -> 
+      if c == '\n' then count_line state else ();
+      lexer state
+  | [< ''#' >] -> ignore_comment state; lexer state
+    (* Simple symbols *)
   | [< ''{' >] -> ret LBRACE
   | [< ''}' >] -> ret RBRACE
   | [< ''(' >] -> ret LPAR
@@ -100,130 +174,73 @@ let rec lexer stream =
   | [< ''*' >] -> ret TIMES
   | [< ''/' >] -> ret DIVIDE
   | [< ''.' >] -> ret CONCAT
-        (* Keywords *)
-  | [< ''r' >] -> ret
-	(match stream with parser
-            | [< ''e' >] ->
-		(match stream with parser
-		    | [< ''t' >] ->
-			(match stream with parser
-			| [< ''u' >] ->
-			    (match stream with parser
-			    | [< ''r' >] ->
-				  (match stream with parser
-				  | [< ''n' >] -> lex_keyword stream "return" RETURN
-				  | [< 'c >] -> IDENTIFIER (lex_identifier stream [c; 'r'; 'e'; 't'; 'u']))
-			   | [< 'c >] -> IDENTIFIER (lex_identifier stream [c; 'r'; 'e'; 't']))
-			| [< 'c >] -> IDENTIFIER (lex_identifier stream [c; 'r'; 'e']))
-            | [< 'c >] -> IDENTIFIER (lex_identifier stream [c; 'r']))
-  | [< ''s' >] -> ret
-            (match stream with parser
-            | [< ''u' >] ->
-		(match stream with parser
-		    | [< ''b' >] -> lex_keyword stream "sub" SUB
-		    | [< 'c >] -> IDENTIFIER (lex_identifier stream [c; 's'; 'u']))
-            | [< 'c >] -> IDENTIFIER (lex_identifier stream [c; 's']))
-  | [< ''i' >] -> ret
-	(match stream with parser
-            | [< ''f' >] -> lex_keyword stream "if" IF
-            | [< 'c >] -> IDENTIFIER (lex_identifier stream [c; ''i']))
-  | [< ''u'; ''n'; ''l'; ''e'; ''s'; ''s' >] ->
-      ret (lex_keyword stream "unless" UNLESS)
+    (* Keywords *)
+  | [< ''r' >] ->
+      ret (try_lex_keyword state ['e'; 't'; 'u'; 'r'; 'n'] RETURN ['r'])
+  | [< ''s' >] ->
+      ret (try_lex_keyword state ['u'; 'b'] SUB ['s'])
+  | [< ''i' >] -> ret (try_lex_keyword state ['f'] IF ['i'])
+  | [< ''u' >] -> ret (try_lex_keyword state ['n'; 'l'; 'e'; 's'; 's'] UNLESS ['u'])
   | [< ''e' >] -> ret
-        (match stream with parser
-        | [< ''q' >] -> lex_keyword stream "eq" STRING_EQUALS
-        | [< ''l'; ''s' >] ->
-            (match stream with parser
-            | [< ''e' >] -> lex_keyword stream "else" ELSE
-            | [< ''i'; ''f' >] -> lex_keyword stream "elsif" ELSEIF
-            | [< 'c >] -> IDENTIFIER (lex_identifier stream [c; 's'; 'l'; 'e']))
-        | [< 'c >] -> IDENTIFIER (lex_identifier stream [c; 'e']))
+        (match state.stream with parser
+        | [< ''q' >] -> lex_keyword state "eq" STRING_EQUALS
+        | [< ''l' >] ->
+            (match state.stream with parser
+              [< ''s' >] ->
+                (match state.stream with parser
+                | [< ''e' >] -> lex_keyword state "else" ELSE
+                | [< ''i' >] -> try_lex_keyword state ['f'] ELSEIF ['i'; 's'; 'l'; 'e']
+                | [< >] -> IDENTIFIER (lex_identifier state ['s'; 'l'; 'e']))
+            | [< >] -> IDENTIFIER (lex_identifier state ['l'; 'e']))
+        | [< >] -> IDENTIFIER (lex_identifier state ['e']))
   | [< ''n' >] -> ret
-        (match stream with parser
-        | [< ''e' >] -> lex_keyword stream "ne" STRING_DIFFERENT
-        | [< ''o'; ''t' >] -> lex_keyword stream "not" NOT_WORD
-        | [< 'c >] -> IDENTIFIER (lex_identifier stream [c; 'n']))
+        (match state.stream with parser
+        | [< ''e' >] -> lex_keyword state "ne" STRING_DIFFERENT
+        | [< ''o' >] -> try_lex_keyword state ['t'] NOT_WORD ['o'; 'n']
+        | [< >] -> IDENTIFIER (lex_identifier state ['n']))
   | [< ''g' >] -> ret
-        (match stream with parser
-        | [< ''t' >] -> lex_keyword stream "gt" STRING_GREATER
-        | [< ''e' >] -> lex_keyword stream "ge" STRING_GREATER_EQUALS
-        | [< 'c >] -> IDENTIFIER (lex_identifier stream [c; 'g']))
+        (match state.stream with parser
+        | [< ''t' >] -> lex_keyword state "gt" STRING_GREATER
+        | [< ''e' >] -> lex_keyword state "ge" STRING_GREATER_EQUALS
+        | [< >] -> IDENTIFIER (lex_identifier state ['g']))
   | [< ''l' >] -> ret
-        (match stream with parser
-        | [< ''t' >] -> lex_keyword stream "lt" STRING_LOWER
-        | [< ''e' >] -> lex_keyword stream "le" STRING_LOWER_EQUALS
-        | [< 'c >] -> IDENTIFIER (lex_identifier stream [c; 'l']))
-        (* Multi-character symbols *)
+        (match state.stream with parser
+        | [< ''t' >] -> lex_keyword state "lt" STRING_LOWER
+        | [< ''e' >] -> lex_keyword state "le" STRING_LOWER_EQUALS
+        | [< >] -> IDENTIFIER (lex_identifier state ['l']))
+    (* Multi-character symbols *)
   | [< ''|'; ''|' >] -> ret LAZY_OR
   | [< ''&' >] -> ret
-        (match stream with parser
+        (match state.stream with parser
         | [< ''&' >] -> LAZY_AND
         | [< >] -> CALL_MARK)
   | [< ''=' >] -> ret
-        (match stream with parser
+        (match state.stream with parser
         | [< ''=' >] -> EQUALS
         | [< >] -> ASSIGN)
   | [< ''!' >] -> ret
-        (match stream with parser
+        (match state.stream with parser
         | [< ''=' >] -> DIFFERENT
         | [< >] -> NOT)
   | [< ''>' >] -> ret
-        (match stream with parser
+        (match state.stream with parser
         | [< ''=' >] -> GREATER_EQUALS
         | [< >] -> GREATER)
   | [< ''<' >] -> ret
-        (match stream with parser
+        (match state.stream with parser
         | [< ''=' >] -> LOWER_EQUALS
         | [< >] -> LOWER)
-        (* More complex tokens *)
+    (* More complex tokens *)
   | [< ''0'..'9' as n >] ->
-      ret (INTEGER (lex_integer stream ((int_of_char n) - int_of_char '0')))
-  | [< 'c when c == '"' >] -> ret (STRING (lex_string stream '"' []))
-  | [< 'c when c == '\'' >] -> ret (STRING (lex_string stream '\'' []))
-  | [< ''$' >] -> ret (VAR (lex_identifier stream []))
-  | [< 'c when is_identifier_char c >] -> ret (IDENTIFIER (lex_identifier stream [c]))
-  | [< 'c >] -> Utils.Left ("no match: " ^ Char.escaped c)
-  | [< >] -> Utils.Right EOF
+      ret (INTEGER (lex_integer state ((int_of_char n) - int_of_char '0')))
+  | [< 'c when c == '"' >] -> ret (STRING (lex_string state '"' []))
+  | [< 'c when c == '\'' >] -> ret (STRING (lex_string state '\'' []))
+  | [< ''$' >] -> ret (VAR (lex_identifier state []))
+  | [< 'c when is_identifier_char c >] -> ret (IDENTIFIER (lex_identifier state [c]))
+  | [< 'c >] -> err ("no match: '" ^ Char.escaped c ^
+                     "' on line " ^ (string_of_int !(state.line)) ^
+                     ", character " ^ (string_of_int
+                                         ((Stream.count state.stream) -
+                                            !(state.count))))
+  | [< >] -> ret EOF
 
-let string_of_token = function
-  | VAR s -> "VAR(" ^ s ^ ")"
-  | INTEGER n -> "INTEGER(" ^ string_of_int n ^ ")"
-  | STRING s -> "STRING(" ^ s ^ ")"
-  | IDENTIFIER s -> "IDENTIFIER(" ^ s ^ ")"
-  | SUB -> "SUB"
-  | RETURN -> "RETURN"
-  | CALL_MARK -> "CALL_MARK"
-  | LBRACE -> "LBRACE"
-  | RBRACE -> "RBRACE"
-  | LPAR -> "LPAR"
-  | RPAR -> "RPAR"
-  | SEMICOLON -> "SEMICOLON"
-  | COMMA -> "COMMA"
-  | IF -> "IF"
-  | UNLESS -> "UNLESS"
-  | ELSE -> "ELSE"
-  | ELSEIF -> "ELSEIF"
-  | NOT -> "NOT"
-  | NOT_WORD -> "NOT_WORD"
-  | PLUS -> "PLUS"
-  | MINUS -> "MINUS"
-  | TIMES -> "TIMES"
-  | DIVIDE -> "DIVIDE"
-  | ASSIGN -> "ASSIGN"
-  | CONCAT -> "CONCAT"
-  | LAZY_OR -> "LAZY_OR"
-  | LAZY_AND -> "LAZY_AND"
-  | EQUALS -> "EQUALS"
-  | DIFFERENT -> "DIFFERENT"
-  | GREATER -> "GREATER"
-  | LOWER -> "LOWER"
-  | GREATER_EQUALS -> "GREATER_EQUALS"
-  | LOWER_EQUALS -> "LOWER_EQUALS"
-  | STRING_EQUALS -> "STRING_EQUALS"
-  | STRING_DIFFERENT -> "STRING_DIFFERENT"
-  | STRING_GREATER -> "STRING_GREATER"
-  | STRING_LOWER -> "STRING_LOWER"
-  | STRING_GREATER_EQUALS -> "STRING_GREATER_EQUALS"
-  | STRING_LOWER_EQUALS -> "STRING_LOWER_EQUALS"
-  | NOT_WORD -> "NOT_WORD"
-  | EOF -> "EOF"

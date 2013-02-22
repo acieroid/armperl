@@ -1,7 +1,7 @@
 <program>        → <program> <function list>
-                 |  <program> <instruction list>
-                 |  <function list>
-                 |  <instruction list>
+                 | <program> <instruction list>
+                 | <function list>
+                 | <instruction list>
 
 <function list>  → <function list> <function>
                  | <function>
@@ -55,17 +55,21 @@
                  | 'not' <expr>
                  | <expr-comma>
 
-<expr-comma>     → <expr-comma> ',' <expr-assign>
-                 | <expr-assign>
+# fait jusqu'ici
+<expr-comma>     → <expr-assign> <expr-comma'>
+
+<expr-comma>     → ',' <expr-assign> <expr-comma'>
 
 <expr-assign>    → <expr-or> '=' <expr-assign>
                  | <expr-or>
 
-<expr-or>        → <expr-or> '||' <expr-and>
-                 | <expr-and>
+<expr-or>        → <expr-and> <expr-or'>
 
-<expr-and>       → <expr-and> '&&' <expr-eq>
-                 | <expr-eq>
+<expr-or'>       → '||' <expr-and> <expr-or'>
+
+<expr-and>       → <expr-eq> <expr-and'>
+
+<expr-and'>      → '&&' <expr-eq> <expr-and'>
 
 <expr-eq>        → <comp> '==' <comp>
                  | <comp> '!=' <comp>
@@ -81,14 +85,20 @@
                  | <calc> 'gt' <calc>
                  | <calc> 'le' <calc>
                  | <calc> 'ge' <calc>
+                 | <calc>
 
-<calc>           → <calc> '+' <term>
-                 | <calc> '-' <term>
-                 | <calc> '.' <term>
+<calc>           → <term> <calc'>
+
+<calc'>          → '+' <term> <calc'>
+                 | '-' <term> <calc'>
+                 | '.' <term> <calc'>
+                 | ε
                  
+<term>           → <factor> <term'>
 
-<term>           → <term> '*' <factor>
-                 | <term> '/' <factor>
+<term'>          → '*' <factor> <term'>
+                 | '/' <factor> <term'>
+                 | ε
 
 <factor>         → <simple expr>
                  | '(' <expr> ')'
