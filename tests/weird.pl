@@ -1,6 +1,6 @@
 # Weird things are allowed in Perl.
 # This should print 1.
-sub foo() {
+sub foo($arg) {
   return 0;
 }
 
