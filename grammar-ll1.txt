@@ -58,7 +58,8 @@
 # fait jusqu'ici
 <expr-comma>     → <expr-assign> <expr-comma'>
 
-<expr-comma>     → ',' <expr-assign> <expr-comma'>
+<expr-comma'>    → ',' <expr-assign> <expr-comma'>
+                 | ε
 
 <expr-assign>    → <expr-or> '=' <expr-assign>
                  | <expr-or>
@@ -66,17 +67,21 @@
 <expr-or>        → <expr-and> <expr-or'>
 
 <expr-or'>       → '||' <expr-and> <expr-or'>
+                 | ε
 
 <expr-and>       → <expr-eq> <expr-and'>
 
 <expr-and'>      → '&&' <expr-eq> <expr-and'>
+                 | ε
 
+# TODO
 <expr-eq>        → <comp> '==' <comp>
                  | <comp> '!=' <comp>
                  | <comp> 'eq' <comp>
                  | <comp> 'ne' <comp>
                  | <comp>
 
+# TODO
 <comp>           → <calc> '>' <calc>
                  | <calc> '<' <calc>
                  | <calc> '>=' <calc>
