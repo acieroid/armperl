@@ -1,10 +1,14 @@
-<program>        → <program> <function list>
-                 | <program> <instruction list>
-                 | <function list>
-                 | <instruction list>
+﻿<program>        → <function list> <program'>
+                 | <instruction list> <program'>
 
-<function list>  → <function list> <function>
-                 | <function>
+<program'>       → <function list> <program'>
+                 | <instruction list> <program'>
+		 | ε
+
+<function list>  → <function> <function list'>
+                 
+<function list'> → <function> <function list'>
+		 | ε
 
 <function>       → 'sub' identifier <function args>
                    '{' <instruction list> '}'
@@ -29,8 +33,10 @@
                  | <args call list>
                  | ε
 
-<args call list> → <args call list> ',' <instr>
-                 | <instr>
+<args call list> → <instr> <args call list'>
+                 | ε
+
+<args call list'>→ ',' <instr> <args call list'>
                  | ε
 
 <instr>          → <cond>
@@ -55,7 +61,6 @@
                  | 'not' <expr>
                  | <expr-comma>
 
-# fait jusqu'ici
 <expr-comma>     → <expr-assign> <expr-comma'>
 
 <expr-comma'>    → ',' <expr-assign> <expr-comma'>
@@ -74,22 +79,26 @@
 <expr-and'>      → '&&' <expr-eq> <expr-and'>
                  | ε
 
-# TODO
-<expr-eq>        → <comp> '==' <comp>
-                 | <comp> '!=' <comp>
-                 | <comp> 'eq' <comp>
-                 | <comp> 'ne' <comp>
+<expr-eq>        → <expr-eq'>
                  | <comp>
 
-# TODO
-<comp>           → <calc> '>' <calc>
-                 | <calc> '<' <calc>
-                 | <calc> '>=' <calc>
-                 | <calc> '<=' <calc>
-                 | <calc> 'lt' <calc>
-                 | <calc> 'gt' <calc>
-                 | <calc> 'le' <calc>
-                 | <calc> 'ge' <calc>
+<expr-eq'>       → '==' <expr-eq'>
+                 | '!=' <expr-eq'>
+                 | 'eq' <expr-eq'>
+                 | 'ne' <expr-eq'>
+                 | <comp>
+
+<comp>           → <comp'>
+                 | <calc>
+
+<comp'>          → '>' <comp'>
+                 | '<' <comp'>
+                 | '>=' <comp'>
+                 | '<=' <comp'>
+                 | 'lt' <comp'>
+                 | 'gt' <comp'>
+                 | 'le' <comp'>
+                 | 'ge' <comp'>
                  | <calc>
 
 <calc>           → <term> <calc'>

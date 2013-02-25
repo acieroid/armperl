@@ -1,4 +1,4 @@
-<program>        → <program> <function list>
+﻿<program>        →  <program> <function list>
                  |  <program> <instruction list>
                  |  <function list>
                  |  <instruction list>
