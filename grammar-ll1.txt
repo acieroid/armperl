@@ -79,17 +79,15 @@
 <expr-and'>      → '&&' <expr-eq> <expr-and'>
                  | ε
 
-<expr-eq>        → <expr-eq'>
-                 | <comp>
+<expr-eq>        → <comp> <expr-eq'>
 
 <expr-eq'>       → '==' <expr-eq'>
                  | '!=' <expr-eq'>
                  | 'eq' <expr-eq'>
                  | 'ne' <expr-eq'>
-                 | <comp>
+                 |  ε
 
-<comp>           → <comp'>
-                 | <calc>
+<comp>           → <calc> <comp'>
 
 <comp'>          → '>' <comp'>
                  | '<' <comp'>
@@ -99,7 +97,7 @@
                  | 'gt' <comp'>
                  | 'le' <comp'>
                  | 'ge' <comp'>
-                 | <calc>
+                 | ε
 
 <calc>           → <term> <calc'>
 
