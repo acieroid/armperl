@@ -10,19 +10,23 @@
 <function list'> → <function> <function list'>
 		 | ε
 
-<function>       → 'sub' identifier <function args>
-                   '{' <instruction list> '}'
+<function>       → 'sub' identifier <function args> '{' <instruction list> '}'
 
 <function args>  → '(' <arg list> ')'
                  | ε
 
-<arg list>       → <arg list> ',' var
+<arg list>       → var <arg list'>
                  | ε
 
-<instr list>     → <instr list> ';' <instr>
+<arg list'>      → ',' var <arg list'>
+                 | ε
+
+<instr list>     →  <instr> <instr list'>
                  | '{' <instr list> '}'
-                 | <instr> ';'
-                 | <instr>
+
+<instr list'>    → ';' <instr> <instr list'>
+                 | ';'
+                 | ε
 
 <funcall>        → '&' identifier
                  | '&' identifier <funcall args>
