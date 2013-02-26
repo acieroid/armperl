@@ -1,8 +1,8 @@
 ﻿<program>        → <function list> <program'>
-                 | <instruction list> <program'>
+                 | <instr list> <program'>
 
 <program'>       → <function list> <program'>
-                 | <instruction list> <program'>
+                 | <instr list> <program'>
 		 | ε
 
 <function list>  → <function> <function list'>
@@ -10,7 +10,7 @@
 <function list'> → <function> <function list'>
 		 | ε
 
-<function>       → 'sub' identifier <function args> '{' <instruction list> '}'
+<function>       → 'sub' identifier <function args> '{' <instr list> '}'
 
 <function args>  → '(' <arg list> ')'
                  | ε
