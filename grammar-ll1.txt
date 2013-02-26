@@ -47,6 +47,7 @@
                  | <expr>
                  | 'return' <expr>
 
+# ajouter Follow{<cond>} à Follow{<expr>} ?
 <cond>           → <expr> 'if' <expr>
                  | <expr> 'unless' <expr>
                  | 'if' <expr> '{' <instr list> '}' <cond end>
@@ -61,10 +62,10 @@
                  | integer
                  | string
 
-<expr>           → <simple expr>
-                 | 'not' <expr>
+<expr>           → 'not' <expr>
                  | <expr-comma>
 
+# TODO: dégager le expr-comma
 <expr-comma>     → <expr-assign> <expr-comma'>
 
 <expr-comma'>    → ',' <expr-assign> <expr-comma'>

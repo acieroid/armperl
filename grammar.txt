@@ -51,11 +51,7 @@
                  | integer
                  | string
 
-<expr>           → <simple expr>
-                 | 'not' <expr>
-                 | <expr-comma>
-
-<expr-comma>     → <expr-comma> ',' <expr-assign>
+<expr>           → 'not' <expr>
                  | <expr-assign>
 
 <expr-assign>    → <expr-or> '=' <expr-assign>
