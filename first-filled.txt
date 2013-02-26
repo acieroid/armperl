@@ -1,0 +1,72 @@
+nullable: <…'>, <arg list>, <funcall args>, <args call list>, <cond end>
+
+First{<factor>} = {'(', '!', '+', '-', '&', var, integer, string, identifier}
+First{<term'>} = {'*', '/'}
+First{<term>} = {'(', '!', '+', '-', '&', var, integer, string, identifier}
+First{<calc'>} = {'+', '-', '.'}
+First{<calc>} = {'(', '!', '+', '-', '&', var, integer, string, identifier}
+First{<comp'>} = {'>', '<', '>=', '<=', 'lt', 'gt', 'le', 'ge'}
+First{<comp>} = {'(', '!', '+', '-', '&', var, integer, string, identifier}
+First{<expr-eq'>} = {'==', '!=', 'eq', 'ne'}
+First{<expr-eq>} = {'(', '!', '+', '-', '&', var, integer, string, identifier}
+First{<expr-and'>} = {'&&'}
+First{<expr-and>} = {'(', '!', '+', '-', '&', var, integer, string, identifier}
+First{<expr-or'>} = {'||'}
+First{<expr-or>} = {'(', '!', '+', '-', '&', var, integer, string, identifier}
+First{<expr-assign>} = {'(', '!', '+', '-', '&', var, integer, string, identifier}
+First{<expr-comma'>} = {','}
+First{<expr-comma>} = {'(', '!', '+', '-', '&', var, integer, string, identifier}
+First{<expr>} = {'not', '(', '!', '+', '-', '&', var, integer, string, identifier}
+First{<simple expr>} = {var, integer, string, '&', identifier}
+First{<cond end>} = {'else', 'elsif'}
+First{<cond>} = {'if', 'unless', 'not', '(', '!', '+', '-', '&', var, integer, string, identifier}
+First{<instr>} = {'return', 'if', 'unless', 'not', '(', '!', '+', '-', '&', var, integer, string, identifier}
+First{<args call list'>} = {','}
+First{<args call list>} = {'return', 'if', 'unless', 'not', '(', '!', '+', '-', '&', var, integer, string, identifier}
+First{<funcall args>} = {'{'} + {'return', 'if', 'unless', 'not', '(', '!', '+', '-', '&', var, integer, string, identifier}
+First{<funcall>} = {'&', identifier}
+First{<instr list'>} = {';'}
+First{<instr list>} = {'{', 'return', 'if', 'unless', 'not', '(', '!', '+', '-', '&', var, integer, string, identifier}
+First{<arg list'>} = {','}
+First{<arg list>} = {var}
+First{<function args>} = {'('}
+First{<function>} = {'sub'}
+First{<function list'>} = {'sub'}
+First{<function list>} = {'sub'}
+First{<program'>} = {'sub', '{', 'return', 'if', 'unless', 'not', '(', '!', '+', '-', '&', var, integer, string, identifier}
+First{<program>} = {'sub', '{', 'return', 'if', 'unless', 'not', '(', '!', '+', '-', '&', var, integer, string, identifier}
+
+Follow{<program>} = {EOF}
+Follow{<program'>} = {EOF}
+Follow{<function list>} = {'sub', '{', 'return', 'if', 'unless', 'not', '(', '!', '+', '-', '&', var, integer, string, identifier, EOF}
+Follow{<function>} = {'sub', '{', 'return', 'if', 'unless', 'not', '(', '!', '+', '-', '&', var, integer, string, identifier, EOF}
+Follow{<function list'>} = {'sub', '{', 'return', 'if', 'unless', 'not', '(', '!', '+', '-', '&', var, integer, string, identifier, EOF}
+Follow{<function args>} = {'{'}
+Follow{<instr list>} = {'}', 'sub', '{', 'return', 'if', 'unless', 'not', '(', '!', '+', '-', '&', var, integer, string, identifier, EOF}
+Follow{<arg list>} = {')'}
+Follow{<arg list'>} = {')'}
+Follow{<instr>} = {';', '}', 'sub', '{', 'return', 'if', 'unless', 'not', '(', '!', '+', '-', '&', var, integer, string, identifier, EOF, ',', ')'} + Follow{<funcall args>}
+Follow{<instr list'>} = {'}', 'sub', '{', 'return', 'if', 'unless', 'not', '(', '!', '+', '-', '&', var, integer, string, identifier, EOF}
+Follow{<funcall args>} = Follow{<funcall>}
+Follow{<args call list>} = {')'} + Follow{<funcall args>}
+Follow{<args call list>} = Follow{<args call list'>}
+Follow{<cond>} = Follow{<instr>}
+Follow{<expr>} = {'if', 'unless', '{', ')'} + Follow{<instr>} + Follow{<factor>}
+Follow{<cond end>} = Follow{<cond>}
+Follow{<funcall>} = Follow{<simple expr>}
+Follow{<simple expr>} = Follow{<expr>} + Follow{<factor>}
+Follow{<expr-comma>} = Follow{<expr>}
+Follow{<expr-comma'>} Follow{<expr-comma>}
+Follow{<expr-assign>} = First{<expr-assign>} + Follow{<expr-comma>}
+Follow{<expr-or>} = {'='} + Follow{<expr-assign>}
+Follow{<expr-and>} = First{<expr-or'>} + Follow{<expr-or>}
+Follow{<expr-or'>} = Follow{<expr-or>}
+Follow{<expr-eq>} = First{<expr-and'>} + Follow{<expr-and>}
+Follow{<expr-and'>} = Follow{<expr-and>}
+Follow{<comp>} = First{<expr-eq'>} + Follow{<expr-eq>}
+Follow{<expr-eq'>} = Follow{<expr-eq>}
+Follow{<calc>} = First{<comp'>} + Follow{<comp>}
+Follow{<comp'>} = Follow{<comp>}
+Follow{<term>} = First{<calc'>} + Follow{<calc>}
+Follow{<calc'>} = Follow{<calc>}
+Follow{<factor>} = First{<term'>} + Follow{<term>}
