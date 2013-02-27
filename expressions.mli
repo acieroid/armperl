@@ -50,3 +50,6 @@ type unop =
   | Not
   | UnaryPlus
   | UnaryMinus
+
+(** Convert a value to its representation *)
+val string_of_value : Expression.value -> String

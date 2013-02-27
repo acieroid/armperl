@@ -1,2 +1,2 @@
 (** Evaluate a Perl expression *)
-val eval : Expression.expr -> Expression.value
+val eval : Symtable.t -> Expression.expr -> Expression.value * Symtable.t

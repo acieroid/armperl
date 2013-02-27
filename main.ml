@@ -1,4 +1,5 @@
 open Utils
+open Expression
 
 let rec loop s =
   match (Lexer.lexer s) with
@@ -14,4 +15,8 @@ let rec loop s =
       loop s
 
 let () =
-  loop (Lexer.state_of_channel stdin)
+  (* loop (Lexer.state_of_channel stdin) *)
+  let res, _ = Eval.eval Symtable.empty (BinOp (Plus, Value (Integer 3), Value (Integer 5))) in
+  print_string (string_of_value res);
+  print_newline ()
+    
