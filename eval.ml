@@ -20,7 +20,7 @@ let str_repr = function
   | Float x -> string_of_float x
   | True -> "1"
   | False -> ""
-  | Function _ -> ""
+  | Undef -> ""
 
 let str_op op left right =
   String (op (str_repr left) (str_repr right))
@@ -64,7 +64,7 @@ let eval_unop op x =
       | False -> False
       | True -> Integer (-1)
       | String s -> String ("-" ^ s)
-      | Function _ -> Integer 0)
+      | Undef -> Integer 0)
 
 let rec bind_params symtable names args =
   match (names, args) with
@@ -72,7 +72,7 @@ let rec bind_params symtable names args =
   | [], _ -> failwith "too many arguments"
   | _, [] -> failwith "not enough arguments"
   | (name::tl_names), (arg::tl_args) ->
-      bind_params (add symtable name arg) tl_names tl_args
+      bind_params (set_var symtable name arg) tl_names tl_args
 
 let rec eval_sequence symtable = function
   | [] -> Integer 0, symtable
@@ -82,24 +82,22 @@ let rec eval_sequence symtable = function
       eval_sequence symtable' tl
 
 and eval_fun symtable f args =
-  match f with
-  | Function (names, body) ->
-      let symtable' = bind_params symtable names args in
-      (* TODO: the function might change global variables. We need a
-      separate symbol table for global variables. *)
-      let v, _ = eval_sequence symtable' body in
-      v, symtable
-  | _ ->  failwith "Cannot call a non-function"
+  let symtable' = bind_params symtable f.args args in
+  let v, _ = eval_sequence symtable' f.body in
+  v, symtable
 
 and eval symtable = function
   | Value x -> (x, symtable)
   | Variable name ->
-      (match find symtable name with
-      | Some v -> (v, symtable)
-      | None -> failwith ("No such variable: " ^ name))
+      let local = find_var symtable name in
+      (match local with
+      | Undef -> find_global symtable name
+      | _ -> local), symtable
   | Assign (name, right) ->
+      (* TODO: depending on whether we are in a function definition or
+      not, we should define a local or global variable *)
       let value, symtable' = eval symtable right in
-      value, add symtable name value
+      value, set_var symtable name value
   | Or (left, right) ->
       let left', symtable' = eval symtable left in
       (match left' with
@@ -123,9 +121,9 @@ and eval symtable = function
       eval_unop op x', symtable'
   | Funcall (f, args) ->
       let f' =
-        (match find symtable f with
-        | Some x -> x
-        | None -> failwith ("Undefined function: " ^ f)) in
+        (match find_fun symtable f with
+        | {defined=false} -> failwith ("Undefined function: " ^ f)
+        | x -> x) in
       let args_rev, symtable' =
         List.fold_left
           (fun (l, st) x ->
@@ -134,8 +132,8 @@ and eval symtable = function
           ([], symtable) args in
       eval_fun symtable' f' (List.rev args_rev)
   | Fundef (name, args, body) ->
-      let f = Function (args, body) in
-      f, (add symtable name f)
+      let f = {name=name; args=args; body=body; defined=true} in
+      Undef, (set_fun symtable name f)
   | Cond (test, consequent, alternative) ->
       (* Non-0 is treated as true *)
       (match eval symtable test with

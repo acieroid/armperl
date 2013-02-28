@@ -22,13 +22,20 @@ type unop =
   | UnaryPlus
   | UnaryMinus
 
-(* TODO: add Bool and Float *)
+(* TODO: add Float *)
 type value =
   | Integer of int
   | Float of float
   | String of string
   | True | False
-  | Function of string list * expr list
+  | Undef
+
+type perl_function = {
+    name: string;
+    defined: bool;
+    args: string list;
+    body: expr list;
+  }
 
 and expr =
   | Value of value
@@ -49,4 +56,4 @@ let string_of_value = function
   | True -> "1"
   | False -> ""
   | String x -> x
-  | Function (args, body) -> "<fun/" ^ (string_of_int (List.length args)) ^ ">"
+  | Undef -> "undef"

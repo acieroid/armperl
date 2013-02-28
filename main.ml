@@ -22,9 +22,7 @@ let () =
                            BinOp (Concat, Value (String "Hello, "), Variable "name"),
                            Value (String "\n"))])) and
       e = (Funcall ("hello", [Value (String "world!")])) in
-  let res, st' = Eval.eval Symtable.empty f in
+  let res, st' = Eval.eval (Symtable.empty ()) f in
   let res', _ = Eval.eval st' e in
-  print_string (string_of_value res);
-  print_string (string_of_value res');
-  print_newline ()
+  print_string (string_of_value res')
     
