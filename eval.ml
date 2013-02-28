@@ -6,6 +6,7 @@ let int_repr = function
     | Integer x -> x
     | True -> 1
     | False -> 0
+    | String x -> Scanf.sscanf x "%d" (fun x -> x)
     | _ -> 0
 
 let int_op op left right =
@@ -28,7 +29,6 @@ let str_op op left right =
 let str_comp comp left right =
   if comp (str_repr left) (str_repr right) then True else False
 
-(* TODO: complete *)
 let eval_binop op left right =
   match op with
   | Plus -> int_op (+) left right
