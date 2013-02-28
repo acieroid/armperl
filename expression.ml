@@ -38,7 +38,6 @@ type perl_function = {
     body: expr list;
   }
 
-(* TODO: return *)
 and expr =
   | Value of value
   | Variable of string
@@ -50,6 +49,7 @@ and expr =
   | Funcall of string * expr list
   | Fundef of string * string list * expr list
   | Cond of expr * expr list * expr
+  | Return of expr
 
 let string_of_value = function
   | Integer x -> string_of_int x

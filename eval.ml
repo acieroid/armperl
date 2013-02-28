@@ -1,6 +1,8 @@
 open Expression
 open Symtable
 
+exception Exn_return of value * Symtable.t
+
 let int_repr = function
     | Integer x -> x
     | True -> 1
@@ -126,13 +128,16 @@ and eval symtable local = function
         (match find_fun symtable f with
         | {defined=false} -> failwith ("Undefined function: " ^ f)
         | x -> x) in
-      let args_rev, symtable' =
-        List.fold_left
-          (fun (l, st) x ->
-            let x', st' = eval st local x in
-            (x'::l, st'))
-          ([], symtable) args in
-      eval_fun symtable' f' (List.rev args_rev)
+      (try
+        let args_rev, symtable' =
+          List.fold_left
+            (fun (l, st) x ->
+              let x', st' = eval st local x in
+              (x'::l, st'))
+            ([], symtable) args in
+        eval_fun symtable' f' (List.rev args_rev)
+      with
+        Exn_return (v, st) -> v, st)
   | Fundef (name, args, body) ->
       let f = {name=name; args=args; body=body; defined=true} in
       Undef, (set_fun symtable name f)
@@ -141,4 +146,10 @@ and eval symtable local = function
       (match eval symtable local test with
       | (Integer 0, symtable') -> eval symtable' local alternative
       | (_, symtable') -> eval_sequence symtable' local consequents) 
+  | Return x ->
+      if not local then
+        failwith "Can't return outside a subroutine"
+      else
+        let v, st = (eval symtable local x) in
+        raise (Exn_return (v, st))
 
