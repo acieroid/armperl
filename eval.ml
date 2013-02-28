@@ -3,6 +3,17 @@ open Symtable
 
 exception Exn_return of value * Symtable.t
 
+let is_primitive = function
+  | "print" -> true
+  | _ -> false
+
+let call_primitive symtable f args =
+  match f with
+  | "print" ->
+      List.iter (fun x -> print_string (string_of_value x)) args;
+      Undef, symtable
+  | _ -> failwith ("undefined primitive: " ^ f)
+
 let int_repr = function
     | Integer x -> x
     | True -> 1
@@ -98,10 +109,10 @@ and eval symtable local = function
   | Assign (name, right) ->
       let local_exists = (find_var symtable name) <> Undef and
           value, symtable' = eval symtable local right in
-        if local && local_exists then
-          value, set_var symtable name value
-        else
-          value, set_global symtable name value
+      if local && local_exists then
+        value, set_var symtable name value
+      else
+        value, set_global symtable name value
   | Or (left, right) ->
       let left', symtable' = eval symtable local left in
       (match left' with
@@ -124,20 +135,24 @@ and eval symtable local = function
       let x', symtable' = eval symtable local x in
       eval_unop op x', symtable'
   | Funcall (f, args) ->
-      let f' =
-        (match find_fun symtable f with
-        | {defined=false} -> failwith ("Undefined function: " ^ f)
-        | x -> x) in
-      (try
-        let args_rev, symtable' =
-          List.fold_left
-            (fun (l, st) x ->
-              let x', st' = eval st local x in
-              (x'::l, st'))
-            ([], symtable) args in
-        eval_fun symtable' f' (List.rev args_rev)
-      with
-        Exn_return (v, st) -> v, st)
+        (try
+          let args_rev, symtable' =
+            List.fold_left
+              (fun (l, st) x ->
+                let x', st' = eval st local x in
+                (x'::l, st'))
+              ([], symtable) args in
+          let args' = List.rev args_rev in
+          if is_primitive f then
+              call_primitive symtable f args'
+          else
+            let f' =
+              (match find_fun symtable f with
+              | {defined=false} -> failwith ("Undefined function: " ^ f)
+              | x -> x) in
+            eval_fun symtable' f' args'
+        with
+          Exn_return (v, st) -> v, st)
   | Fundef (name, args, body) ->
       let f = {name=name; args=args; body=body; defined=true} in
       Undef, (set_fun symtable name f)
