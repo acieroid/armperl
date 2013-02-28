@@ -1,7 +1,6 @@
 open Expression
 open Symtable
 
-(* TODO: int_repr "4foo" -> 4, float *)
 let int_repr = function
     | Integer x -> x
     | True -> 1
