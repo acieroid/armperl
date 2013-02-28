@@ -63,13 +63,7 @@
                  | string
 
 <expr>           → 'not' <expr>
-                 | <expr-comma>
-
-# TODO: dégager le expr-comma
-<expr-comma>     → <expr-assign> <expr-comma'>
-
-<expr-comma'>    → ',' <expr-assign> <expr-comma'>
-                 | ε
+                 | <expr-assign>
 
 <expr-assign>    → <expr-or> '=' <expr-assign>
                  | <expr-or>

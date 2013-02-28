@@ -1,4 +1,4 @@
-nullable: <…'>, <arg list>, <funcall args>, <args call list>, <cond end>
+﻿nullable: <…'>, <arg list>, <funcall args>, <args call list>, <cond end>
 
 First{<factor>} = {'(', '!', '+', '-', '&', var, integer, string, identifier}
 First{<term'>} = {'*', '/'}
@@ -14,8 +14,6 @@ First{<expr-and>} = {'(', '!', '+', '-', '&', var, integer, string, identifier}
 First{<expr-or'>} = {'||'}
 First{<expr-or>} = {'(', '!', '+', '-', '&', var, integer, string, identifier}
 First{<expr-assign>} = {'(', '!', '+', '-', '&', var, integer, string, identifier}
-First{<expr-comma'>} = {','}
-First{<expr-comma>} = {'(', '!', '+', '-', '&', var, integer, string, identifier}
 First{<expr>} = {'not', '(', '!', '+', '-', '&', var, integer, string, identifier}
 First{<simple expr>} = {var, integer, string, '&', identifier}
 First{<cond end>} = {'else', 'elsif'}

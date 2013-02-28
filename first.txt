@@ -1,4 +1,4 @@
-nullable: <…'>, <arg list>, <funcall args>, <args call list>, <cond end>
+﻿nullable: <…'>, <arg list>, <funcall args>, <args call list>, <cond end>
 
 First{<factor>} = {'(', '!', '+', '-' } + First{<simple expr>}
 First{<term'>} = {'*', '/'}
@@ -14,9 +14,7 @@ First{<expr-and>} = First{<expr-eq>}
 First{<expr-or'>} = {'||'}
 First{<expr-or>} = First{<expr-and>}
 First{<expr-assign>} = First{<expr-or>}
-First{<expr-comma'>} = {','}
-First{<expr-comma>} = First{<expr-assign>}
-First{<expr>} = {'not'} + First{<simple expr>} + First{<expr-comma>}
+First{<expr>} = {'not'} + First{<expr-assign>}
 First{<simple expr>} = {var, integer, string} + First{<funcall>}
 First{<cond end>} = {'else', 'elsif'}
 First{<cond>} = {'if', 'unless'} + First{<expr>}
@@ -55,8 +53,6 @@ Follow{<expr>} = {'if', 'unless', '{', ')'} + Follow{<instr>} + Follow{<factor>}
 Follow{<cond end>} = Follow{<cond>}
 Follow{<funcall>} = Follow{<simple expr>}
 Follow{<simple expr>} = Follow{<expr>} + Follow{<factor>}
-Follow{<expr-comma>} = Follow{<expr>}
-Follow{<expr-comma'>} Follow{<expr-comma>}
 Follow{<expr-assign>} = First{<expr-assign>} + Follow{<expr-comma>}
 Follow{<expr-or>} = {'='} + Follow{<expr-assign>}
 Follow{<expr-and>} = First{<expr-or'>} + Follow{<expr-or>}
