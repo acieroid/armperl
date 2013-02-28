@@ -136,9 +136,9 @@ and eval symtable local = function
   | Fundef (name, args, body) ->
       let f = {name=name; args=args; body=body; defined=true} in
       Undef, (set_fun symtable name f)
-  | Cond (test, consequent, alternative) ->
+  | Cond (test, consequents, alternative) ->
       (* Non-0 is treated as true *)
       (match eval symtable local test with
       | (Integer 0, symtable') -> eval symtable' local alternative
-      | (_, symtable') -> eval symtable' local consequent) 
+      | (_, symtable') -> eval_sequence symtable' local consequents) 
 

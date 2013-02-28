@@ -49,8 +49,7 @@ and expr =
   | UnOp of unop * expr
   | Funcall of string * expr list
   | Fundef of string * string list * expr list
-        (* TODO: consequent can have multiple expressions *)
-  | Cond of expr * expr * expr
+  | Cond of expr * expr list * expr
 
 let string_of_value = function
   | Integer x -> string_of_int x
