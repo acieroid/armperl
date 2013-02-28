@@ -95,10 +95,8 @@ and eval symtable local = function
       | _ -> local), symtable
   | Assign (name, right) ->
       let local_exists = (find_var symtable name) <> Undef and
-          global_exists = (find_global symtable name) <> Undef and
           value, symtable' = eval symtable local right in
-        if local &&
-          (local_exists || (not local_exists && not global_exists)) then
+        if local && local_exists then
           value, set_var symtable name value
         else
           value, set_global symtable name value
