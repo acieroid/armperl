@@ -26,11 +26,11 @@ let () =
   let res', _ = Eval.eval st' true e in *)
   let e = [Fundef ("name", ["arg"],
                    [Assign ("external_variable",
-                            Value (String "side effect"));
-                    Variable "arg"]);
-           Funcall ("name", [Value (String "foo")]);
-           Variable "external_variable"
+                            Value (String "side effect\n"));
+                    Funcall ("print", [Variable "arg"])]);
+           Funcall ("name", [Value (String "foo\n")]);
+           Funcall ("print", [Variable "external_variable"])
          ] in
-  let res, _ = Eval.eval_sequence (Symtable.empty ()) true e in
-  print_string (string_of_value res)
+  let _ = Eval.eval_sequence (Symtable.empty ()) true e in
+  ()
     
