@@ -123,14 +123,17 @@ and eval symtable = function
       let x', symtable' = eval symtable x in
       eval_unop op x', symtable'
   | Funcall (f, args) ->
-      let f', symtable' = eval symtable f in
-      let args_rev, symtable'' =
+      let f' =
+        (match find symtable f with
+        | Some x -> x
+        | None -> failwith ("Undefined function: " ^ f)) in
+      let args_rev, symtable' =
         List.fold_left
           (fun (l, st) x ->
             let x', st' = eval st x in
             (x'::l, st'))
-          ([], symtable') args in
-      eval_fun symtable'' f' (List.rev args_rev)
+          ([], symtable) args in
+      eval_fun symtable' f' (List.rev args_rev)
   | Fundef (name, args, body) ->
       let f = Function (args, body) in
       f, (add symtable name f)

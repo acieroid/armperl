@@ -16,7 +16,15 @@ let rec loop s =
 
 let () =
   (* loop (Lexer.state_of_channel stdin) *)
-  let res, _ = Eval.eval Symtable.empty (BinOp (Plus, Value (Integer 3), Value (Integer 5))) in
+  (* let e = (Or (Value (String "foo"), (BinOp (Plus, Value (Integer 3), Value (Integer 5))))) in *)
+  let f = (Fundef ("hello", ["name"],
+                   [BinOp (Concat,
+                           BinOp (Concat, Value (String "Hello, "), Variable "name"),
+                           Value (String "\n"))])) and
+      e = (Funcall ("hello", [Value (String "world!")])) in
+  let res, st' = Eval.eval Symtable.empty f in
+  let res', _ = Eval.eval st' e in
   print_string (string_of_value res);
+  print_string (string_of_value res');
   print_newline ()
     

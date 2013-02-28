@@ -38,7 +38,7 @@ and expr =
   | Or of expr * expr
   | And of expr * expr
   | UnOp of unop * expr
-  | Funcall of expr * expr list
+  | Funcall of string * expr list
   | Fundef of string * string list * expr list
         (* TODO: consequent can have multiple expressions *)
   | Cond of expr * expr * expr
