@@ -74,19 +74,19 @@ let rec bind_params symtable names args =
   | (name::tl_names), (arg::tl_args) ->
       bind_params (set_var symtable name arg) tl_names tl_args
 
-let rec eval_sequence symtable = function
+let rec eval_sequence symtable local = function
   | [] -> Integer 0, symtable
-  | [last] -> eval symtable last
+  | [last] -> eval symtable local last
   | hd::tl ->
-      let _, symtable' = eval symtable hd in
-      eval_sequence symtable' tl
+      let _, symtable' = eval symtable local hd in
+      eval_sequence symtable' local tl
 
 and eval_fun symtable f args =
   let symtable' = bind_params symtable f.args args in
-  let v, _ = eval_sequence symtable' f.body in
+  let v, _ = eval_sequence symtable' true f.body in
   v, symtable
 
-and eval symtable = function
+and eval symtable local = function
   | Value x -> (x, symtable)
   | Variable name ->
       let local = find_var symtable name in
@@ -94,30 +94,34 @@ and eval symtable = function
       | Undef -> find_global symtable name
       | _ -> local), symtable
   | Assign (name, right) ->
-      (* TODO: depending on whether we are in a function definition or
-      not, we should define a local or global variable *)
-      let value, symtable' = eval symtable right in
-      value, set_var symtable name value
+      let local_exists = (find_var symtable name) <> Undef and
+          global_exists = (find_global symtable name) <> Undef and
+          value, symtable' = eval symtable local right in
+        if local &&
+          (local_exists || (not local_exists && not global_exists)) then
+          value, set_var symtable name value
+        else
+          value, set_global symtable name value
   | Or (left, right) ->
-      let left', symtable' = eval symtable left in
+      let left', symtable' = eval symtable local left in
       (match left' with
-      | False -> eval symtable' right
+      | False -> eval symtable' local right
       | _ -> left', symtable')
   | And (left, right) -> 
-      let left', symtable' = eval symtable left in
+      let left', symtable' = eval symtable local left in
       (match left' with
       | False -> False, symtable'
       | _ ->
-          let right', symtable'' = eval symtable' right in
+          let right', symtable'' = eval symtable' local right in
           (match right' with
           | False -> False, symtable''
           | _ -> left', symtable''))
   | BinOp (op, left, right) ->
-      let left', symtable' = eval symtable left in
-      let right', symtable'' = eval symtable' right in
+      let left', symtable' = eval symtable local left in
+      let right', symtable'' = eval symtable' local right in
       eval_binop op left' right', symtable''
   | UnOp (op, x) ->
-      let x', symtable' = eval symtable x in
+      let x', symtable' = eval symtable local x in
       eval_unop op x', symtable'
   | Funcall (f, args) ->
       let f' =
@@ -127,7 +131,7 @@ and eval symtable = function
       let args_rev, symtable' =
         List.fold_left
           (fun (l, st) x ->
-            let x', st' = eval st x in
+            let x', st' = eval st local x in
             (x'::l, st'))
           ([], symtable) args in
       eval_fun symtable' f' (List.rev args_rev)
@@ -136,7 +140,7 @@ and eval symtable = function
       Undef, (set_fun symtable name f)
   | Cond (test, consequent, alternative) ->
       (* Non-0 is treated as true *)
-      (match eval symtable test with
-      | (Integer 0, symtable') -> eval symtable' alternative
-      | (_, symtable') -> eval symtable' consequent) 
+      (match eval symtable local test with
+      | (Integer 0, symtable') -> eval symtable' local alternative
+      | (_, symtable') -> eval symtable' local consequent) 
 
