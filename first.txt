@@ -1,6 +1,6 @@
 ﻿nullable: <…'>, <arg list>, <funcall args>, <args call list>, <cond end>
 
-First{<factor>} = {'(', '!', '+', '-' } + First{<simple expr>}
+First{<factor>} = {'('} + First{<simple expr>}
 First{<term'>} = {'*', '/'}
 First{<term>} = First{<factor>}
 First{<calc'>} = {'+', '-', '.'}
@@ -17,11 +17,11 @@ First{<expr-assign>} = First{<expr-or>}
 First{<expr>} = {'not'} + First{<expr-assign>}
 First{<simple expr>} = {var, integer, string} + First{<funcall>}
 First{<cond end>} = {'else', 'elsif'}
-First{<cond>} = {'if', 'unless'} + First{<expr>}
+First{<cond>} = {'if', 'unless'}
 First{<instr>} = {'return'} + First{<cond>} + First{<expr>}
 First{<args call list'>} = {','}
 First{<args call list>} = First{<instr>}
-First{<funcall args>} = {'{'} + First{<args call list>}
+First{<funcall args>} = {'('}
 First{<funcall>} = {'&', identifier}
 First{<instr list'>} = {';'}
 First{<instr list>} = {'{'} + First{<instr>}
@@ -46,14 +46,14 @@ Follow{<arg list'>} = Follow{<arg list>}
 Follow{<instr>} = First{<instr list'>} + Follow{<instr list>} + First{<args call list'>} + Follow{<args call list>}
 Follow{<instr list'>} = Follow{<instr list>}
 Follow{<funcall args>} = Follow{<funcall>}
-Follow{<args call list>} = {')'} + Follow{<funcall args>}
+Follow{<args call list>} = {')'}
 Follow{<args call list'>} = Follow{<args call list>}
 Follow{<cond>} = Follow{<instr>}
 Follow{<expr>} = {'{', ')'} + Follow{<instr>}
 Follow{<cond end>} = Follow{<cond>}
 Follow{<funcall>} = Follow{<simple expr>}
 Follow{<simple expr>} =  Follow{<factor>}
-Follow{<expr-assign>} = First{<expr-assign>} + Follow{<expr-comma>}
+Follow{<expr-assign>} = Follow{<expr>}
 Follow{<expr-or>} = {'='} + Follow{<expr-assign>}
 Follow{<expr-and>} = First{<expr-or'>} + Follow{<expr-or>}
 Follow{<expr-or'>} = Follow{<expr-or>}
