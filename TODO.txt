@@ -1,0 +1,4 @@
+Deleted:
+  - end of lines if and unless
+  - unary +, -, !
+  - obligatory parenthesis and no more ε in funcall args
