@@ -47,10 +47,7 @@
                  | <expr>
                  | 'return' <expr>
 
-# ajouter Follow{<cond>} à Follow{<expr>} ?
-<cond>           → <expr> 'if' <expr>
-                 | <expr> 'unless' <expr>
-                 | 'if' <expr> '{' <instr list> '}' <cond end>
+<cond>           → 'if' <expr> '{' <instr list> '}' <cond end>
                  | 'unless' <expr> '{' <instr list> '}' <cond end>
 
 <cond end>       → 'else' <expr> '{' <instr list> '}' <cond end>
@@ -113,6 +110,3 @@
 
 <factor>         → <simple expr>
                  | '(' <expr> ')'
-                 | '!' <expr>
-                 | '+' <expr>
-                 | '-' <expr>

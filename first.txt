@@ -49,10 +49,10 @@ Follow{<funcall args>} = Follow{<funcall>}
 Follow{<args call list>} = {')'} + Follow{<funcall args>}
 Follow{<args call list'>} = Follow{<args call list>}
 Follow{<cond>} = Follow{<instr>}
-Follow{<expr>} = {'if', 'unless', '{', ')'} + Follow{<instr>} + Follow{<factor>}
+Follow{<expr>} = {'{', ')'} + Follow{<instr>}
 Follow{<cond end>} = Follow{<cond>}
 Follow{<funcall>} = Follow{<simple expr>}
-Follow{<simple expr>} = Follow{<expr>} + Follow{<factor>}
+Follow{<simple expr>} =  Follow{<factor>}
 Follow{<expr-assign>} = First{<expr-assign>} + Follow{<expr-comma>}
 Follow{<expr-or>} = {'='} + Follow{<expr-assign>}
 Follow{<expr-and>} = First{<expr-or'>} + Follow{<expr-or>}
