@@ -15,14 +15,11 @@
 <arg list>       → <arg list> ',' var
                  | ε
 
-<instr list>     → <instr list> ';' <instr>
+<instr list>     → <instr list> <instr> ';'
                  | '{' <instr list> '}'
                  | <instr> ';'
-                 | <instr>
 
-<funcall>        → '&' identifier
-                 | '&' identifier <funcall args> 
-                 | identifier
+<funcall>        → '&' identifier <funcall args> 
                  | identifier <funcall args> 
 
 <funcall args>   → '(' <args call list> ')'
