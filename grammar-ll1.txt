@@ -59,9 +59,6 @@
                  | string
 
 <expr>           → 'not' <expr>
-                 | <expr-assign>
-
-<expr-assign>    → <expr-or> '=' <expr-assign>
                  | <expr-or>
 
 <expr-or>        → <expr-and> <expr-or'>
