@@ -53,8 +53,7 @@ Follow{<expr>} = {'{', ')'} + Follow{<instr>}
 Follow{<cond end>} = Follow{<cond>}
 Follow{<funcall>} = Follow{<simple expr>}
 Follow{<simple expr>} =  Follow{<factor>}
-Follow{<expr-assign>} = Follow{<expr>}
-Follow{<expr-or>} = {'='} + Follow{<expr-assign>}
+Follow{<expr-or>} = {'='} + Follow{<expr>}
 Follow{<expr-and>} = First{<expr-or'>} + Follow{<expr-or>}
 Follow{<expr-or'>} = Follow{<expr-or>}
 Follow{<expr-eq>} = First{<expr-and'>} + Follow{<expr-and>}

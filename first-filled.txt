@@ -43,27 +43,26 @@ Follow{<function args>} = {'{'}
 Follow{<instr list>} = {'sub', '{', '}', 'return', 'if', 'unless', 'not', '(', '&', var, integer, string, identifier, EOF}
 Follow{<arg list>} = {')'}
 Follow{<arg list'>} = {')'}
-Follow{<instr>} = {'sub', '{', '}', ';', ',', 'return', 'if', 'unless', 'not', '(', ')', '&', var, integer, string, identifier, EOF}
+Follow{<instr>} = {';', ',', ')'}
 Follow{<instr list'>} = {'sub', '{', '}', 'return', 'if', 'unless', 'not', '(', '&', var, integer, string, identifier, EOF}
-Follow{<funcall args>} = {'sub', '=', '||', '&&', '==', '!=', 'eq', 'ne', '>', '<', '>=', '<=', 'lt', 'gt', 'le', 'ge', '+', '-', '.' , '*', '/', '{', '}', ';', ',', 'return', 'if', 'unless', 'not', '(', ')', '&', var, integer, string, identifier, EOF}
+Follow{<funcall args>} = {'*', '/', '+', '-', '.', '>', '<', '<=', '>=', 'lt', 'gt', 'le', 'ge','==', '!=', 'eq', 'ne', '&&', '||', '=', '{', ')', ';', ',', ')'}
 Follow{<args call list>} = {')'}
 Follow{<args call list'>} = {')'}
-Follow{<cond>} = {'sub', '{', '}', ';', ',', 'return', 'if', 'unless', 'not', '(', ')', '&', var, integer, string, identifier, EOF}
-Follow{<expr>} = {'sub', '{', '}', ';', ',', 'return', 'if', 'unless', 'not', '(', ')', '&', var, integer, string, identifier, EOF}
-Follow{<cond end>} = {'sub', '{', '}', ';', ',', 'return', 'if', 'unless', 'not', '(', ')', '&', var, integer, string, identifier, EOF}
-Follow{<funcall>} = {'sub', '=', '||', '&&', '==', '!=', 'eq', 'ne', '>', '<', '>=', '<=', 'lt', 'gt', 'le', 'ge', '+', '-', '.' , '*', '/', '{', '}', ';', ',', 'return', 'if', 'unless', 'not', '(', ')', '&', var, integer, string, identifier, EOF}
-Follow{<simple expr>} = {'sub', '=', '||', '&&', '==', '!=', 'eq', 'ne', '>', '<', '>=', '<=', 'lt', 'gt', 'le', 'ge', '+', '-', '.' , '*', '/', '{', '}', ';', ',', 'return', 'if', 'unless', 'not', '(', ')', '&', var, integer, string, identifier, EOF}
-Follow{<expr-assign>} = {'sub', '{', '}', ';', ',', 'return', 'if', 'unless', 'not', '(', ')', '&', var, integer, string, identifier, EOF} 
-Follow{<expr-or>} = {'sub', '=', '{', '}', ';', ',', 'return', 'if', 'unless', 'not', '(', ')', '&', var, integer, string, identifier, EOF}
-Follow{<expr-and>} = {'sub', '=', '||', '{', '}', ';', ',', 'return', 'if', 'unless', 'not', '(', ')', '&', var, integer, string, identifier, EOF}
-Follow{<expr-or'>} = {'sub', '=', '{', '}', ';', ',', 'return', 'if', 'unless', 'not', '(', ')', '&', var, integer, string, identifier, EOF}
-Follow{<expr-eq>} = {'sub', '=', '||', '&&', '{', '}', ';', ',', 'return', 'if', 'unless', 'not', '(', ')', '&', var, integer, string, identifier, EOF}
-Follow{<expr-and'>} = {'sub', '=', '||', '{', '}', ';', ',', 'return', 'if', 'unless', 'not', '(', ')', '&', var, integer, string, identifier, EOF}
-Follow{<comp>} = {'sub', '=', '||', '&&', '==', '!=', 'eq', 'ne', '{', '}', ';', ',', 'return', 'if', 'unless', 'not', '(', ')', '&', var, integer, string, identifier, EOF}
-Follow{<expr-eq'>} = {'sub', '=', '||', '&&', '{', '}', ';', ',', 'return', 'if', 'unless', 'not', '(', ')', '&', var, integer, string, identifier, EOF}
-Follow{<calc>} = {'sub', '=', '||', '&&', '==', '!=', 'eq', 'ne', '>', '<', '>=', '<=', 'lt', 'gt', 'le', 'ge', '{', '}', ';', ',', 'return', 'if', 'unless', 'not', '(', ')', '&', var, integer, string, identifier, EOF}
-Follow{<comp'>} = {'sub', '=', '||', '&&', '==', '!=', 'eq', 'ne', '{', '}', ';', ',', 'return', 'if', 'unless', 'not', '(', ')', '&', var, integer, string, identifier, EOF}
-Follow{<term>} = {'sub', '=', '||', '&&', '==', '!=', 'eq', 'ne', '>', '<', '>=', '<=', 'lt', 'gt', 'le', 'ge', '+', '-', '.', '{', '}', ';', ',', 'return', 'if', 'unless', 'not', '(', ')', '&', var, integer, string, identifier, EOF}
-Follow{<calc'>} = {'sub', '=', '||', '&&', '==', '!=', 'eq', 'ne', '>', '<', '>=', '<=', 'lt', 'gt', 'le', 'ge', '{', '}', ';', ',', 'return', 'if', 'unless', 'not', '(', ')', '&', var, integer, string, identifier, EOF}
-Follow{<factor>} = {'sub', '=', '||', '&&', '==', '!=', 'eq', 'ne', '>', '<', '>=', '<=', 'lt', 'gt', 'le', 'ge', '+', '-', '.' , '*', '/', '{', '}', ';', ',', 'return', 'if', 'unless', 'not', '(', ')', '&', var, integer, string, identifier, EOF}
-Follow{<term'>} = {'sub', '=', '||', '&&', '==', '!=', 'eq', 'ne', '>', '<', '>=', '<=', 'lt', 'gt', 'le', 'ge', '+', '-', '.' , '{', '}', ';', ',', 'return', 'if', 'unless', 'not', '(', ')', '&', var, integer, string, identifier, EOF}
+Follow{<cond>} = {';', ',', ')'}
+Follow{<expr>} = {'{', ')', ';', ',', ')'}
+Follow{<cond end>} = {';', ',', ')'}
+Follow{<funcall>} = {'*', '/', '+', '-', '.', '>', '<', '<=', '>=', 'lt', 'gt', 'le', 'ge','==', '!=', 'eq', 'ne', '&&', '||', '=', '{', ')', ';', ',', ')'}
+Follow{<simple expr>} = {'*', '/', '+', '-', '.', '>', '<', '<=', '>=', 'lt', 'gt', 'le', 'ge','==', '!=', 'eq', 'ne', '&&', '||', '=', '{', ')', ';', ',', ')'}
+Follow{<expr-or>} = {'=', '{', ')', ';', ',', ')'}
+Follow{<expr-and>} = {'||', '=', '{', ')', ';', ',', ')'}
+Follow{<expr-or'>} = {'=', '{', ')', ';', ',', ')'}
+Follow{<expr-eq>} = {'&&', '||', '=', '{', ')', ';', ',', ')'}
+Follow{<expr-and'>} = {'||', '=', '{', ')', ';', ',', ')'}
+Follow{<comp>} = {'==', '!=', 'eq', 'ne', '&&', '||', '=', '{', ')', ';', ',', ')'}
+Follow{<expr-eq'>} = {'&&', '||', '=', '{', ')', ';', ',', ')'}
+Follow{<calc>} = {'>', '<', '<=', '>=', 'lt', 'gt', 'le', 'ge','==', '!=', 'eq', 'ne', '&&', '||', '=', '{', ')', ';', ',', ')'}
+Follow{<comp'>} = {'==', '!=', 'eq', 'ne', '&&', '||', '=', '{', ')', ';', ',', ')'}
+Follow{<term>} = {'+', '-', '.', '>', '<', '<=', '>=', 'lt', 'gt', 'le', 'ge','==', '!=', 'eq', 'ne', '&&', '||', '=', '{', ')', ';', ',', ')'}
+Follow{<calc'>} = {'>', '<', '<=', '>=', 'lt', 'gt', 'le', 'ge','==', '!=', 'eq', 'ne', '&&', '||', '=', '{', ')', ';', ',', ')'}
+Follow{<factor>} = {'*', '/', '+', '-', '.', '>', '<', '<=', '>=', 'lt', 'gt', 'le', 'ge','==', '!=', 'eq', 'ne', '&&', '||', '=', '{', ')', ';', ',', ')'}
+Follow{<term'>} = {'+', '-', '.', '>', '<', '<=', '>=', 'lt', 'gt', 'le', 'ge','==', '!=', 'eq', 'ne', '&&', '||', '=', '{', ')', ';', ',', ')'}
