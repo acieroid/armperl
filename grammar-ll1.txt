@@ -21,7 +21,7 @@
 <arg list'>      → ',' var <arg list'>
                  | ε
 
-<instr list>     →  <instr> ';' <instr list'>
+<instr list>     → <instr> ';' <instr list'>
                  | '{' <instr list> '}'
 
 <instr list'>    → <instr> ';' <instr list'>
