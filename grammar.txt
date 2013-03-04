@@ -34,6 +34,7 @@
 <instr>          → <cond>
                  | <expr>
                  | 'return' <expr>
+                 | var '=' <expr>
 
 <cond>           → 'if' <expr> '{' <instr list> '}' <cond end>
                  | 'unless' <expr> '{' <instr list> '}' <cond end>
@@ -48,9 +49,6 @@
                  | string
 
 <expr>           → 'not' <expr>
-                 | <expr-assign>
-
-<expr-assign>    → <expr-or> '=' <expr-assign>
                  | <expr-or>
 
 <expr-or>        → <expr-or> '||' <expr-and>
