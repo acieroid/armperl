@@ -44,7 +44,7 @@ Follow{<arg list>} = {')'}
 Follow{<arg list'>} = {')'}
 Follow{<instr>} = {';', ',', ')'}
 Follow{<instr'>} = {';', ',', ')'}
-Follow{<instr list'>} = {'sub', '{', '}', 'return', 'if', 'unless', 'not', '(', '&', var, integer, string, identifier, EOF}
+Follow{<instr list'>} = {'}', EOF}
 Follow{<funcall args>} = {'*', '/', '+', '-', '.', '>', '<', '<=', '>=', 'lt', 'gt', 'le', 'ge','==', '!=', 'eq', 'ne', '&&', '||', '=', '{', ')', ';', ','}
 Follow{<args call list>} = {')'}
 Follow{<args call list'>} = {')'}
