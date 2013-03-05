@@ -1,13 +1,12 @@
-﻿<program>        →  <program> <function list>
-                 |  <program> <instruction list>
+﻿<program>        →  <function list> <instr list>
                  |  <function list>
-                 |  <instruction list>
+                 |  <instr list>
 
 <function list>  → <function list> <function>
                  | <function>
 
 <function>       → 'sub' identifier <function args>
-                   '{' <instruction list> '}'
+                   '{' <instr list> '}'
 
 <function args>  → '(' <arg list> ')'
                  | ε
