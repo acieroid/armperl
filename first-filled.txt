@@ -19,6 +19,7 @@ First{<simple expr>} = {var, integer, string, '&', identifier}
 First{<cond end>} = {'else', 'elsif'}
 First{<cond>} = {'if', 'unless'}
 First{<instr>} = {'return', 'if', 'unless', 'not', '(', '&', var, integer, string, identifier}
+First{<instr'>} = {'='}
 First{<args call list'>} = {','}
 First{<args call list>} = {'return', 'if', 'unless', 'not', '(', '!', '+', '-', '&', var, integer, string, identifier}
 First{<funcall args>} = {'('}
@@ -44,6 +45,7 @@ Follow{<instr list>} = {'sub', '{', '}', 'return', 'if', 'unless', 'not', '(', '
 Follow{<arg list>} = {')'}
 Follow{<arg list'>} = {')'}
 Follow{<instr>} = {';', ',', ')'}
+Follow{<instr'>} = {';', ',', ')'}
 Follow{<instr list'>} = {'sub', '{', '}', 'return', 'if', 'unless', 'not', '(', '&', var, integer, string, identifier, EOF}
 Follow{<funcall args>} = {'*', '/', '+', '-', '.', '>', '<', '<=', '>=', 'lt', 'gt', 'le', 'ge','==', '!=', 'eq', 'ne', '&&', '||', '=', '{', ')', ';', ','}
 Follow{<args call list>} = {')'}

@@ -3,3 +3,4 @@ Deleted:
   - unary +, -, !
   - obligatory parenthesis and no more ε in funcall args
   - add an ε to <funcall args>
+  - <expr> = <expr>: better compatibility

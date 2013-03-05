@@ -39,9 +39,11 @@
                  | ε
 
 <instr>          → <cond>
-                 | <expr>
+                 | <expr> <instr'> 
                  | 'return' <expr>
-                 | var '=' <expr>
+
+<instr'>         → '=' <expr>
+                 | ε
 
 <cond>           → 'if' <expr> '{' <instr list> '}' <cond end>
                  | 'unless' <expr> '{' <instr list> '}' <cond end>

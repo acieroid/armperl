@@ -30,8 +30,8 @@
 
 <instr>          → <cond>
                  | <expr>
+                 | <expr> '=' <expr>
                  | 'return' <expr>
-                 | var '=' <expr>
 
 <cond>           → 'if' <expr> '{' <instr list> '}' <cond end>
                  | 'unless' <expr> '{' <instr list> '}' <cond end>
