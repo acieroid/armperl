@@ -1,6 +1,8 @@
-﻿<program>        →  <function list> <instr list>
-                 |  <function list>
-                 |  <instr list>
+﻿<program>        → <function list> <program'>
+                 | <instr list>
+
+<program'>       → <instr list>
+                 | ε 
 
 <function list>  → <function> <function list'>
                  

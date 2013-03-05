@@ -33,11 +33,13 @@ First{<function>} = {'sub'}
 First{<function list'>} = {'sub'}
 First{<function list>} = {'sub'}
 First{<program>} = {'sub', '{', 'return', 'if', 'unless', 'not', '(', '&', var, integer, string, identifier}
+First{<program'>} = {'{', 'return', 'if', 'unless', 'not', '(', '&', var, integer, string, identifier}
 
 Follow{<program>} = {EOF}
+Follow{<program'>} = {EOF}
 Follow{<function list>} = {'{', 'return', 'if', 'unless', 'not', '(', '&', var, integer, string, identifier, EOF}
 Follow{<function>} = {'sub', '{', 'return', 'if', 'unless', 'not', '(', '&', var, integer, string, identifier, EOF}
-Follow{<function list'>} = {'sub', '{', 'return', 'if', 'unless', 'not', '(', '&', var, integer, string, identifier, EOF}
+Follow{<function list'>} = {'{', 'return', 'if', 'unless', 'not', '(', '&', var, integer, string, identifier, EOF}
 Follow{<function args>} = {'{'}
 Follow{<instr list>} = {'}', EOF}
 Follow{<arg list>} = {')'}
