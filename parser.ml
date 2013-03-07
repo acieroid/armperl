@@ -85,20 +85,49 @@ let rec parse =
   and parseInstrList' inh stream = (* TODO *)
   (* <instr list> *)
   and parseInstrList inh stream = (* TODO *)
-  (* <args list'> *)
-  and parseArgsList' inh stream = (* TODO *)
-  (* <args list> *)
-  and parseArgsList inh stream = (* TODO *)
+  (* <arg list'> *)
+  and parseArgList' inh stream = match peek stream with
+  | COMMA ->
+      (* <arg list'> → ',' var <arg list'> *)
+      (match stream with parser
+      | [< COMMA; VAR v; args = parseArgList' inh >] ->
+          v::args)
+  | RPAR ->
+      (* <arg list'> → ε *)
+      []
+  (* <arg list> *)
+  and parseArgList inh stream = match peek stream with
+  | VAR _ ->
+    (* <arg list> → var <arg list'> *)
+      (match stream with parser
+        [< VAR v; args = parseArgList' inh >] ->
+          v::args)
+  | RPAR ->
+    (* <arg list> → ε *)
+      []
   (* <function args> *)
-  and parseFunctionArgs inh stream = (* TODO *)
+  and parseFunctionArgs inh stream = match peek stream with
+  | LPAR ->
+      (* <function args>  → '(' <arg list> ')' *)
+      (match stream with parser
+        [< LPAR; args = parseArgList inh; RPAR >] ->
+          args)
+  | _ -> unexpected stream
   (* <function> *)
-  and parseFunction inh stream = (* TODO *)
+  and parseFunction inh stream = match peek stream with
+  | SUB ->
+      (* <function> → 'sub' identifier <function args> '{' <instr list> '}' *)
+      (match stream with parser
+        [< SUB; IDENTIFIER name; args = parseFunctionArgs inh;
+           LBRACE; body = parseInstrList inh; RBRACE >] ->
+             Fundef (name, args, body))
+  | _ -> unexpected stream
   (* <function list'> *)
   and parseFunctionList' inh stream = match peek stream with
   | VAR _ | INTEGER _ | STRING _ | IDENTIFIER _ | RETURN | CALL_MARK
   | LBRACE | LPAR | IF | UNLESS | NOT | EOF ->
       (* <function list'> → ε *)
-      List []
+      []
   | SUB ->
       (* <function list'> → <function> <function list'> *)
       (match stream with parser
@@ -122,7 +151,7 @@ let rec parse =
       | [< l = parseInstrList inh >] -> l)
   | EOF ->
       (* <program'> → ε *)
-      List []
+      []
   | _ -> unexpected stream
   (* <program> *)
   and parseProgram inh stream = match peek stream with
@@ -130,13 +159,13 @@ let rec parse =
   | LBRACE | LPAR | IF | UNLESS | NOT ->
       (* <program> → <instr list> *)
       (match stream with parser
-      | [< l = parseInstrList inh >] -> l)
+      | [< l = parseInstrList inh >] -> ([], l))
   | SUB ->
       (*  <program> →  <function list> <program'>  *)
       (match stream with parser
       | [< l = parseFunctionList inh; p = parseProgram' >] ->
-          (match l, p with
-          | (List l', List p') -> Program (l', p'))
+          (l, p))
   | _ unexpected stream
   in
+  (* TODO: the inh argument is not needed everywhere *)
   parseProgram (Value Undef)
