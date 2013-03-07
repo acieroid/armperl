@@ -94,9 +94,25 @@ let rec parse =
   (* <function> *)
   and parseFunction inh stream = (* TODO *)
   (* <function list'> *)
-  and parseFunctionList' inh stream = (* TODO *)
+  and parseFunctionList' inh stream = match peek stream with
+  | VAR _ | INTEGER _ | STRING _ | IDENTIFIER _ | RETURN | CALL_MARK
+  | LBRACE | LPAR | IF | UNLESS | NOT | EOF ->
+      (* <function list'> → ε *)
+      List []
+  | SUB ->
+      (* <function list'> → <function> <function list'> *)
+      (match stream with parser
+      | [< f = parseFunction inh; l = parseFunctionList' inh >] ->
+          f::l)
+  | _ -> unexpected stream
   (* <function list> *)
-  and parseFunctionList inh stream = (* TODO *)
+  and parseFunctionList inh stream = match peek stream with
+  | SUB ->
+      (* <function list> → <function> <function list'> *)
+      (match stream with parser
+      | [< f = parseFunction inh; l = parseFunctionList' inh >] ->
+          f::l)
+  | _ -> unexpected stream
   (* <program'> *)
   and parseProgram' inh stream = match peek stream with
   | VAR _ | INTEGER _ | STRING | IDENTIFIER _ | RETURN | CALL_MARK
@@ -104,6 +120,9 @@ let rec parse =
       (* <program'> → <instr list> *)
       (match stream with parser
       | [< l = parseInstrList inh >] -> l)
+  | EOF ->
+      (* <program'> → ε *)
+      List []
   | _ -> unexpected stream
   (* <program> *)
   and parseProgram inh stream = match peek stream with
@@ -117,9 +136,7 @@ let rec parse =
       (match stream with parser
       | [< l = parseFunctionList inh; p = parseProgram' >] ->
           (match l, p with
-          | (List l', List p') -> Program (l', p')
-                (* should not happen *)
-          | _ -> failwith "unexpected error"))
+          | (List l', List p') -> Program (l', p'))
   | _ unexpected stream
   in
   parseProgram (Value Undef)

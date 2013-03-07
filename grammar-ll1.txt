@@ -1,4 +1,6 @@
-﻿<program>        → <function list> <program'>
+﻿<S>              → <program> EOF
+
+<program>        → <function list> <program'>
                  | <instr list>
 
 <program'>       → <instr list>

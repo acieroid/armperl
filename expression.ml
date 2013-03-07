@@ -50,6 +50,8 @@ and expr =
   | Fundef of string * string list * expr list
   | Cond of expr * expr list * expr
   | Return of expr
+  | List of expr list
+  | Program of expr list * expr list
 
 let string_of_value = function
   | Integer x -> string_of_int x
