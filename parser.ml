@@ -10,7 +10,7 @@ let unexpected stream =
 
 let rec parse =
   let rec parseFactor inh stream = match unoption (Stream.peek stream) with
-  | (VAR _) | (INTEGER _) | (STRING _) | (IDENTIFIER _)
+  | VAR _ | INTEGER _ | STRING _ | IDENTIFIER _
   | CALL_MARK > parseSimpleExpr inh stream
   | LPAR ->
       (match stream with parser
@@ -28,7 +28,7 @@ let rec parse =
       | [< 'DIVIDES; f = parseFactor inh; t' = parseTerm' (BinOp (Divides, inh, f)); >] -> t')
   | _ -> unexpected stream
   and parseTerm inh stream = match unoption (Stream.peek stream) with
-  | (VAR _) | (INTEGER _) | (STRING _) | (IDENTIFIER _)
+  | VAR _ | INTEGER _ | STRING _ | IDENTIFIER _
   | CALL_MARK | LPAR ->
       (match stream with parser
       | [< f = parseFactor inh; t' = parseTerm' f >] -> t')
@@ -60,6 +60,19 @@ let rec parse =
   and parseFunctionList' inh stream = (* TODO *)
   and parseFunctionList inh stream = (* TODO *)
   and parseProgram' inh stream = (* TODO *)
-  and parseProgram inh stream = (* TODO *)
+  and parseProgram inh stream = match unoption (Stream.peek stream) with
+  | VAR _ | INTEGER _ | STRING _ | IDENTIFIER _ | RETURN | CALL_MARK
+  | LBRACE | LPAR | IF | UNLESS | NOT ->
+      (* <program> → <instr list> *)
+      (match stream with parser
+      | [< l = parseInstrList inh >] -> l)
+  | SUB ->
+      (*  <program> →  <function list> <program'>  *)
+      (match stream with parser
+      | [< l = parseFunctionList inh; p = parseProgram' >] ->
+          (match l, p with
+          | (List l', List p') -> Program (l', p')
+                (* should not happen *)
+          | _ -> failwith "unexpected error"))
   in
   parseProgram (Value Undef)
