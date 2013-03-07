@@ -9,7 +9,6 @@ let unexpected stream =
 
 
 let rec parse =
-  
   let rec parseFactor inh stream = match unoption (Stream.peek stream) with
   | (VAR _) | (INTEGER _) | (STRING _) | (IDENTIFIER _)
   | CALL_MARK > parseSimpleExpr inh stream
@@ -34,4 +33,33 @@ let rec parse =
       (match stream with parser
       | [< f = parseFactor inh; t' = parseTerm' f >] -> t')
   | _ -> unexpected stream
-
+  and parseCalc' inh stream = (* TODO *)
+  and parseCalc inh stream = (* TODO *)
+  and parseComp' inh stream = (* TODO *)
+  and parseComp inh stream = (* TODO *)
+  and parseEq' inh stream = (* TODO *)
+  and parseEq inh stream = (* TODO *)
+  and parseOr' inh stream = (* TODO *)
+  and parseOr inh stream = (* TODO *)
+  and parseExpr inh stream = (* TODO *)
+  and parseSimpleExpr inh stream = (* TODO *)
+  and parseCondEnd inh stream = (* TODO *)
+  and parseCond inh stream = (* TODO *)
+  and parseInstr' inh stream = (* TODO *)
+  and parseInstr inh stream = (* TODO *)
+  and parseArgsCallList' inh stream = (* TODO *)
+  and parseArgsCallList inh stream = (* TODO *)
+  and parseFuncallArgs inh stream = (* TODO *)
+  and parseFuncall inh stream = (* TODO *)
+  and parseInstrList' inh stream = (* TODO *)
+  and parseInstrList inh stream = (* TODO *)
+  and parseArgsList' inh stream = (* TODO *)
+  and parseArgsList inh stream = (* TODO *)
+  and parseFunctionArgs inh stream = (* TODO *)
+  and parseFunction inh stream = (* TODO *)
+  and parseFunctionList' inh stream = (* TODO *)
+  and parseFunctionList inh stream = (* TODO *)
+  and parseProgram' inh stream = (* TODO *)
+  and parseProgram inh stream = (* TODO *)
+  in
+  parseProgram (Value Undef)
