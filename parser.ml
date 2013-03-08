@@ -46,7 +46,7 @@ let rec parse =
       | [< f = parseFactor inh; t' = parseTerm' f >] -> t')
   | _ -> unexpected stream
   (* <calc'> *)
-  and parseCalc' inh stream = (* TODO *)match peek stream with
+  and parseCalc' inh stream = match peek stream with
   | LBRACE | RPAR | SEMICOLON | COMMA | ASSIGN | LAZY_OR | LAZY_AND | EQUALS | DIFFERENT
   | GREATER | LOWER | GREATER_EQUALS | LOWER_EQUALS
   | STRING_EQUALS | STRING_DIFFERENT
@@ -60,10 +60,17 @@ let rec parse =
       (match stream with parser
       | [< 'CONCAT; t = parseTerm inh; c' = parseCalc' (BinOp (Concat, inh, t)); >] -> c'
       | [< 'PLUS; t = parseTerm inh; c' = parseCalc' (BinOp (Plus, inh, t)); >] -> c'
-      | [< 'MINUS; t = parseTerm inh; c' = parseCalc' (BinOp (Minus, inh, t)); >] -> c'
+      | [< 'MINUS; t = parseTerm inh; c' = parseCalc' (BinOp (Minus, inh, t)); >] -> c')
 
   (* <calc> *)
-  and parseCalc inh stream = (* TODO *)
+  and parseCalc inh stream = match peek stream with
+  | VAR _ | INTEGER _ | STRING _ | IDENTIFIER _ | CALL_MARK | LPAR ->
+      (* <calc> → <term> <calc'> *)
+        (match stream with parser
+	| [< t = parseTerm inh; c' = parseCalc' t >] -> c'
+	| [< 'CALL_MARK; t = parseTerm inh; c' = parseCalc' (BinOp (Call_mark, inh, t)); >] -> c'
+	| [< 'LPAR; t = parseTerm inh; c' = parseCalc' (BinOp (Lpar, inh, t)); >] -> c')
+
   (* <comp'> *)
   and parseComp' inh stream = (* TODO *)
   (* <comp> *)
