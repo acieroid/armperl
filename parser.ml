@@ -72,7 +72,30 @@ let rec parse =
 	| [< 'LPAR; t = parseTerm inh; c' = parseCalc' (BinOp (Lpar, inh, t)); >] -> c')
 
   (* <comp'> *)
-  and parseComp' inh stream = (* TODO *)
+  and parseComp' inh stream = match peek stream with
+  | LBRACE | RPAR | SEMICOLON | COMMA | ASSIGN |LAZY_OR |LAZY_AND | EQUALS | DIFFERENT
+  | GREATER | LOWER | GREATER_EQUALS | LOWER_EQUALS
+  | STRING_EQUALS | STRING_DIFFERENT
+  | STRING_GREATER | STRING_LOWER | STRING_GREATER_EQUALS | STRING_LOWER_EQUALS
+      
+  (* <calc> *)
+  and parseCalc inh stream = match peek stream with
+  | VAR _ | INTEGER _ | STRING _ | IDENTIFIER _ | CALL_MARK | LPAR ->
+      (* <calc> → <term> <calc'> *)
+        (match stream with parser
+	| [< t = parseTerm inh; c' = parseCalc' t >] -> c'
+	| [< 'CALL_MARK; t = parseTerm inh; c' = parseCalc' (BinOp (Call_mark, inh, t)); >] -> c'
+	| [< 'LPAR; t = parseTerm inh; c' = parseCalc' (BinOp (Lpar, inh, t)); >] -> c')
+
+  (* <comp'> *)
+  and parseComp' inh stream = match peek stream with
+  | LBRACE | RPAR | SEMICOLON | COMMA | ASSIGN |LAZY_OR |LAZY_AND | EQUALS | DIFFERENT
+  | GREATER | LOWER | GREATER_EQUALS | LOWER_EQUALS
+  | STRING_EQUALS | STRING_DIFFERENT
+  | STRING_GREATER | STRING_LOWER | STRING_GREATER_EQUALS | STRING_LOWER_EQUALS ->
+      (* <comp'> → ε *)
+      inh
+
   (* <comp> *)
   and parseComp inh stream = (* TODO *)
   (* <expr-eq'> *)
