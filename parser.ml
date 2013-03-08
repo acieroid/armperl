@@ -125,7 +125,16 @@ let rec parse =
   (* <funcall args> *)
   and parseFuncallArgs inh stream = (* TODO *)
   (* <funcall> *)
-  and parseFuncall inh stream = (* TODO *)
+  and parseFuncall inh stream = match peek stream with
+  | IDENTIFIER _ | CALL_MARK ->
+	(* <funcall> → identifier <funcall args> *)
+	(*  <funcall> → '&' identifier <funcall args> *)
+	(match stream with parser
+	| [< '(IDENTIFIER name); args = parseFuncallArgs inh >] ->
+		Funcall (name, args)
+	| [< 'CALL_MARK; '(IDENTIFIER name); args = parseFuncallArgs inh >] ->
+	    Funcall (name, args)) 
+  | _ -> unexpected stream
   (* <instr list'> *)
   and parseInstrList' inh stream = (* TODO *)
   (* <instr list> *)
@@ -135,7 +144,7 @@ let rec parse =
   | COMMA ->
       (* <arg list'> → ',' var <arg list'> *)
       (match stream with parser
-      | [< COMMA; VAR v; args = parseArgList' inh >] ->
+      | [< 'COMMA; '(VAR v); args = parseArgList' inh >] ->
           v::args)
   | RPAR ->
       (* <arg list'> → ε *)
