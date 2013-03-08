@@ -68,8 +68,6 @@ let rec parse =
       (* <calc> → <term> <calc'> *)
         (match stream with parser
 	| [< t = parseTerm inh; c' = parseCalc' t >] -> c'
-	| [< 'CALL_MARK; t = parseTerm inh; c' = parseCalc' (BinOp (Call_mark, inh, t)); >] -> c'
-	| [< 'LPAR; t = parseTerm inh; c' = parseCalc' (BinOp (Lpar, inh, t)); >] -> c')
 
   (* <comp'> *)
   and parseComp' inh stream = match peek stream with
@@ -84,8 +82,6 @@ let rec parse =
       (* <calc> → <term> <calc'> *)
         (match stream with parser
 	| [< t = parseTerm inh; c' = parseCalc' t >] -> c'
-	| [< 'CALL_MARK; t = parseTerm inh; c' = parseCalc' (BinOp (Call_mark, inh, t)); >] -> c'
-	| [< 'LPAR; t = parseTerm inh; c' = parseCalc' (BinOp (Lpar, inh, t)); >] -> c')
 
   (* <comp'> *)
   and parseComp' inh stream = match peek stream with
@@ -97,7 +93,14 @@ let rec parse =
       inh
 
   (* <comp> *)
-  and parseComp inh stream = (* TODO *)
+  and parseComp inh stream = match stream with
+  | VAR _ | INTEGER _ | STRING _ | IDENTIFIER _ | CALL_MARK | LPAR -> | CALL_MARK | LPAR
+      (* <comp> → <calc> <comp'>  *)
+      (match stream with parser
+	| [< c = parseCalc inh; c' = parseComp' c >] -> c'
+
+
+
   (* <expr-eq'> *)
   and parseExprEq' inh stream = (* TODO *)
   (* <expr-eq> *)
