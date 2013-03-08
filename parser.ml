@@ -74,20 +74,6 @@ let rec parse =
   | LBRACE | RPAR | SEMICOLON | COMMA | ASSIGN |LAZY_OR |LAZY_AND | EQUALS | DIFFERENT
   | GREATER | LOWER | GREATER_EQUALS | LOWER_EQUALS
   | STRING_EQUALS | STRING_DIFFERENT
-  | STRING_GREATER | STRING_LOWER | STRING_GREATER_EQUALS | STRING_LOWER_EQUALS
-      
-  (* <calc> *)
-  and parseCalc inh stream = match peek stream with
-  | VAR _ | INTEGER _ | STRING _ | IDENTIFIER _ | CALL_MARK | LPAR ->
-      (* <calc> → <term> <calc'> *)
-        (match stream with parser
-	| [< t = parseTerm inh; c' = parseCalc' t >] -> c'
-
-  (* <comp'> *)
-  and parseComp' inh stream = match peek stream with
-  | LBRACE | RPAR | SEMICOLON | COMMA | ASSIGN |LAZY_OR |LAZY_AND | EQUALS | DIFFERENT
-  | GREATER | LOWER | GREATER_EQUALS | LOWER_EQUALS
-  | STRING_EQUALS | STRING_DIFFERENT
   | STRING_GREATER | STRING_LOWER | STRING_GREATER_EQUALS | STRING_LOWER_EQUALS ->
       (* <comp'> → ε *)
       inh
@@ -97,12 +83,12 @@ let rec parse =
   | VAR _ | INTEGER _ | STRING _ | IDENTIFIER _ | CALL_MARK | LPAR -> | CALL_MARK | LPAR
       (* <comp> → <calc> <comp'>  *)
       (match stream with parser
-	| [< c = parseCalc inh; c' = parseComp' c >] -> c'
-
-
+	| [< c = parseCalc inh; c' = parseComp' c >] -> c')
 
   (* <expr-eq'> *)
   and parseExprEq' inh stream = (* TODO *)
+
+
   (* <expr-eq> *)
   and parseExprEq inh stream = (* TODO *)
   (* <expr-or'> *)
