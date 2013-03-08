@@ -24,7 +24,7 @@ let rec parse =
   (* <term> *)
   and parseTerm' inh stream = match peek stream with
   | LBRACE | RPAR | SEMICOLON | COMMA | PLUS | MINUS
-  | ASSIGN_MARK | CONCAT | OR | AND | EQUALS | DIFFERENT
+  | ASSIGN_MARK | CONCAT | LAZY_OR | LAZY_AND | EQUALS | DIFFERENT
   | GREATER | LOWER | GREATER_EQUALS | LOWER_EQUALS
   | STRING_EQUALS | STRING_DIFFERENT
   | STRING_GREATER | STRING_LOWER | STRING_GREATER_EQUALS | STRING_LOWER_EQUALS ->
@@ -46,7 +46,22 @@ let rec parse =
       | [< f = parseFactor inh; t' = parseTerm' f >] -> t')
   | _ -> unexpected stream
   (* <calc'> *)
-  and parseCalc' inh stream = (* TODO *)
+  and parseCalc' inh stream = (* TODO *)match peek stream with
+  | LBRACE | RPAR | SEMICOLON | COMMA | ASSIGN | LAZY_OR | LAZY_AND | EQUALS | DIFFERENT
+  | GREATER | LOWER | GREATER_EQUALS | LOWER_EQUALS
+  | STRING_EQUALS | STRING_DIFFERENT
+  | STRING_GREATER | STRING_LOWER | STRING_GREATER_EQUALS | STRING_LOWER_EQUALS  ->
+     (* <calc'> → ε *)
+      inh
+  | CONCAT | PLUS | MINUS ->
+      (* <calc'> → '.' <term> <calc'>*)
+      (* <calc'> → '+' <term> <calc'>*)
+      (* <calc'> → '-' <term> <calc'>*)
+      (match stream with parser
+      | [< 'CONCAT; t = parseTerm inh; c' = parseCalc' (BinOp (Concat, inh, t)); >] -> c'
+      | [< 'PLUS; t = parseTerm inh; c' = parseCalc' (BinOp (Plus, inh, t)); >] -> c'
+      | [< 'MINUS; t = parseTerm inh; c' = parseCalc' (BinOp (Minus, inh, t)); >] -> c'
+
   (* <calc> *)
   and parseCalc inh stream = (* TODO *)
   (* <comp'> *)
