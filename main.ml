@@ -16,7 +16,7 @@ let rec drop_errors stream =
   | None -> [< >]
 
 let () =
-  let module L = Lexer in
+  let module L = Hand_lexer in
   let module P = Parser in
   let (fns, instrs) = P.parse (drop_errors (L.lex stdin)) in
   List.iter (fun e -> print_string (string_of_expression e)) fns;
