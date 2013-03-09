@@ -1,3 +1,6 @@
+open Tokens
+open Expressions
+
 let unoption = function
   | Some x -> x
   | None -> failwith "Unexpected end of file"
@@ -8,7 +11,6 @@ let unexpected stream =
   failwith ("unexpected symbol at position " ^
             (string_of_int (Stream.count stream) ^
              ": " ^ (string_of_token (Stream.next stream))))
-
 
 let rec parse =
   (* <factor> *)

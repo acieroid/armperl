@@ -8,7 +8,7 @@ let rec loop s =
       print_string err;
       print_newline ();
       loop s
-  | Right Lexer.EOF -> ()
+  | Right Tokens.EOF -> ()
   | Right x ->
       print_string (Lexer.string_of_token x);
       print_newline ();
