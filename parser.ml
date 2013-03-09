@@ -72,11 +72,28 @@ let rec parse =
   (* <comp'> *)
   and parseComp' inh stream = match peek stream with
   | LBRACE | RPAR | SEMICOLON | COMMA | ASSIGN |LAZY_OR |LAZY_AND | EQUALS | DIFFERENT
-  | GREATER | LOWER | GREATER_EQUALS | LOWER_EQUALS
   | STRING_EQUALS | STRING_DIFFERENT
-  | STRING_GREATER | STRING_LOWER | STRING_GREATER_EQUALS | STRING_LOWER_EQUALS ->
       (* <comp'> → ε *)
       inh
+  | GREATER | LOWER | GREATER_EQUALS | LOWER_EQUALS
+  | STRING_GREATER | STRING_LOWER | STRING_GREATER_EQUALS | STRING_LOWER_EQUALS ->
+      (* <comp'> -> '>' <calc> <comp'> *)
+      (* <comp'> -> '<' <calc> <comp'> *)
+      (* <comp'> -> '>=' <calc> <comp'> *)
+      (* <comp'> -> '<=' <calc> <comp'> *)
+      (* <comp'> -> 'gt' <calc> <comp'> *)
+      (* <comp'> -> 'lt' <calc> <comp'> *)
+      (* <comp'> -> 'ge' <calc> <comp'> *)
+      (* <comp'> -> 'le' <calc> <comp'> *)
+      (match stream with parser
+      | [< 'GREATER; c = parseCalc inh; c' = parseComp' (BinOp (Greater, inh, c)) >] -> c'
+      | [< 'LOWER; c = parseCalc inh; c' = parseComp' (BinOp (Lower, inh, c)) >] -> c'
+      | [< 'GREATER_EQUALS; c = parseCalc inh; c' = parseComp' (BinOp (GreaterEquals, inh, c)) >] -> c'
+      | [< 'LOWER_EQUALS; c = parseCalc inh; c' = parseComp' (BinOp (LowerEquals, inh, c)) >] -> c'
+      | [< 'STRING_GREATER; c = parseCalc inh; c' = parseComp' (BinOp (StrGreater, inh, c)) >] -> c'
+      | [< 'STRING_LOWER; c = parseCalc inh; c' = parseComp' (BinOp (StrLower, inh, c)) >] -> c'
+      | [< 'STRING_GREATER_EQUALS; c = parseCalc inh; c' = parseComp' (BinOp (StrGreaterEquals, inh, c)) >] -> c'
+      | [< 'STRING_LOWER_EQUALS; c = parseCalc inh; c' = parseComp' (BinOp (StrLowerEquals, inh, c)) >] -> c'
 
   (* <comp> *)
   and parseComp inh stream = match stream with
@@ -86,33 +103,32 @@ let rec parse =
 	| [< c = parseCalc inh; c' = parseComp' c >] -> c')
 
   (* <expr-eq'> *)
-  and parseExprEq' inh stream = (* TODO *)
-
+  and parseExprEq' inh stream = Value Undef (* TODO *)
 
   (* <expr-eq> *)
-  and parseExprEq inh stream = (* TODO *)
+  and parseExprEq inh stream = Value Undef (* TODO *)
   (* <expr-or'> *)
-  and parseExprOr' inh stream = (* TODO *)
+  and parseExprOr' inh stream = Value Undef (* TODO *)
   (* <expr-or> *)
-  and parseExprOr inh stream = (* TODO *)
+  and parseExprOr inh stream = Value Undef (* TODO *)
   (* <expr> *)
-  and parseExpr inh stream = (* TODO *)
+  and parseExpr inh stream = Value Undef (* TODO *)
   (* <simple-expr> *)
-  and parseSimpleExpr inh stream = (* TODO *)
+  and parseSimpleExpr inh stream = Value Undef (* TODO *)
   (* <cond-end> *)
-  and parseCondEnd inh stream = (* TODO *)
+  and parseCondEnd inh stream = Value Undef (* TODO *)
   (* <cond> *)
-  and parseCond inh stream = (* TODO *)
+  and parseCond inh stream = Value Undef (* TODO *)
   (* <instr'> *)
-  and parseInstr' inh stream = (* TODO *)
+  and parseInstr' inh stream = Value Undef (* TODO *)
   (* <instr> *)
-  and parseInstr inh stream = (* TODO *)
+  and parseInstr inh stream = Value Undef (* TODO *)
   (* <args call list'> *)
-  and parseArgsCallList' inh stream = (* TODO *)
+  and parseArgsCallList' inh stream = [] (* TODO *)
   (* <args call list> *)
-  and parseArgsCallList inh stream = (* TODO *)
+  and parseArgsCallList inh stream = [] (* TODO *)
   (* <funcall args> *)
-  and parseFuncallArgs inh stream = (* TODO *)
+  and parseFuncallArgs inh stream = [] (* TODO *)
   (* <funcall> *)
   and parseFuncall inh stream = match peek stream with
   | IDENTIFIER _ | CALL_MARK ->

@@ -82,28 +82,39 @@ let string_of_binop = function
   | StrGreaterEquals -> "ge"
   | StrLowerEquals -> "le"
 
-let string_of_expression = function
-  | Value v -> string_of_value
+let rec string_of_expression = function
+  | Value v -> string_of_value v
   | Variable v -> v
   | BinOp (op, left, right) ->
       (string_of_binop op) ^ "(" ^
-      (string_of_expression left) ^ ", "
+      (string_of_expression left) ^ ", " ^
       (string_of_expression right) ^ ")"
   | Assign (name, v) ->
-      "Assign(" ^ name ^ ", " ^ (string_of_value v)
-  | Or (e1, e2) -> "Or(" ^ e1 ^ ", " ^ e2 ^ ")"
-  | And (e1, e2) -> "And(" ^ e1 ^ ", " ^ e2 ^ ")"
-  | UnOp (op, e) -> "UnOp(" ^ (string_of_unop op) ^ ", " ^ (string_of_expression e)
-  | Funcall (fn, args) -> "Funcall(" ^ fn ^ ", [" ^
-      (List.fold_left (fun x, y -> x ^ ", " ^ (string_of_expression y)) args) ^
+      "Assign(" ^ name ^ ", " ^ (string_of_expression v)
+  | Or (e1, e2) ->
+      "Or(" ^
+      (string_of_expression e1) ^ ", " ^
+      (string_of_expression e2) ^ ")"
+  | And (e1, e2) ->
+      "And(" ^
+      (string_of_expression e1) ^ ", " ^
+      (string_of_expression e2) ^ ")"
+  | UnOp (op, e) ->
+      "UnOp(" ^ (string_of_unop op) ^ ", " ^ (string_of_expression e)
+  | Funcall (fn, args) ->
+      "Funcall(" ^ fn ^ ", [" ^
+      (List.fold_left (fun x y -> x ^ ", " ^ (string_of_expression y)) "" args) ^
       "])"
-  | Fundef (name, args, body) -> "Fundef(" ^ fn ^ ", [" ^
-      (List.fold_left (fun x, y -> x ^ ", " ^ y) args) ^ "], ["
-      (List.fold_left (fun x, y -> x ^ ", " ^ (string_of_expression y)) body) ^
+  | Fundef (name, args, body) ->
+      "Fundef(" ^ name ^ ", [" ^
+      (List.fold_left (fun x y -> x ^ ", " ^ y) "" args) ^ "], [" ^
+      (List.fold_left (fun x y -> x ^ ", " ^ (string_of_expression y)) "" body) ^
       "])"
-  | Cond (cond, consequent, alternative) -> "Cond(" ^
+  | Cond (cond, consequent, alternative) ->
+      "Cond(" ^
       (string_of_expression cond) ^ ", [" ^
-      (List.fold_left (fun x, y -> x ^ ", " ^ (string_of_expression y)) body) ^ ", " ^
+      (List.fold_left (fun x y -> x ^ ", " ^ (string_of_expression y))
+         "" consequent) ^ ", " ^
       (string_of_expression alternative) ^ ")"
   | Return e -> "Return(" ^ (string_of_expression e) ^ ")"
       

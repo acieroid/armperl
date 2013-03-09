@@ -81,14 +81,14 @@
 
 <comp>           → <calc> <comp'>
 
-<comp'>          → '>' <comp'>
-                 | '<' <comp'>
-                 | '>=' <comp'>
-                 | '<=' <comp'>
-                 | 'lt' <comp'>
-                 | 'gt' <comp'>
-                 | 'le' <comp'>
-                 | 'ge' <comp'>
+<comp'>          → '>' <calc> <comp'>
+                 | '<' <calc> <comp'>
+                 | '>=' <calc> <comp'>
+                 | '<=' <calc> <comp'>
+                 | 'lt' <calc> <comp'>
+                 | 'gt' <calc> <comp'>
+                 | 'le' <calc> <comp'>
+                 | 'ge' <calc> <comp'>
                  | ε
 
 <calc>           → <term> <calc'>
