@@ -17,48 +17,6 @@ let state_of_channel channel = {
   stream = Stream.of_channel channel
 }
 
-let string_of_token = function
-  | VAR s -> "VAR($" ^ s ^ ")"
-  | INTEGER n -> "INTEGER(" ^ string_of_int n ^ ")"
-  | STRING s -> "STRING(\"" ^ s ^ "\")"
-  | IDENTIFIER s -> "IDENTIFIER(" ^ s ^ ")"
-  | SUB -> "'sub'"
-  | RETURN -> "'return'"
-  | CALL_MARK -> "'&'"
-  | LBRACE -> "'{'"
-  | RBRACE -> "'}'"
-  | LPAR -> "'('"
-  | RPAR -> "')'"
-  | SEMICOLON -> "';'"
-  | COMMA -> "','"
-  | IF -> "'if'"
-  | UNLESS -> "'unless'"
-  | ELSE -> "'else'"
-  | ELSEIF -> "'elsif'"
-  | NOT -> "'!'"
-  | NOT_WORD -> "'not'"
-  | PLUS -> "'+'"
-  | MINUS -> "'-'"
-  | TIMES -> "'*'"
-  | DIVIDE -> "'/'"
-  | ASSIGN -> "'='"
-  | CONCAT -> "'.'"
-  | LAZY_OR -> "'||'"
-  | LAZY_AND -> "'&&'"
-  | EQUALS -> "'=='"
-  | DIFFERENT -> "'!='"
-  | GREATER -> "'>'"
-  | LOWER -> "'<'"
-  | GREATER_EQUALS -> "'>='"
-  | LOWER_EQUALS -> "'<='"
-  | STRING_EQUALS -> "'eq'"
-  | STRING_DIFFERENT -> "'ne'"
-  | STRING_GREATER -> "'gt'"
-  | STRING_LOWER -> "'lt'"
-  | STRING_GREATER_EQUALS -> "'ge'"
-  | STRING_LOWER_EQUALS -> "'le'"
-  | EOF -> "EOF"
-
 let is_identifier_char = function
   | 'a'..'z' | 'A'..'Z' | '0'..'9' | '_' -> true
   | _ -> false

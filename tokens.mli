@@ -40,3 +40,6 @@ type token =
   | STRING_GREATER_EQUALS  (* ge     *)
   | STRING_LOWER_EQUALS    (* le     *)
   | EOF                    (* EOF    *)
+
+(** Return a string describing the given token *)
+val string_of_token : token -> string

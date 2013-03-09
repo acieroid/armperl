@@ -1,25 +1,26 @@
 open Utils
 open Expression
 
-let rec loop s =
-  match Stream.peek s with
-  | Some x -> Stream.junk s;
+let rec drop_errors stream =
+  match Stream.peek stream with
+  | Some x -> Stream.junk stream;
       (match x with
       | Left err ->
           print_string "error during lexing: ";
           print_string err;
           print_newline ();
-          loop s
-      | Right Tokens.EOF -> ()
+          drop_errors stream
+      | Right Tokens.EOF -> [< >]
       | Right x ->
-          print_string (Lexer.string_of_token x);
-          print_newline ();
-          loop s)
-  | None -> ()
+          [< 'x; drop_errors stream >])
+  | None -> [< >]
 
 let () =
   let module L = Lexer in
-  loop (L.lex stdin)
+  let module P = Parser in
+  let (fns, instrs) = P.parse (drop_errors (L.lex stdin)) in
+  List.iter (fun e -> print_string (string_of_expression e)) fns;
+  List.iter (fun e -> print_string (string_of_expression e)) instrs;
   (* let e = (Or (Value (String "foo"), (BinOp (Plus, Value (Integer 3), Value (Integer 5))))) in *)
   (* let f = (Fundef ("hello", ["name"],
                    [BinOp (Concat,
