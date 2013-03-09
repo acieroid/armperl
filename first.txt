@@ -1,6 +1,6 @@
-﻿nullable: <…'>, <arg list>, <funcall args>, <args call list>, <cond end>
+﻿First: factor, instr', term, calc, comp, expr-eq, expr-and, expr-or, expr, instr, args call list, instr list', instr list, program', program
 
-First{<factor>} = {'('} + First{<simple expr>}
+First{<factor>} = {'(', '!', '+', '-'} + First{<simple expr>}
 First{<term'>} = {'*', '/'}
 First{<term>} = First{<factor>}
 First{<calc'>} = {'+', '-', '.'}
@@ -13,13 +13,12 @@ First{<expr-and'>} = {'&&'}
 First{<expr-and>} = First{<expr-eq>}
 First{<expr-or'>} = {'||'}
 First{<expr-or>} = First{<expr-and>}
-First{<expr-assign>} = First{<expr-or>}
-First{<expr>} = {'not'} + First{<expr-assign>}
+First{<expr>} = {'not'} + First{<expr-or>}
 First{<simple expr>} = {var, integer, string} + First{<funcall>}
 First{<cond end>} = {'else', 'elsif'}
 First{<cond>} = {'if', 'unless'}
 First{<instr>} = {'return', var} + First{<cond>} + First{<expr>}
-First{<instr'>} = {'='}
+First{<instr'>} = {'=', 'if', 'unless'}
 First{<args call list'>} = {','}
 First{<args call list>} = First{<instr>}
 First{<funcall args>} = {'('}

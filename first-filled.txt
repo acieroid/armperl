@@ -1,45 +1,44 @@
 ﻿nullable: <…'>, <arg list>, <funcall args>, <args call list>, <cond end>
 
-First{<factor>} = {'(', '&', var, integer, string, identifier}
+First{<factor>} = {'(', '!', '+', '-', '&', var, integer, string, identifier}
 First{<term'>} = {'*', '/'}
-First{<term>} = {'(', '&', var, integer, string, identifier}
+First{<term>} = {'(', '!', '+', '-', '&', var, integer, string, identifier}
 First{<calc'>} = {'+', '-', '.'}
-First{<calc>} = {'(', '&', var, integer, string, identifier}
+First{<calc>} = {'(', '!', '+', '-', '&', var, integer, string, identifier}
 First{<comp'>} = {'>', '<', '>=', '<=', 'lt', 'gt', 'le', 'ge'}
-First{<comp>} = {'(', '&', var, integer, string, identifier}
+First{<comp>} = {'(', '!', '+', '-', '&', var, integer, string, identifier}
 First{<expr-eq'>} = {'==', '!=', 'eq', 'ne'}
-First{<expr-eq>} = {'(', '&', var, integer, string, identifier}
+First{<expr-eq>} = {'(', '!', '+', '-', '&', var, integer, string, identifier}
 First{<expr-and'>} = {'&&'}
-First{<expr-and>} = {'(', '&', var, integer, string, identifier}
+First{<expr-and>} = {'(', '!', '+', '-', '&', var, integer, string, identifier}
 First{<expr-or'>} = {'||'}
-First{<expr-or>} = {'(', '&', var, integer, string, identifier}
-First{<expr-assign>} ={'(', '&', var, integer, string, identifier}
-First{<expr>} = {'not', '(', '&', var, integer, string, identifier}
+First{<expr-or>} = {'(', '!', '+', '-', '&', var, integer, string, identifier}
+First{<expr>} = {'not', '(', '!', '+', '-', '&', var, integer, string, identifier}
 First{<simple expr>} = {var, integer, string, '&', identifier}
 First{<cond end>} = {'else', 'elsif'}
 First{<cond>} = {'if', 'unless'}
-First{<instr>} = {'return', 'if', 'unless', 'not', '(', '&', var, integer, string, identifier}
-First{<instr'>} = {'='}
+First{<instr>} = {'return', 'if', 'unless', 'not', '(', '!', '+', '-', '&', var, integer, string, identifier}
+First{<instr'>} = {'=', 'if', 'unless'}
 First{<args call list'>} = {','}
 First{<args call list>} = {'return', 'if', 'unless', 'not', '(', '!', '+', '-', '&', var, integer, string, identifier}
 First{<funcall args>} = {'('}
 First{<funcall>} = {'&', identifier}
 First{<instr list'>} = {';'}
-First{<instr list>} = {'{', 'return', 'if', 'unless', 'not', '(', '&', var, integer, string, identifier}
+First{<instr list>} = {'{', 'return', 'if', 'unless', 'not', '(', '!', '+', '-', '&', var, integer, string, identifier}
 First{<arg list'>} = {','}
 First{<arg list>} = {var}
 First{<function args>} = {'('}
 First{<function>} = {'sub'}
 First{<function list'>} = {'sub'}
 First{<function list>} = {'sub'}
-First{<program>} = {'sub', '{', 'return', 'if', 'unless', 'not', '(', '&', var, integer, string, identifier}
-First{<program'>} = {'{', 'return', 'if', 'unless', 'not', '(', '&', var, integer, string, identifier}
+First{<program>} = {'sub', '{', 'return', 'if', 'unless', 'not', '(', '!', '+', '-', '&', var, integer, string, identifier}
+First{<program'>} = {'{', 'return', 'if', 'unless', 'not', '(', '!', '+', '-', '&', var, integer, string, identifier}
 
 Follow{<program>} = {EOF}
 Follow{<program'>} = {EOF}
-Follow{<function list>} = {'{', 'return', 'if', 'unless', 'not', '(', '&', var, integer, string, identifier, EOF}
-Follow{<function>} = {'sub', '{', 'return', 'if', 'unless', 'not', '(', '&', var, integer, string, identifier, EOF}
-Follow{<function list'>} = {'{', 'return', 'if', 'unless', 'not', '(', '&', var, integer, string, identifier, EOF}
+Follow{<function list>} = {'{', 'return', 'if', 'unless', 'not', '(', '!', '+', '-', '&', var, integer, string, identifier, EOF}
+Follow{<function>} = {'sub', '{', 'return', 'if', 'unless', 'not', '(', '!', '+', '-', '&', var, integer, string, identifier, EOF}
+Follow{<function list'>} = {'{', 'return', 'if', 'unless', 'not', '(', '!', '+', '-', '&', var, integer, string, identifier, EOF}
 Follow{<function args>} = {'{'}
 Follow{<instr list>} = {'}', EOF}
 Follow{<arg list>} = {')'}

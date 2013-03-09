@@ -44,6 +44,8 @@
                  | 'return' <expr>
 
 <instr'>         → '=' <expr>
+                 | 'if' <expr>
+                 | 'unless' <expr>
                  | ε
 
 <cond>           → 'if' <expr> '{' <instr list> '}' <cond end>
@@ -105,4 +107,7 @@
                  | ε
 
 <factor>         → <simple expr>
+                 | '!' <factor>
+                 | '+' <factor>
+                 | '-' <factor>
                  | '(' <expr> ')'

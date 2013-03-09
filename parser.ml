@@ -22,6 +22,14 @@ let rec parse =
       (* <factor> → '(' <expr> ')' *)
       (match stream with parser
       | [< 'LPAR; e = parseExpr inh; 'RPAR >] -> e)
+  | NOT | PLUS | MINUS ->
+      (* <factor> → '!' <factor> *)
+      (* <factor> → '+' <factor> *)
+      (* <factor> → '-' <factor> *)
+      (match stream with parser
+      | [< 'NOT; f = parseFactor inh >] -> UnOp (Not, f)
+      | [< 'PLUS; f = parseFactor inh >] -> UnOp (UnaryPlus, f)
+      | [< 'MINUS; f = parseFactor inh >] -> UnOp (UnaryMinus, f))
   | _ -> unexpected stream 
 
   (** <term> *)
@@ -41,10 +49,10 @@ let rec parse =
       | [< 'DIVIDE; f = parseFactor inh; t' = parseTerm' (BinOp (Divide, inh, f)); >] -> t')
   | _ -> unexpected stream
 
-  (** <term'> *)  
+  (** <term> *)  
   and parseTerm inh stream = match peek stream with
   | VAR _ | INTEGER _ | STRING _ | IDENTIFIER _
-  | CALL_MARK | LPAR ->
+  | CALL_MARK | LPAR | NOT | PLUS | MINUS ->
       (* <term> → <factor> <term'> *)
       (match stream with parser
       | [< f = parseFactor inh; t' = parseTerm' f >] -> t')
@@ -70,7 +78,8 @@ let rec parse =
 
   (** <calc> *)
   and parseCalc inh stream = match peek stream with
-  | VAR _ | INTEGER _ | STRING _ | IDENTIFIER _ | CALL_MARK | LPAR ->
+  | VAR _ | INTEGER _ | STRING _ | IDENTIFIER _
+  | CALL_MARK | LPAR | NOT | PLUS | MINUS ->
       (* <calc> → <term> <calc'> *)
         (match stream with parser
 	| [< t = parseTerm inh; c' = parseCalc' t >] -> c')
@@ -105,7 +114,8 @@ let rec parse =
 
   (** <comp> *)
   and parseComp inh stream = match peek stream with
-  | VAR _ | INTEGER _ | STRING _ | IDENTIFIER _ | CALL_MARK | LPAR ->
+  | VAR _ | INTEGER _ | STRING _ | IDENTIFIER _
+  | CALL_MARK | LPAR | NOT | PLUS | MINUS ->
       (* <comp> → <calc> <comp'>  *)
       (match stream with parser
       | [< c = parseCalc inh; c' = parseComp' c >] -> c')
@@ -168,7 +178,7 @@ let rec parse =
   (** <instr list> *)
   and parseInstrList inh stream = match peek stream with
   | VAR _ | INTEGER _ | STRING _ | IDENTIFIER _ 
-  | RETURN | CALL_MARK | LPAR | IF | UNLESS | NOT ->
+  | RETURN | CALL_MARK | LPAR | IF | UNLESS | NOT_WORD ->
       (* <instr list> → <instr> ';' <instr list'> *)
       (match stream with parser
       | [< i = parseInstr inh; 'SEMICOLON; i' = parseInstrList' inh >] ->
@@ -225,7 +235,8 @@ let rec parse =
   (** <function list'> *)
   and parseFunctionList' inh stream = match peek stream with
   | VAR _ | INTEGER _ | STRING _ | IDENTIFIER _ | RETURN | CALL_MARK
-  | LBRACE | LPAR | IF | UNLESS | NOT | EOF ->
+  | NOT | PLUS | MINUS 
+  | LBRACE | LPAR | IF | UNLESS | NOT_WORD | EOF ->
       (* <function list'> → ε *)
       []
   | SUB ->
@@ -247,7 +258,8 @@ let rec parse =
   (** <program'> *)
   and parseProgram' inh stream = match peek stream with
   | VAR _ | INTEGER _ | STRING _ | IDENTIFIER _ | RETURN | CALL_MARK
-  | LBRACE | LPAR | IF | UNLESS | NOT ->
+  | NOT | PLUS | MINUS 
+  | LBRACE | LPAR | IF | UNLESS | NOT_WORD ->
       (* <program'> → <instr list> *)
       (match stream with parser
       | [< l = parseInstrList inh >] -> l)
@@ -259,7 +271,8 @@ let rec parse =
   (** <program> *)
   and parseProgram inh stream = match peek stream with
   | VAR _ | INTEGER _ | STRING _ | IDENTIFIER _ | RETURN | CALL_MARK
-  | LBRACE | LPAR | IF | UNLESS | NOT ->
+  | NOT | PLUS | MINUS 
+  | LBRACE | LPAR | IF | UNLESS | NOT_WORD ->
       (* <program> → <instr list> *)
       (match stream with parser
       | [< l = parseInstrList inh >] -> ([], l))

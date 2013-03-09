@@ -30,6 +30,8 @@
 <instr>          → <cond>
                  | <expr>
                  | <expr> '=' <expr>
+                 | <expr> 'if' <expr>
+                 | <expr> 'unless' <expr>
                  | 'return' <expr>
 
 <cond>           → 'if' <expr> '{' <instr list> '}' <cond end>
@@ -80,4 +82,7 @@
                  | <factor>
 
 <factor>         → <simple expr>
+                 | '!' <factor>
+                 | '+' <factor>
+                 | '-' <factor>
                  | '(' <expr> ')'
