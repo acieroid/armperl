@@ -16,3 +16,6 @@ val lexer : lexer_state -> (string, token) either
 
 (** Return a stream generating all the lexemes for a lexer state *)
 val to_stream : lexer_state -> (string, token) either Stream.t
+
+(** Combine state_of_channel and to_stream *)
+val lex : in_channel -> (string, token) either Stream.t

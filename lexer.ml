@@ -205,3 +205,5 @@ let rec lexer state =
 
 let rec to_stream state =
   [< 'lexer state; to_stream state >]
+
+let lex channel = to_stream (state_of_channel channel)
