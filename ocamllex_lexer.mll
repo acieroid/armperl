@@ -1,6 +1,8 @@
 {
  open Tokens
  open Utils
+ open Lexing
+ exception LexingError of position
 }
 
 let digits = ['0'-'9']
@@ -51,10 +53,17 @@ rule lexer = parse
 | '\'' ([^'\'']* as s) '\''    { STRING s }
 | '$' ((alpha | digits)* as s) { VAR s }
 | (alpha | digits)* as s       { IDENTIFIER s }
+| _                            { raise (LexingError lexbuf.lex_curr_p) }
 
 {
  let rec to_stream lexbuf =
-   [< 'Right (lexer lexbuf); to_stream lexbuf >]
+   let item = try
+     Right (lexer lexbuf)
+   with
+     LexingError p -> Left ("no match at line " ^ (string_of_int p.pos_lnum) ^
+                            " on column " ^ (string_of_int p.pos_cnum))
+   in
+   [< 'item; to_stream lexbuf >]
 
  let lex channel = to_stream (Lexing.from_channel channel)
 }
