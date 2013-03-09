@@ -1,6 +1,4 @@
-﻿First: factor, instr', term, calc, comp, expr-eq, expr-and, expr-or, expr, instr, args call list, instr list', instr list, program', program
-
-First{<factor>} = {'(', '!', '+', '-'} + First{<simple expr>}
+﻿First{<factor>} = {'(', '!', '+', '-'} + First{<simple expr>}
 First{<term'>} = {'*', '/'}
 First{<term>} = First{<factor>}
 First{<calc'>} = {'+', '-', '.'}
@@ -50,11 +48,11 @@ Follow{<funcall args>} = Follow{<funcall>}
 Follow{<args call list>} = {')'}
 Follow{<args call list'>} = Follow{<args call list>}
 Follow{<cond>} = Follow{<instr>}
-Follow{<expr>} = {'{', ')'} + Follow{<instr>} + Follow{<instr'>}
+Follow{<expr>} = {'{', ')'} + Follow{<instr>} + Follow{<instr'>} + First{<instr'>}
 Follow{<cond end>} = Follow{<cond>}
 Follow{<funcall>} = Follow{<simple expr>}
 Follow{<simple expr>} =  Follow{<factor>}
-Follow{<expr-or>} = {'='} + Follow{<expr>}
+Follow{<expr-or>} = Follow{<expr>}
 Follow{<expr-and>} = First{<expr-or'>} + Follow{<expr-or>}
 Follow{<expr-or'>} = Follow{<expr-or>}
 Follow{<expr-eq>} = First{<expr-and'>} + Follow{<expr-and>}

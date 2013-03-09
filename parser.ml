@@ -30,7 +30,7 @@ let rec parse =
       | [< 'NOT; f = parseFactor inh >] -> UnOp (Not, f)
       | [< 'PLUS; f = parseFactor inh >] -> UnOp (UnaryPlus, f)
       | [< 'MINUS; f = parseFactor inh >] -> UnOp (UnaryMinus, f))
-  | _ -> unexpected stream 
+  | _ -> unexpected stream
 
   (** <term> *)
   and parseTerm' inh stream = match peek stream with
@@ -38,7 +38,8 @@ let rec parse =
   | ASSIGN | CONCAT | LAZY_OR | LAZY_AND | EQUALS | DIFFERENT
   | GREATER | LOWER | GREATER_EQUALS | LOWER_EQUALS
   | STRING_EQUALS | STRING_DIFFERENT
-  | STRING_GREATER | STRING_LOWER | STRING_GREATER_EQUALS | STRING_LOWER_EQUALS ->
+  | STRING_GREATER | STRING_LOWER | STRING_GREATER_EQUALS | STRING_LOWER_EQUALS
+  | IF | UNLESS ->
       (* <term'> → ε *)
       inh
   | TIMES | DIVIDE ->
@@ -49,7 +50,7 @@ let rec parse =
       | [< 'DIVIDE; f = parseFactor inh; t' = parseTerm' (BinOp (Divide, inh, f)); >] -> t')
   | _ -> unexpected stream
 
-  (** <term> *)  
+  (** <term> *)
   and parseTerm inh stream = match peek stream with
   | VAR _ | INTEGER _ | STRING _ | IDENTIFIER _
   | CALL_MARK | LPAR | NOT | PLUS | MINUS ->
@@ -63,7 +64,8 @@ let rec parse =
   | LBRACE | RPAR | SEMICOLON | COMMA | ASSIGN | LAZY_OR | LAZY_AND | EQUALS | DIFFERENT
   | GREATER | LOWER | GREATER_EQUALS | LOWER_EQUALS
   | STRING_EQUALS | STRING_DIFFERENT
-  | STRING_GREATER | STRING_LOWER | STRING_GREATER_EQUALS | STRING_LOWER_EQUALS  ->
+  | STRING_GREATER | STRING_LOWER | STRING_GREATER_EQUALS | STRING_LOWER_EQUALS
+  | IF | UNLESS ->
      (* <calc'> → ε *)
       inh
   | CONCAT | PLUS | MINUS ->
@@ -88,7 +90,8 @@ let rec parse =
   (** <comp'> *)
   and parseComp' inh stream = match peek stream with
   | LBRACE | RPAR | SEMICOLON | COMMA | ASSIGN |LAZY_OR |LAZY_AND | EQUALS | DIFFERENT
-  | STRING_EQUALS | STRING_DIFFERENT ->
+  | STRING_EQUALS | STRING_DIFFERENT 
+  | IF | UNLESS ->
       (* <comp'> → ε *)
       inh
   | GREATER | LOWER | GREATER_EQUALS | LOWER_EQUALS
@@ -169,7 +172,7 @@ let rec parse =
 	| [< '(IDENTIFIER name); args = parseFuncallArgs inh >] ->
 		Funcall (name, args)
 	| [< 'CALL_MARK; '(IDENTIFIER name); args = parseFuncallArgs inh >] ->
-	    Funcall (name, args)) 
+	    Funcall (name, args))
   | _ -> unexpected stream
 
   (** <instr list'> *)
@@ -177,7 +180,7 @@ let rec parse =
 
   (** <instr list> *)
   and parseInstrList inh stream = match peek stream with
-  | VAR _ | INTEGER _ | STRING _ | IDENTIFIER _ 
+  | VAR _ | INTEGER _ | STRING _ | IDENTIFIER _
   | RETURN | CALL_MARK | LPAR | IF | UNLESS | NOT_WORD ->
       (* <instr list> → <instr> ';' <instr list'> *)
       (match stream with parser
@@ -235,7 +238,7 @@ let rec parse =
   (** <function list'> *)
   and parseFunctionList' inh stream = match peek stream with
   | VAR _ | INTEGER _ | STRING _ | IDENTIFIER _ | RETURN | CALL_MARK
-  | NOT | PLUS | MINUS 
+  | NOT | PLUS | MINUS
   | LBRACE | LPAR | IF | UNLESS | NOT_WORD | EOF ->
       (* <function list'> → ε *)
       []
@@ -258,7 +261,7 @@ let rec parse =
   (** <program'> *)
   and parseProgram' inh stream = match peek stream with
   | VAR _ | INTEGER _ | STRING _ | IDENTIFIER _ | RETURN | CALL_MARK
-  | NOT | PLUS | MINUS 
+  | NOT | PLUS | MINUS
   | LBRACE | LPAR | IF | UNLESS | NOT_WORD ->
       (* <program'> → <instr list> *)
       (match stream with parser
@@ -271,7 +274,7 @@ let rec parse =
   (** <program> *)
   and parseProgram inh stream = match peek stream with
   | VAR _ | INTEGER _ | STRING _ | IDENTIFIER _ | RETURN | CALL_MARK
-  | NOT | PLUS | MINUS 
+  | NOT | PLUS | MINUS
   | LBRACE | LPAR | IF | UNLESS | NOT_WORD ->
       (* <program> → <instr list> *)
       (match stream with parser
