@@ -35,7 +35,7 @@ let rec parse =
       (* <term'> → '/' <factor> <term'> *)
       (match stream with parser
       | [< 'TIMES; f = parseFactor inh; t' = parseTerm' (BinOp (Times, inh, f)); >] -> t'
-      | [< 'DIVIDES; f = parseFactor inh; t' = parseTerm' (BinOp (Divides, inh, f)); >] -> t')
+      | [< 'DIVIDES; f = parseFactor inh; t' = parseTerm' (BinOp (Divide, inh, f)); >] -> t')
   | _ -> unexpected stream
   (* <term'> *)  
   and parseTerm inh stream = match peek stream with
@@ -84,13 +84,23 @@ let rec parse =
   (* <instr list'> *)
   and parseInstrList' inh stream = (* TODO *)
   (* <instr list> *)
-  and parseInstrList inh stream = (* TODO *)
+  and parseInstrList inh stream = match peek stream with
+  | VAR _ | INTEGER _ | STRING _ | IDENTIFIER _ 
+  | RETURN | CALL_MARK | LPAR | IF | UNLESS | NOT | ->
+      (* <instr list> → <instr> ';' <instr list'> *)
+      (match stream with parser
+      | [< i = parseInstr inh; 'SEMICOLON; i' = parseInstrList' inh >] ->
+          i::i')
+  | LBRACE ->
+    (* <instr list> → '{' <instr list> '}' *)
+      (match stream with parser
+        [< 'LBRACE; i = parseInstrList; 'RBRACE >] -> i)
   (* <arg list'> *)
   and parseArgList' inh stream = match peek stream with
   | COMMA ->
       (* <arg list'> → ',' var <arg list'> *)
       (match stream with parser
-      | [< COMMA; VAR v; args = parseArgList' inh >] ->
+      | [< 'COMMA; '(VAR v); args = parseArgList' inh >] ->
           v::args)
   | RPAR ->
       (* <arg list'> → ε *)
@@ -100,7 +110,7 @@ let rec parse =
   | VAR _ ->
     (* <arg list> → var <arg list'> *)
       (match stream with parser
-        [< VAR v; args = parseArgList' inh >] ->
+        [< '(VAR v); args = parseArgList' inh >] ->
           v::args)
   | RPAR ->
     (* <arg list> → ε *)
@@ -110,7 +120,7 @@ let rec parse =
   | LPAR ->
       (* <function args>  → '(' <arg list> ')' *)
       (match stream with parser
-        [< LPAR; args = parseArgList inh; RPAR >] ->
+        [< 'LPAR; args = parseArgList inh; 'RPAR >] ->
           args)
   | _ -> unexpected stream
   (* <function> *)
@@ -118,8 +128,8 @@ let rec parse =
   | SUB ->
       (* <function> → 'sub' identifier <function args> '{' <instr list> '}' *)
       (match stream with parser
-        [< SUB; IDENTIFIER name; args = parseFunctionArgs inh;
-           LBRACE; body = parseInstrList inh; RBRACE >] ->
+        [< 'SUB; 'IDENTIFIER name; args = parseFunctionArgs inh;
+           'LBRACE; body = parseInstrList inh; 'RBRACE >] ->
              Fundef (name, args, body))
   | _ -> unexpected stream
   (* <function list'> *)
