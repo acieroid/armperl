@@ -3,7 +3,7 @@ open Expression
 
 let unoption = function
   | Some x -> x
-  | None -> failwith "Unexpected end of file"
+  | None -> EOF
 
 let peek stream = unoption (Stream.peek stream)
 
@@ -83,8 +83,8 @@ let rec parse =
   | VAR _ | INTEGER _ | STRING _ | IDENTIFIER _
   | CALL_MARK | LPAR | NOT | PLUS | MINUS ->
       (* <calc> → <term> <calc'> *)
-        (match stream with parser
-	| [< t = parseTerm inh; c' = parseCalc' t >] -> c')
+      (match stream with parser
+      | [< t = parseTerm inh; c' = parseCalc' t >] -> c')
   | _ -> unexpected stream
 
   (** <comp'> *)
@@ -144,9 +144,9 @@ let rec parse =
   (** <expr-eq> *)
   and parseExprEq inh stream = match peek stream with
   | VAR _ | INTEGER _ | STRING _ | IDENTIFIER _  | CALL_MARK | LPAR | NOT | PLUS | MINUS ->
-     (* <expr-eq> → <comp> <expr-eq'> *)
-     (match stream with parser
-	| [< c = parseComp inh; e' = parseExprEq' c >] -> e')
+      (* <expr-eq> → <comp> <expr-eq'> *)
+      (match stream with parser
+      | [< c = parseComp inh; e' = parseExprEq' c >] -> e')
   | _ -> unexpected stream
 
   (** <expr-and'> *)
@@ -164,8 +164,8 @@ let rec parse =
   and parseExprAnd inh stream = match peek stream with
   | VAR _ | INTEGER _ | STRING _ | IDENTIFIER _  | CALL_MARK | LPAR | NOT | PLUS | MINUS ->
      (* <expr-and> → <expr-eq> <expr-and'> *)
-     (match stream with parser
-	| [< e = parseExprEq inh; a = parseExprAnd' e >] -> a)
+      (match stream with parser
+      | [< e = parseExprEq inh; a = parseExprAnd' e >] -> a)
   | _ -> unexpected stream
 
   (** <expr-or'> *)
@@ -182,9 +182,9 @@ let rec parse =
   (** <expr-or> *)
   and parseExprOr inh stream = match peek stream with
   | VAR _ | INTEGER _ | STRING _ | IDENTIFIER _  | CALL_MARK | LPAR | NOT | PLUS | MINUS ->
-     (* <expr-or> → <expr-and> <expr-or'> *)
-     (match stream with parser
-	| [< a = parseExprAnd inh; o' = parseExprOr' a >] -> o')
+      (* <expr-or> → <expr-and> <expr-or'> *)
+      (match stream with parser
+      | [< a = parseExprAnd inh; o' = parseExprOr' a >] -> o')
   | _ -> unexpected stream
 
   (** <expr> *)
@@ -313,13 +313,13 @@ let rec parse =
   (** <funcall> *)
   and parseFuncall inh stream = match peek stream with
   | IDENTIFIER _ | CALL_MARK ->
-	(* <funcall> → identifier <funcall args> *)
-	(*  <funcall> → '&' identifier <funcall args> *)
-	(match stream with parser
-	| [< '(IDENTIFIER name); args = parseFuncallArgs inh >] ->
-		Funcall (name, args)
-	| [< 'CALL_MARK; '(IDENTIFIER name); args = parseFuncallArgs inh >] ->
-	    Funcall (name, args))
+      (* <funcall> → identifier <funcall args> *)
+      (*  <funcall> → '&' identifier <funcall args> *)
+      (match stream with parser
+      | [< '(IDENTIFIER name); args = parseFuncallArgs inh >] ->
+	  Funcall (name, args)
+      | [< 'CALL_MARK; '(IDENTIFIER name); args = parseFuncallArgs inh >] ->
+	  Funcall (name, args))
   | _ -> unexpected stream
 
   (** <instr list'> *)
@@ -329,7 +329,7 @@ let rec parse =
       []
   | VAR _ | INTEGER _ | STRING _ | IDENTIFIER _
   | RETURN  | CALL_MARK | LPAR | IF | UNLESS | NOT_WORD | NOT | PLUS | MINUS ->
-    (* <instr list'> → <instr> ';' <instr list'>  *)
+      (* <instr list'> → <instr> ';' <instr list'>  *)
       (match stream with parser
         [< i = parseInstr inh; 'SEMICOLON; i' = parseInstrList' inh >] -> i::i')
   | _ -> unexpected stream
@@ -343,9 +343,9 @@ let rec parse =
       | [< i = parseInstr inh; 'SEMICOLON; i' = parseInstrList' inh >] ->
           i::i')
   | LBRACE ->
-    (* <instr list> → '{' <instr list> '}' *)
+      (* <instr list> → '{' <instr list> '}' *)
       (match stream with parser
-        [< 'LBRACE; i = parseInstrList inh; 'RBRACE >] -> i)
+      | [< 'LBRACE; i = parseInstrList inh; 'RBRACE >] -> i)
   | _ -> unexpected stream
 
   (** <arg list'> *)
@@ -441,6 +441,8 @@ let rec parse =
       | [< l = parseFunctionList inh; p = parseProgram' inh >] ->
           (l, p))
   | _ -> unexpected stream
-  in
+  and parseS inh stream = match stream with parser
+  | [< p = parseProgram inh >] -> p
+in
   (* TODO: the inh argument is not needed everywhere *)
-  parseProgram (Value Undef)
+  parseS (Value Undef)
