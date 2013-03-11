@@ -2,7 +2,9 @@ open Tokens
 open Expression
 
 let unoption = function
-  | Some x -> print_string (string_of_token x); print_newline (); x
+  | Some x -> 
+      (* print_string (string_of_token x); print_newline (); *)
+      x
   | None -> EOF
 
 let peek stream = unoption (Stream.peek stream)

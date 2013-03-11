@@ -2,4 +2,4 @@
 # Expected output:
 # 42
 
-print ((5 + 1) * (12 / 2 + 1))
+print ((5 + 1) * (12 / 2 + 1));

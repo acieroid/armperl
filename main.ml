@@ -42,8 +42,10 @@ let () =
   | "hand" -> Parser.parse
   | _ -> failwith ("Unknown parser: " ^ !parser_arg) in
   let (fns, instrs) = parse (drop_errors (lex stdin)) in
-  List.iter (fun e -> print_string (string_of_expression e)) fns;
-  List.iter (fun e -> print_string (string_of_expression e)) instrs;
+  let _ = Eval.eval_sequence (Symtable.empty ()) true instrs in
+  ()
+  (* List.iter (fun e -> print_string (string_of_expression e)) fns;
+  List.iter (fun e -> print_string (string_of_expression e)) instrs; *)
   (* let e = (Or (Value (String "foo"), (BinOp (Plus, Value (Integer 3), Value (Integer 5))))) in *)
   (* let f = (Fundef ("hello", ["name"],
                    [BinOp (Concat,
