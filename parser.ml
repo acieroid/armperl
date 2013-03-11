@@ -130,13 +130,24 @@ let rec parse =
       (* <expr-eq'> → ε *) 
       inh
   | EQUALS | DIFFERENT | STRING_EQUALS | STRING_DIFFERENT ->
-      <expr-eq'> → 'eq' <expr-eq'>
-      <expr-eq'> → 'ne' <expr-eq'>
-      <expr-eq'> → '!=' <expr-eq'>
-      <expr-eq'> → '==' <expr-eq'>
+      (*<expr-eq'> → 'eq' <expr-eq'>*)
+      (*<expr-eq'> → 'ne' <expr-eq'>*)
+      (*<expr-eq'> → '!=' <expr-eq'>*)
+      (*<expr-eq'> → '==' <expr-eq'>*)
+      (match stream with parser
+      | [< 'EQUALS; e = parseExprEq' inh >] -> BinOp (Equals, inh, e)
+      | [< 'DIFFERENT; e = parseExprEq' inh >] -> BinOp (Different ,inh, e)
+      | [< 'STRING_EQUALS; e = parseExprEq' inh >] -> BinOp (StrEquals ,inh, e)
+      | [< 'STRING_DIFFERENT; e = parseExprEq' inh >] -> BinOp (StrDifferent ,inh, e))
+  | _ -> unexpected stream
 
   (** <expr-eq> *)
-  and parseExprEq inh stream = Value Undef (* TODO *)
+  and parseExprEq inh stream = match peek stream with
+  | VAR _ | INTEGER _ | STRING _ | IDENTIFIER _  | CALL_MARK | LPAR | NOT | PLUS | MINUS ->
+     (* <expr-eq> → <comp> <expr-eq'> *)
+     (match stream with parser
+	| [< c = parseComp inh; e' = parseExprEq' c >] -> c')
+  | _ -> unexpected stream
 
   (** <expr-or'> *)
   and parseExprOr' inh stream = Value Undef (* TODO *)
