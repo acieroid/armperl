@@ -2,7 +2,7 @@ open Tokens
 open Expression
 
 let unoption = function
-  | Some x -> x
+  | Some x -> print_string (string_of_token x); print_newline (); x
   | None -> EOF
 
 let peek stream = unoption (Stream.peek stream)
@@ -324,7 +324,7 @@ let rec parse =
 
   (** <instr list'> *)
   and parseInstrList' inh stream = match peek stream with
-  | RBRACE ->
+  | RBRACE | EOF ->
       (* <instr list'> → ε *)
       []
   | VAR _ | INTEGER _ | STRING _ | IDENTIFIER _
@@ -337,7 +337,7 @@ let rec parse =
   (** <instr list> *)
   and parseInstrList inh stream = match peek stream with
   | VAR _ | INTEGER _ | STRING _ | IDENTIFIER _
-  | RETURN | CALL_MARK | LPAR | IF | UNLESS | NOT_WORD | NOT | PLUS | MINUS->
+  | RETURN | CALL_MARK | LPAR | IF | UNLESS | NOT_WORD | NOT | PLUS | MINUS ->
       (* <instr list> → <instr> ';' <instr list'> *)
       (match stream with parser
       | [< i = parseInstr inh; 'SEMICOLON; i' = parseInstrList' inh >] ->

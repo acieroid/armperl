@@ -3,8 +3,10 @@
 # Hello, world!
 
 sub hello($name) {
-  print "Hello, " . $name . '
-';
+  print("Hello, " . $name . '
+');
 }
 
+&hello("world!");
+&hello("world!");
 &hello("world!");
