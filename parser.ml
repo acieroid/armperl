@@ -149,9 +149,35 @@ let rec parse =
 	| [< c = parseComp inh; e' = parseExprEq' c >] -> c')
   | _ -> unexpected stream
 
-  (** <expr-or'> *)
-  and parseExprOr' inh stream = Value Undef (* TODO *)
+  (** <expr-and'> *)
+  and parseExprAnd' inh stream = match peek stream with
+  | LBRACE | RPAR |  SEMICOLON | COMMA | ASSIGN | LAZY_OR | IF | UNLESS ->
+      (* <expr-eq'> → ε *) 
+      inh
+  | LAZY_AND ->
+      (* <expr-and'> → '&&' <expr-eq> <expr-and'> *)
+      (match stream with parser
+      | [< 'LAZY_AND; e = parseExprEq inh; a = parseExprAnd' (BinOp (And, inh, e)) >] -> a)
+  | _ -> unexpected stream
 
+  (** <expr-and> *)
+  and parseExprEq inh stream = match peek stream with
+  | VAR _ | INTEGER _ | STRING _ | IDENTIFIER _  | CALL_MARK | LPAR | NOT | PLUS | MINUS ->
+     (* <expr-and> → <expr-eq> <expr-and'> *)
+     (match stream with parser
+	| [< e = parseExprEq inh; a = parseExprAnd' e >] -> a)
+  | _ -> unexpected stream
+
+  (** <expr-or'> *)
+  and parseExprOr' inh stream =  match peek stream with
+  | LBRACE | RPAR |  SEMICOLON | COMMA | ASSIGN | IF | UNLESS ->
+      (* <expr-eq'> → ε *) 
+      inh
+  | LAZY_OR
+      (* <expr-or'> → 'or' <expr-and> <expr-or'> *)
+      (match stream with parser
+      | [< 'LAZY_OR; e = parseExprAnd inh; e' = parseExprOr' (BinOp (Or, inh, e)); >] -> e')
+  | _ -> unexpected stream
   (** <expr-or> *)
   and parseExprOr inh stream = Value Undef (* TODO *)
 
