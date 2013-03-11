@@ -1,7 +1,7 @@
 open Expression
-open Symtable
+open Eval_symtable
 
-exception Exn_return of value * Symtable.t
+exception Exn_return of value * Eval_symtable.t
 
 let is_primitive = function
   | "print" -> true
@@ -161,6 +161,8 @@ and eval symtable local = function
       (match eval symtable local test with
       | (Integer 0, symtable') -> eval symtable' local alternative
       | (_, symtable') -> eval_sequence symtable' local consequents) 
+  | CondEnd ->
+      Undef, symtable
   | Return x ->
       if not local then
         failwith "Can't return outside a subroutine"

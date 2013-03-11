@@ -1,7 +1,5 @@
-(** This module implements immutable symbol tables
-    TODO: separate the functions and the variables, as in Perl (a
-    function and a variable can have the same name)
- *)
+(** This module implements an immutable symbol table, that is used by
+    the evaluator *)
 
 (** The symbol table *)
 type t

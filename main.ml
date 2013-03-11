@@ -42,7 +42,7 @@ let () =
   | "hand" -> Parser.parse
   | _ -> failwith ("Unknown parser: " ^ !parser_arg) in
   let (fns, instrs) = parse (drop_errors (lex stdin)) in
-  let _ = Eval.eval_sequence (Symtable.empty ()) true instrs in
+  let _ = Eval.eval_sequence (Eval_symtable.empty ()) true instrs in
   ()
   (* List.iter (fun e -> print_string (string_of_expression e)) fns;
   List.iter (fun e -> print_string (string_of_expression e)) instrs; *)
