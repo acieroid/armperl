@@ -213,13 +213,34 @@ let rec parse =
   and parseInstr inh stream = Value Undef (* TODO *)
 
   (** <args call list'> *)
-  and parseArgsCallList' inh stream = [] (* TODO *)
+  and parseArgsCallList' inh stream = match peek stream with
+  | RPAR ->
+      (* <args call list'> → ε *)
+      []
+  | COMMA ->
+      (* <args call list'> → ',' <instr> <args call list'> *)
+      (match stream with parser
+      | [< 'COMMA; i = parseInstr inh; a' parseArgsCallList' inh >] -> i::a')
 
   (** <args call list> *)
-  and parseArgsCallList inh stream = [] (* TODO *)
+  and parseArgsCallList inh stream = match peek stream with
+  | VAR _ | INTEGER _ | STRING _ | IDENTIFIER _
+  | RETURN | CALL_MARK | LPAR | IF | UNLESS | NOT_WORD | NOT
+  | PLUS | MINUS ->
+      (* <args call list> → <instr> <args call list'> *)
+      (match stream with parser
+      | [< i = parseInstr inh; a' = parseArgsCallList' inh >] -> i::a')
+  | RPAR ->
+      (* <args call list> → ε *)
+      []
 
   (** <funcall args> *)
-  and parseFuncallArgs inh stream = [] (* TODO *)
+  and parseFuncallArgs inh stream = match peek stream with
+  | LPAR ->
+      (* <funcall args> → '(' <args call list> ')' *)
+      (match stream with parser
+      | [< 'LPAR; a = parseArgsCallList inh; 'RPAR >] -> a)
+  | _ -> unexpected stream
 
   (** <funcall> *)
   and parseFuncall inh stream = match peek stream with
