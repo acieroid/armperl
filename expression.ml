@@ -48,6 +48,7 @@ and expr =
   | Funcall of string * expr list
   | Fundef of string * string list * expr list
   | Cond of expr * expr list * expr
+  | CondEnd
   | Return of expr
 
 let string_of_value = function
@@ -116,5 +117,7 @@ let rec string_of_expression = function
       (List.fold_left (fun x y -> x ^ ", " ^ (string_of_expression y))
          "" consequent) ^ ", " ^
       (string_of_expression alternative) ^ ")"
+  | CondEnd ->
+      "CondEnd"
   | Return e -> "Return(" ^ (string_of_expression e) ^ ")"
       

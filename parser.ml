@@ -190,40 +190,44 @@ let rec parse =
   (** <expr> *)
   and parseExpr inh stream = match peek stream with
   | VAR _ | INTEGER _ | STRING _ | IDENTIFIER _  | CALL_MARK | LPAR | NOT | PLUS | MINUS ->
-     (* <expr> → <expr-or> *)
-     parseExprOr inh stream
+      (* <expr> → <expr-or> *)
+      parseExprOr inh stream
   | NOT_WORD ->
-     (* <expr> → 'not' <expr> *)
+      (* <expr> → 'not' <expr> *)
       (match stream with parser
       | [< 'NOT_WORD; e = parseExpr inh >] -> UnOp (Not, e))
   | _ -> unexpected stream
 
   (** <simple-expr> *)
   and parseSimpleExpr inh stream = match peek stream with
-  | VAR _ | INTEGER _ | STRING _ 
-	(* <simple expr> → var *)
-	(* <simple expr>  → integer *)
-	(* <simple expr> → string *)
-	(match stream with parser 
-		| [< 'VAR x >] -> Variable x)
-  | IDENTIFIER _  | CALL_MARK
-	(* <simple expr> → <funcall> *)
-	  parseFuncall inh stream
+  | VAR _ | INTEGER _ | STRING _ -> 
+      (* <simple expr> → var *)
+      (* <simple expr> → integer *)
+      (* <simple expr> → string *)
+      (match stream with parser 
+      | [< 'VAR x >] -> Variable x
+      | [< 'INTEGER n >] -> Value (Integer n)
+      | [< 'STRING s >] -> Value (String s))
+  | IDENTIFIER _  | CALL_MARK ->
+      (* <simple expr> → <funcall> *)
+      parseFuncall inh stream
+  | _ -> unexpected stream
 	 
   (** <cond-end> *)
   and parseCondEnd inh stream = match peek stream with
-	| RPAR | SEMICOLON | COMMA
-	(* <cond end> → ε *) 
-		inh (* TODO *)
-	| ELSE | ELSIF
-	(* <cond end> → 'else' <expr> '{' <instr list> '}' <cond end> *)
-	(* <cond end> → 'elsif' <expr> '{' <instr list> '}' <cond end> *)
-	(match stream with parser
-	| [< 'ELSE; e = parseExpr inh; 'LBRACE; i = parseInstrList inh; 
-	    'RBRACE; c = parseCondEnd inh >] ->
-	    Cond (e, i, c)
-	| [< 'ELSIF; e = parseExpr inh; 'LBRACE; i = parseInstrList inh; 
-	    'RBRACE; c = parseCondEnd inh >] -> Cond (e, i, c))
+  | RPAR | SEMICOLON | COMMA ->
+      (* <cond end> → ε *) 
+      CondEnd
+  | ELSE | ELSEIF ->
+      (* <cond end> → 'else' <expr> '{' <instr list> '}' <cond end> *)
+      (* <cond end> → 'elsif' <expr> '{' <instr list> '}' <cond end> *)
+      (match stream with parser
+      | [< 'ELSE; e = parseExpr inh; 'LBRACE; i = parseInstrList inh; 
+	   'RBRACE; c = parseCondEnd inh >] ->
+	     Cond (e, i, c)
+      | [< 'ELSEIF; e = parseExpr inh; 'LBRACE; i = parseInstrList inh; 
+	   'RBRACE; c = parseCondEnd inh >] -> Cond (e, i, c))
+  | _ -> unexpected stream
 
   (** <cond> *)
   and parseCond inh stream = match peek stream with
@@ -248,12 +252,12 @@ let rec parse =
       (* <instr'> → '=' <expr> *)
       (match stream with parser
       | [< 'IF; e = parseExpr inh >] ->
-          Cond (e, inh, Cond (Value False, Value Undef))
+          Cond (e, [inh], CondEnd)
       | [< 'UNLESS; e = parseExpr inh >] ->
-          Cond (UnOp (Not, e), inh, Cond (Value False, Value Undef))
+          Cond (UnOp (Not, e), [inh], CondEnd)
       | [< 'ASSIGN; e = parseExpr inh >] ->
           (match inh with
-          | VAR v -> Assign (v, e)
+          | Variable v -> Assign (v, e)
           | nv -> failwith ("Cannot assign a value to a non-variable: " ^
                             (string_of_expression nv))))
   | _ -> unexpected stream
@@ -261,7 +265,7 @@ let rec parse =
   (** <instr> *)
   and parseInstr inh stream = match peek stream with
   | VAR _ | INTEGER _ | STRING _ | IDENTIFIER _ | CALL_MARK
-  | LPAR | NOT | NOT_WORD | PLUS | MINUS | ->
+  | LPAR | NOT | NOT_WORD | PLUS | MINUS ->
       (* <instr> → <expr> <instr'> *)
       (match stream with parser
       | [< e = parseExpr inh; i' = parseInstr' e >] -> i')
@@ -282,7 +286,7 @@ let rec parse =
   | COMMA ->
       (* <args call list'> → ',' <instr> <args call list'> *)
       (match stream with parser
-      | [< 'COMMA; i = parseInstr inh; a' parseArgsCallList' inh >] -> i::a')
+      | [< 'COMMA; i = parseInstr inh; a' = parseArgsCallList' inh >] -> i::a')
   | _ -> unexpected stream
 
   (** <args call list> *)
@@ -328,6 +332,7 @@ let rec parse =
     (* <instr list'> → <instr> ';' <instr list'>  *)
       (match stream with parser
         [< i = parseInstr inh; 'SEMICOLON; i' = parseInstrList' inh >] -> i::i')
+  | _ -> unexpected stream
 
   (** <instr list> *)
   and parseInstrList inh stream = match peek stream with
