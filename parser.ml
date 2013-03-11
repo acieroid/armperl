@@ -207,10 +207,40 @@ let rec parse =
   and parseCond inh stream = Value Undef (* TODO *)
 
   (** <instr'> *)
-  and parseInstr' inh stream = Value Undef (* TODO *)
+  and parseInstr' inh stream = match peek stream with
+  | RPAR | SEMICOLON | COMMA ->
+      (* <instr'> → ε *)
+      inh
+  | IF | UNLESS | ASSIGN ->
+      (* <instr'> → 'if' <expr> *)
+      (* <instr'> → 'unless' <expr> *)
+      (* <instr'> → '=' <expr> *)
+      (match stream with parser
+      | [< 'IF; e = parseExpr inh >] ->
+          Cond (e, inh, Cond(Value False, Value Undef))
+      | [< 'UNLESS; e = parseExpr inh >] ->
+          Cond (UnOp (Not, e), inh, Cond(Value False, Value Undef))
+      | [< 'ASSIGN; e = parseExpr inh >] ->
+          (match inh with
+          | VAR v -> Assign (v, e)
+          | nv -> failwith ("Cannot assign a value to a non-variable: " ^
+                            (string_of_expression nv)))
 
   (** <instr> *)
-  and parseInstr inh stream = Value Undef (* TODO *)
+  and parseInstr inh stream = match peek stream with
+  | VAR _ | INTEGER _ | STRING _ | IDENTIFIER _ | CALL_MARK
+  | LPAR | NOT | NOT_WORD | PLUS | MINUS | ->
+      (* <instr> → <expr> <instr'> *)
+      (match stream with parser
+      | [< e = parseExpr inh; i' = parseInstr' e >] -> i')
+  | RETURN ->
+      (* <instr> → 'return' <expr> *)
+      (match stream with parser
+      | [< 'RETURN; e = parseExpr inh >] -> Return e)
+  | IF | UNLESS ->
+      (* <instr> → <cond> *)
+      parseCond inh stream
+  | _ -> unexpected stream
 
   (** <args call list'> *)
   and parseArgsCallList' inh stream = match peek stream with
@@ -221,6 +251,7 @@ let rec parse =
       (* <args call list'> → ',' <instr> <args call list'> *)
       (match stream with parser
       | [< 'COMMA; i = parseInstr inh; a' parseArgsCallList' inh >] -> i::a')
+  | _ -> unexpected stream
 
   (** <args call list> *)
   and parseArgsCallList inh stream = match peek stream with
@@ -233,6 +264,7 @@ let rec parse =
   | RPAR ->
       (* <args call list> → ε *)
       []
+  | _ -> unexpected stream
 
   (** <funcall args> *)
   and parseFuncallArgs inh stream = match peek stream with
