@@ -56,7 +56,7 @@ let string_of_value = function
   | Float x -> string_of_float x
   | True -> "1"
   | False -> ""
-  | String x -> x
+  | String x -> "\"" ^ x ^ "\""
   | Undef -> "undef"
 
 let string_of_unop = function
@@ -87,7 +87,8 @@ let rec string_of_expression = function
   | Value v -> string_of_value v
   | Variable v -> v
   | BinOp (op, left, right) ->
-      (string_of_binop op) ^ "(" ^
+      "BinOp(" ^
+      (string_of_binop op) ^ ", " ^
       (string_of_expression left) ^ ", " ^
       (string_of_expression right) ^ ")"
   | Assign (name, v) ->
@@ -104,18 +105,17 @@ let rec string_of_expression = function
       "UnOp(" ^ (string_of_unop op) ^ ", " ^ (string_of_expression e)
   | Funcall (fn, args) ->
       "Funcall(" ^ fn ^ ", [" ^
-      (List.fold_left (fun x y -> x ^ ", " ^ (string_of_expression y)) "" args) ^
+      (String.concat ", " (List.map string_of_expression args)) ^
       "])"
   | Fundef (name, args, body) ->
       "Fundef(" ^ name ^ ", [" ^
-      (List.fold_left (fun x y -> x ^ ", " ^ y) "" args) ^ "], [" ^
-      (List.fold_left (fun x y -> x ^ ", " ^ (string_of_expression y)) "" body) ^
+      (String.concat ", " args) ^ "], [" ^
+      (String.concat ", " (List.map string_of_expression body)) ^
       "])"
   | Cond (cond, consequent, alternative) ->
       "Cond(" ^
       (string_of_expression cond) ^ ", [" ^
-      (List.fold_left (fun x y -> x ^ ", " ^ (string_of_expression y))
-         "" consequent) ^ ", " ^
+      (String.concat ", " (List.map string_of_expression consequent)) ^ ", " ^
       (string_of_expression alternative) ^ ")"
   | CondEnd ->
       "CondEnd"
