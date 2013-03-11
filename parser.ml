@@ -178,6 +178,7 @@ let rec parse =
       (match stream with parser
       | [< 'LAZY_OR; e = parseExprAnd inh; e' = parseExprOr' (Or (inh, e)) >] -> e')
   | _ -> unexpected stream
+
   (** <expr-or> *)
   and parseExprOr inh stream = match peek stream with
   | VAR _ | INTEGER _ | STRING _ | IDENTIFIER _  | CALL_MARK | LPAR | NOT | PLUS | MINUS ->
@@ -204,7 +205,16 @@ let rec parse =
   and parseCondEnd inh stream = Value Undef (* TODO *)
 
   (** <cond> *)
-  and parseCond inh stream = Value Undef (* TODO *)
+  and parseCond inh stream = match peek stream with
+  | IF | UNLESS ->
+      (* <cond> → 'if' <expr> '{' <instr list> '}' <cond end> *)
+      (* <cond> → 'unless' <expr> '{' <instr list> '}' <cond end> *)
+      (match stream with parser
+      | [< 'IF; e = parseExpr inh; 'LBRACE; i = parseInstrList inh; ce = parseCondEnd inh >] ->
+          Cond (e, i, ce)
+      | [< 'UNLESS; e = parseExpr inh; 'LBRACE; i = parseInstrList inh; ce = parseCondEnd inh >] ->
+          Cond (UnOp (Not, e), i, ce))
+  | _ -> unexpected stream
 
   (** <instr'> *)
   and parseInstr' inh stream = match peek stream with
@@ -217,14 +227,15 @@ let rec parse =
       (* <instr'> → '=' <expr> *)
       (match stream with parser
       | [< 'IF; e = parseExpr inh >] ->
-          Cond (e, inh, Cond(Value False, Value Undef))
+          Cond (e, inh, Cond (Value False, Value Undef))
       | [< 'UNLESS; e = parseExpr inh >] ->
-          Cond (UnOp (Not, e), inh, Cond(Value False, Value Undef))
+          Cond (UnOp (Not, e), inh, Cond (Value False, Value Undef))
       | [< 'ASSIGN; e = parseExpr inh >] ->
           (match inh with
           | VAR v -> Assign (v, e)
           | nv -> failwith ("Cannot assign a value to a non-variable: " ^
-                            (string_of_expression nv)))
+                            (string_of_expression nv))))
+  | _ -> unexpected stream
 
   (** <instr> *)
   and parseInstr inh stream = match peek stream with
