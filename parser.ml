@@ -199,10 +199,31 @@ let rec parse =
   | _ -> unexpected stream
 
   (** <simple-expr> *)
-  and parseSimpleExpr inh stream = Value Undef (* TODO *)
-
+  and parseSimpleExpr inh stream = match peek stream with
+  | VAR _ | INTEGER _ | STRING _ 
+	(* <simple expr> → var *)
+	(* <simple expr>  → integer *)
+	(* <simple expr> → string *)
+	(match stream with parser 
+		| [< 'VAR x >] -> Variable x)
+  | IDENTIFIER _  | CALL_MARK
+	(* <simple expr> → <funcall> *)
+	  parseFuncall inh stream
+	 
   (** <cond-end> *)
-  and parseCondEnd inh stream = Value Undef (* TODO *)
+  and parseCondEnd inh stream = match peek stream with
+	| RPAR | SEMICOLON | COMMA
+	(* <cond end> → ε *) 
+		inh (* TODO *)
+	| ELSE | ELSIF
+	(* <cond end> → 'else' <expr> '{' <instr list> '}' <cond end> *)
+	(* <cond end> → 'elsif' <expr> '{' <instr list> '}' <cond end> *)
+	(match stream with parser
+	| [< 'ELSE; e = parseExpr inh; 'LBRACE; i = parseInstrList inh; 
+	    'RBRACE; c = parseCondEnd inh >] ->
+	    Cond (e, i, c)
+	| [< 'ELSIF; e = parseExpr inh; 'LBRACE; i = parseInstrList inh; 
+	    'RBRACE; c = parseCondEnd inh >] -> Cond (e, i, c))
 
   (** <cond> *)
   and parseCond inh stream = match peek stream with
