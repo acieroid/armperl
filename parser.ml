@@ -125,7 +125,15 @@ let rec parse =
   | _ -> unexpected stream
 
   (** <expr-eq'> *)
-  and parseExprEq' inh stream = Value Undef (* TODO *)
+  and parseExprEq' inh stream = match peek stream with
+  | LBRACE | RPAR |  SEMICOLON | COMMA | ASSIGN | LAZY_OR | LAZY_AND | IF | UNLESS ->
+      (* <expr-eq'> → ε *) 
+      inh
+  | EQUALS | DIFFERENT | STRING_EQUALS | STRING_DIFFERENT ->
+      <expr-eq'> → 'eq' <expr-eq'>
+      <expr-eq'> → 'ne' <expr-eq'>
+      <expr-eq'> → '!=' <expr-eq'>
+      <expr-eq'> → '==' <expr-eq'>
 
   (** <expr-eq> *)
   and parseExprEq inh stream = Value Undef (* TODO *)
