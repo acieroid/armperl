@@ -161,7 +161,7 @@ let rec parse =
   | _ -> unexpected stream
 
   (** <expr-and> *)
-  and parseExprEq inh stream = match peek stream with
+  and parseExprAnd inh stream = match peek stream with
   | VAR _ | INTEGER _ | STRING _ | IDENTIFIER _  | CALL_MARK | LPAR | NOT | PLUS | MINUS ->
      (* <expr-and> → <expr-eq> <expr-and'> *)
      (match stream with parser
@@ -179,10 +179,23 @@ let rec parse =
       | [< 'LAZY_OR; e = parseExprAnd inh; e' = parseExprOr' (BinOp (Or, inh, e)); >] -> e')
   | _ -> unexpected stream
   (** <expr-or> *)
-  and parseExprOr inh stream = Value Undef (* TODO *)
+  and parseExprOr inh stream = match peek stream with
+  | VAR _ | INTEGER _ | STRING _ | IDENTIFIER _  | CALL_MARK | LPAR | NOT | PLUS | MINUS ->
+     (* <expr-or> → <expr-and> <expr-or'> *)
+     (match stream with parser
+	| [< a = parseExprAnd inh; o' = parseExprOr' a >] -> o')
+  | _ -> unexpected stream
 
   (** <expr> *)
-  and parseExpr inh stream = Value Undef (* TODO *)
+  and parseExpr inh stream = match peek stream with
+  | VAR _ | INTEGER _ | STRING _ | IDENTIFIER _  | CALL_MARK | LPAR | NOT | PLUS | MINUS ->
+     (* <expr> → <expr-or> *)
+     parseExprOr inh stream
+  | NOT_WORD
+     (* <expr> → 'not' <expr> *)
+      (match stream with parser
+      | [< 'NOT_WORD; e = parseExpr inh >] -> UnOp (Not, e))
+  | _ -> unexpected stream
 
   (** <simple-expr> *)
   and parseSimpleExpr inh stream = Value Undef (* TODO *)
