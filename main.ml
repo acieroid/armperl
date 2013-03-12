@@ -40,27 +40,12 @@ let () =
   | _ -> failwith ("Unknown lexer: " ^ !lexer_arg)
   and parse = match !parser_arg with
   | "hand" -> Parser.parse
-  | _ -> failwith ("Unknown parser: " ^ !parser_arg) in
+  | _ -> failwith ("Unknown parser: " ^ !parser_arg)
+  and gen = match !codegen_arg with
+  | "hand" -> Codegen.gen
+  in
   let (fns, instrs) = parse (drop_errors (lex stdin)) in
-  let _ = Eval.eval_sequence (Eval_symtable.empty ()) true instrs in
-  ()
-  (* List.iter (fun e -> print_string (string_of_expression e)) fns;
-  List.iter (fun e -> print_string (string_of_expression e)) instrs; *)
-  (* let e = (Or (Value (String "foo"), (BinOp (Plus, Value (Integer 3), Value (Integer 5))))) in *)
-  (* let f = (Fundef ("hello", ["name"],
-                   [BinOp (Concat,
-                           BinOp (Concat, Value (String "Hello, "), Variable "name"),
-                           Value (String "\n"))])) and
-      e = (Funcall ("hello", [Value (String "world!")])) in
-  let res, st' = Eval.eval (Symtable.empty ()) true f in
-  let res', _ = Eval.eval st' true e in *)
-  (* let e = [Fundef ("name", ["arg"],
-                   [Assign ("external_variable",
-                            Value (String "side effect\n"));
-                    Funcall ("print", [Variable "arg"])]);
-           Funcall ("name", [Value (String "foo\n")]);
-           Funcall ("print", [Variable "external_variable"])
-         ] in
-  let _ = Eval.eval_sequence (Symtable.empty ()) true e in
-  () *)
+  gen stdout (fns, instrs)
+  (* let _ = Eval.eval_sequence (Eval_symtable.empty ()) true instrs in *)
+
     

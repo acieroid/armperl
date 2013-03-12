@@ -10,7 +10,7 @@ let iter st f =
   Array.sort (fun (a, _) (b, _) -> compare a b) a;
   Array.iter (fun (id, str) -> f id str) a
 
-let add_string st string =
+let add st string =
   match Hashtbl.mem st string with
   | true -> ()
   | false ->

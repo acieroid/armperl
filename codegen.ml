@@ -7,7 +7,7 @@ type state = {
     symtable: Symtable.t;
     stringtable: Stringtable.t;
     buffer: Buffer.t;
-    args: mutable string list;
+    mutable args: string list;
   }
 
 let create_state () =
@@ -16,32 +16,58 @@ let create_state () =
    buffer=Buffer.create 16;
    args=[]}
 
-let state_add string state =
+let state_add state string =
   Buffer.add_string state.buffer string;
   Buffer.add_char state.buffer '\n'
 
-(* TODO *)
 let state_string_addr state string =
-  add_string state.stringtable;
-  let addr = get_addr state.stringtable string in
+  Stringtable.add state.stringtable string;
+  let addr = Stringtable.get_addr state.stringtable string in
   ".Lstrs+" ^ (string_of_int addr)
 
 let state_output_strings state channel =
-  Stringtable.iter st.stringtable
+  Stringtable.iter state.stringtable
     (fun id str ->
       output_string channel ("
     .align 2
 .Lstr" ^ (string_of_int id) ^ ":
     .ascii \"" ^ str ^ "\\000\""))
 
+let state_output_globals state channel =
+  let convert_value = function
+    | Integer n -> string_of_int (box_int n)
+    | String s -> state_string_addr state s
+    | True -> string_of_int (box_int 1)
+    | False -> string_of_int (box_int 0)
+    | Undef -> "2"
+    | Float _ -> failwith "Floats are unsupported"
+  in
+  Symtable.iter state.symtable
+    (fun id name value ->
+      output_string channel ("
+    .align 2
+    .type " ^ name ^ ", %object
+    .size " ^ name ^ ", 4
+" ^ name ^ ":
+    .word " ^ (convert_value value)))
+
 let state_output_addresses state channel =
+  (* output the addresses of the global variables *)
+  output_string channel "
+    .align 2
+.Lglobals:";
+  Symtable.iter state.symtable
+    (fun id var value ->
+      output_string channel ("
+    .word " ^ var));
+  (* output the addresses of the strings *)
   output_string channel "
     .align 2
 .Lstrs:";
-  Stringtable.iter st.stringtable
+  Stringtable.iter state.stringtable
     (fun id str ->
-      output_string channel "
-    .word .Lstr" ^ (string_of_int id) ^ "")
+      output_string channel ("
+    .word .Lstr" ^ (string_of_int id)))
 
 let output_header channel =
   output_string channel "
@@ -80,6 +106,7 @@ let gen_value state = function
       let addr = state_string_addr state str in
       state_add state ("ldr r0, .L" ^ addr)
   | Undef -> state_add state "mov r0, #2"
+  | Float _ -> failwith "Floats are unsupported"
 
 let gen_expr = function
   | Value v -> gen_value
@@ -91,8 +118,8 @@ let gen channel (funs, instrs) =
   List.iter (fun x -> gen_instr x state) instr;
   (* Output the processor configuration *)
   output_header channel;
-  (* Output the variables *)
-  state_output_variables state channel;
+  (* Output the global variables *)
+  state_output_globals state channel;
   (* Start the read-only section *)
   output_string channel "
     .section .rodata"
