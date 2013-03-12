@@ -134,13 +134,20 @@ let gen_fun state = function
 
 let gen channel (funs, instrs) =
   let state = create_state () in
+  (* Generate the function definitions *)
   List.iter (gen_fun state) funs;
+  (* Generate the main function *)
   state_add state "
     .align 2
     .global main
     .type main, %function
-main:";
+main:
+    stmfd   sp!, {fp, lr}
+    add     fp, sp, #4";
   List.iter (gen_instr state) instrs;
+  state_add state "
+    mov     r0, r3
+    ldmfd   sp!, {fp, pc}";
   (* Output the processor configuration *)
   output_header channel;
   (* Output the global variables *)
@@ -153,4 +160,7 @@ main:";
   (* Output the code *)
   Buffer.output_buffer channel state.buffer;
   (* Output the addresses definitions *)
-  state_output_addresses state channel
+  state_output_addresses state channel;
+  (* Add a trailing new line *)
+  output_string channel "
+"
