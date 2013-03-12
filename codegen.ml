@@ -99,13 +99,18 @@ let output_header channel =
   integer and a string.
 *)
 let gen_value state = function
-  | Integer x -> state_add state ("mov r0, #" ^ (string_of_int (box_int x)))
-  | True -> state_add state ("mov r0, #" ^ (string_of_int (box_int 1)))
-  | False -> state_add state ("mov r0, #" ^ (string_of_int (box_int 0)))
+  | Integer x -> state_add state ("
+    mov r0, #" ^ (string_of_int (box_int x)))
+  | True -> state_add state ("
+    mov r0, #" ^ (string_of_int (box_int 1)))
+  | False -> state_add state ("
+    mov r0, #" ^ (string_of_int (box_int 0)))
   | String str ->
       let addr = state_string_addr state str in
-      state_add state ("ldr r0, .L" ^ addr)
-  | Undef -> state_add state "mov r0, #2"
+      state_add state ("
+    ldr r0, .L" ^ addr)
+  | Undef -> state_add state "
+    mov r0, #2"
   | Float _ -> failwith "Floats are unsupported"
 
 let gen_instr state = function
@@ -130,7 +135,11 @@ let gen_fun state = function
 let gen channel (funs, instrs) =
   let state = create_state () in
   List.iter (gen_fun state) funs;
-  (* TODO: generate instructions inside the main function *)
+  state_add state "
+    .align 2
+    .global main
+    .type main, %function
+main:";
   List.iter (gen_instr state) instrs;
   (* Output the processor configuration *)
   output_header channel;

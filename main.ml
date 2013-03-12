@@ -43,6 +43,7 @@ let () =
   | _ -> failwith ("Unknown parser: " ^ !parser_arg)
   and gen = match !codegen_arg with
   | "hand" -> Codegen.gen
+  | _ -> failwith ("Unknown code generator: " ^ !codegen_arg)
   in
   let (fns, instrs) = parse (drop_errors (lex stdin)) in
   gen stdout (fns, instrs)
