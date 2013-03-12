@@ -25,6 +25,12 @@ let state_string_addr state string =
   let addr = Stringtable.get_addr state.stringtable string in
   ".Lstrs+" ^ (string_of_int addr)
 
+let state_global_addr state var =
+  (* Variables have the value undef by default *)
+  Symtable.add state.symtable var Undef;
+  let addr = Symtable.get_addr state.symtable var in
+  ".Lglobals+" ^ (string_of_int addr)
+
 let state_output_strings state channel =
   Stringtable.iter state.stringtable
     (fun id str ->
@@ -113,10 +119,23 @@ let gen_value state = function
     mov r0, #2"
   | Float _ -> failwith "Floats are unsupported"
 
+let gen_local state v =
+  failwith "Not implemented"
+
+let gen_global state v =
+  let addr = state_global_addr state v in
+  state_add state ("
+    ldr r0, " ^ addr)
+
 let gen_instr state = function
   | Value v -> gen_value state v
+  | Variable v -> (match state.args with
+    | Some args ->
+        if List.mem v args
+        then gen_local state v
+        else gen_global state v
+    | None -> gen_global state v)
   (* TODO *)
-  | Variable v -> failwith "Not implemented"
   | BinOp (op, e1, e2) -> failwith "Not implemented"
   | Assign (var, value) -> failwith "Not implemented"
   | Or (e1, e2) -> failwith "Not implemented"
