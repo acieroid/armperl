@@ -7,14 +7,14 @@ type state = {
     symtable: Symtable.t;
     stringtable: Stringtable.t;
     buffer: Buffer.t;
-    mutable args: string list;
+    mutable args: string list option;
   }
 
 let create_state () =
   {symtable=Symtable.create ();
    stringtable=Stringtable.create ();
    buffer=Buffer.create 16;
-   args=[]}
+   args=None}
 
 let state_add state string =
   Buffer.add_string state.buffer string;
@@ -108,21 +108,37 @@ let gen_value state = function
   | Undef -> state_add state "mov r0, #2"
   | Float _ -> failwith "Floats are unsupported"
 
-let gen_expr = function
-  | Value v -> gen_value
+let gen_instr state = function
+  | Value v -> gen_value state v
   (* TODO *)
+  | Variable v -> failwith "Not implemented"
+  | BinOp (op, e1, e2) -> failwith "Not implemented"
+  | Assign (var, value) -> failwith "Not implemented"
+  | Or (e1, e2) -> failwith "Not implemented"
+  | And (e1, e2) -> failwith "Not implemented"
+  | UnOp (op, e) -> failwith "Not implemented"
+  | Funcall (fname, args) -> failwith "Not implemented"
+  | Cond (cond, consequent, alternative) -> failwith "Not implemented"
+  | CondEnd -> failwith "Not implemented"
+  | Return x -> failwith "Not implemented"
+  | Fundef _ -> failwith "Function definition not allowed here"
+
+let gen_fun state = function
+  | Fundef (fname, args, body) -> failwith "Not implemented"
+  | _ -> failwith "Not a function definition"
 
 let gen channel (funs, instrs) =
   let state = create_state () in
-  List.iter (fun x -> gen_fun x state) funs;
-  List.iter (fun x -> gen_instr x state) instr;
+  List.iter (gen_fun state) funs;
+  (* TODO: generate instructions inside the main function *)
+  List.iter (gen_instr state) instrs;
   (* Output the processor configuration *)
   output_header channel;
   (* Output the global variables *)
   state_output_globals state channel;
   (* Start the read-only section *)
   output_string channel "
-    .section .rodata"
+    .section .rodata";
   (* Output the strings definitions *)
   state_output_strings state channel;
   (* Output the code *)
