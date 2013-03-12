@@ -1,6 +1,6 @@
 type t = (string, (int * Expression.value)) Hashtbl.t
 
-let empty () =
+let create () =
   Hashtbl.create 16
 
 let add st str v =

@@ -5,7 +5,7 @@
 type t
 
 (** Return a new empty symbol table *)
-val empty : unit -> t
+val create : unit -> t
 
 (** Add a variable to the symbol table. If the value is already in the
     table, don't overwrite it (the previous value is kept) *)

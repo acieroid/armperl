@@ -4,14 +4,23 @@ let box_int n =
   (n lsl 1) + 1
 
 type state = {
-    symtable: Stringtable.t;
+    symtable: Symtable.t;
+    stringtable: Stringtable.t;
     buffer: Buffer.t;
+    args: mutable string list;
   }
+
+let create_state () =
+  {symtable=Symtable.create ();
+   stringtable=Stringtable.create ();
+   buffer=Buffer.create 16;
+   args=[]}
 
 let state_add string state =
   Buffer.add_string state.buffer string;
   Buffer.add_char state.buffer '\n'
 
+(* TODO *)
 let state_string_addr state string =
   add_string state.stringtable;
   let addr = get_addr state.stringtable string in
@@ -46,8 +55,6 @@ let output_header channel =
     .eabi_attribute 26, 1
     .eabi_attribute 30, 1
     .eabi_attribute 18, 4
-
-    .section .rodata
 "
 
 (**
@@ -79,11 +86,19 @@ let gen_expr = function
   (* TODO *)
 
 let gen channel (funs, instrs) =
-  let state = {buffer=Buffer.create 16} in
+  let state = create_state () in
   List.iter (fun x -> gen_fun x state) funs;
   List.iter (fun x -> gen_instr x state) instr;
-  output_header
+  (* Output the processor configuration *)
+  output_header channel;
+  (* Output the variables *)
+  state_output_variables state channel;
+  (* Start the read-only section *)
+  output_string channel "
+    .section .rodata"
+  (* Output the strings definitions *)
   state_output_strings state channel;
+  (* Output the code *)
   Buffer.output_buffer channel state.buffer;
+  (* Output the addresses definitions *)
   state_output_addresses state channel
-
