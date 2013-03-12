@@ -127,6 +127,11 @@ let gen_global state v =
   state_add state ("
     ldr r3, " ^ addr)
 
+(* TODO: return the number of stack entries needed, and write a
+gen_instrs that returns the max, and will be used by gen_fun and when
+generating the code for main. Also, write the body of a function to a
+different buffer, so that we can allocate the space on the stack
+first. *)
 let gen_instr state = function
   | Value v -> gen_value state v
   | Variable v -> (match state.args with
