@@ -90,7 +90,7 @@ let output_header channel =
 "
 
 (**
-  Generate the assembly code to load a value in the register r0.
+  Generate the assembly code to load a value in the register r3.
 
   Integers are left shifted by one bit, and added to 1, such that the
   least significant bit of an integer is always 1 (thus, integers are
@@ -106,17 +106,17 @@ let output_header channel =
 *)
 let gen_value state = function
   | Integer x -> state_add state ("
-    mov r0, #" ^ (string_of_int (box_int x)))
+    mov r3, #" ^ (string_of_int (box_int x)))
   | True -> state_add state ("
-    mov r0, #" ^ (string_of_int (box_int 1)))
+    mov r3, #" ^ (string_of_int (box_int 1)))
   | False -> state_add state ("
-    mov r0, #" ^ (string_of_int (box_int 0)))
+    mov r3, #" ^ (string_of_int (box_int 0)))
   | String str ->
       let addr = state_string_addr state str in
       state_add state ("
-    ldr r0, .L" ^ addr)
+    ldr r3, .L" ^ addr)
   | Undef -> state_add state "
-    mov r0, #2"
+    mov r3, #2"
   | Float _ -> failwith "Floats are unsupported"
 
 let gen_local state v =
@@ -125,7 +125,7 @@ let gen_local state v =
 let gen_global state v =
   let addr = state_global_addr state v in
   state_add state ("
-    ldr r0, " ^ addr)
+    ldr r3, " ^ addr)
 
 let gen_instr state = function
   | Value v -> gen_value state v
@@ -163,6 +163,7 @@ let gen channel (funs, instrs) =
 main:
     stmfd   sp!, {fp, lr}
     add     fp, sp, #4";
+    (* TODO: a sub is also needed *)
   List.iter (gen_instr state) instrs;
   state_add state "
     mov     r0, r3
