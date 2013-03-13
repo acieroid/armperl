@@ -167,7 +167,7 @@ and gen_fun state = function
     .align 2
     .global " ^ fname ^ "
     .type " ^ fname ^ ", %function
-main:
+" ^ fname ^ ":
     stmfd sp!, {fp, lr}
     add fp, sp, #4
     sub sp, sp, #" ^ (string_of_int stack_needed));
@@ -177,7 +177,7 @@ main:
     mov r0, #2
     sub sp, fp, #4
     ldmfd   sp!, {fp, pc}
-    .size " ^ fname ^ ".-" ^ fname);
+    .size " ^ fname ^ ", .-" ^ fname);
   | _ -> failwith "Not a function definition"
 
 let gen channel (funs, instrs) =
