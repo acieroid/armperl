@@ -233,8 +233,13 @@ and gen_funcall state fname args =
 (* Generate a function definition *)
 and gen_fun state = function
   | Fundef (fname, args, body) ->
+      (* the number of bytes we need on the stack for this function *)
       let stack_needed =
-        (gen_instrs state body) + (min ((List.length args)*4) 16)
+        (gen_instrs state body) + (min ((List.length args)*4) 16) in
+      let stack_increment =
+        (* the actual number of bytes that will be allocated (it
+        should be a multiple of 8 *)
+        if stack_needed mod 8 = 0 then stack_needed else stack_needed+4
       in
       state_add_directly state ("
     .align 2
@@ -243,7 +248,7 @@ and gen_fun state = function
 " ^ fname ^ ":
     stmfd sp!, {fp, lr}
     add fp, sp, #4
-    sub sp, sp, #" ^ (string_of_int stack_needed));
+    sub sp, sp, #" ^ (string_of_int stack_increment));
       for i = 0 to min (List.length args) 4 do
         state_add_directly state ("
     str r" ^ (string_of_int i) ^ ", [fp, #-" ^ (string_of_int (8+i*4)) ^ "]")
