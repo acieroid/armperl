@@ -183,9 +183,9 @@ and gen_instr state = function
 
 (* Assign a value to a local variable *)
 and gen_assign_local state var value =
-  let addr = state_get_arg_addr state var in
+  let addr = state_get_arg_addr state var
   (* TODO: gen_expr ? *)
-  let stack_needed = gen_instr state value;
+  and stack_needed = gen_instr state value in
   (* copy the value from r3 to the argument *)
   state_add state ("
     str r3, " ^ addr);
@@ -193,9 +193,9 @@ and gen_assign_local state var value =
 
 (* Assign a value to a global variable *)
 and gen_assign_global state var value =
-  let addr = state_global_addr state var in
+  let addr = state_global_addr state var
   (* TODO: gen_expr ? *)
-  let stack_needed = gen_instr state value;
+  and stack_needed = gen_instr state value in
   (* TODO *)
   failwith "Not implemented"
 
