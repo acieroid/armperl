@@ -171,6 +171,11 @@ and gen_fun state = function
     stmfd sp!, {fp, lr}
     add fp, sp, #4
     sub sp, sp, #" ^ (string_of_int stack_needed));
+      for i = 0 to min (List.length args) 4 do
+        state_add_directly state ("
+    str r" ^ (string_of_int i) ^ ", [fp, #-" ^ (string_of_int (8+i*4)) ^ "]")
+      done;
+      (* TODO: load arguments on the stack *)
       state_merge state;
       (* Return undef by default *)
       state_add_directly state ("
