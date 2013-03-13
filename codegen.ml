@@ -18,6 +18,16 @@ let create_state () =
    body_buffer=Buffer.create 16;
    args=None}
 
+let state_get_arg_addr state arg =
+  match state.args with
+  | Some args ->
+      let index = Utils.index_of arg args in
+      if index < 4 then
+        (-8 - (index*4))
+      else
+        (index-4)*4
+  | None -> failwith ("No such argument: " ^ arg)
+
 let state_add state string =
   Buffer.add_string state.body_buffer string
 

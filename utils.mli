@@ -8,3 +8,6 @@ val implode : char list -> string
 
 (** Convert a string to a list of characters *)
 val explode : string -> char list
+
+(** Return the index of an element in a list (or raise Not_found) *)
+val index_of : 'a -> 'a list -> int
