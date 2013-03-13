@@ -3,7 +3,7 @@ open Expression
 
 let unoption = function
   | Some x -> 
-      print_string (string_of_token x); print_newline ();
+      (* print_string (string_of_token x); print_newline (); *)
       x
   | None -> failwith "Premature end of input"
 
