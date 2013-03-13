@@ -3,9 +3,9 @@ open Expression
 
 let unoption = function
   | Some x -> 
-      (* print_string (string_of_token x); print_newline (); *)
+      print_string (string_of_token x); print_newline ();
       x
-  | None -> EOF
+  | None -> failwith "Premature end of input"
 
 let peek stream = unoption (Stream.peek stream)
 
@@ -365,7 +365,7 @@ let rec parse =
   (** <arg list> *)
   and parseArgList inh stream = match peek stream with
   | VAR _ ->
-    (* <arg list> → var <arg list'> *)
+      (* <arg list> → var <arg list'> *)
       (match stream with parser
         [< '(VAR v); args = parseArgList' inh >] ->
           v::args)

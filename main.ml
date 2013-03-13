@@ -24,7 +24,7 @@ let rec drop_errors stream =
           print_string err;
           print_newline ();
           drop_errors stream
-      | Right Tokens.EOF -> [< >]
+      | Right Tokens.EOF -> [< 'Tokens.EOF >]
       | Right x ->
           [< 'x; drop_errors stream >])
   | None -> [< >]
