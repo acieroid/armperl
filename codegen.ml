@@ -23,10 +23,15 @@ let state_get_arg_addr state arg =
   | Some args ->
       let index = Utils.index_of arg args in
       if index < 4 then
-        (-8 - (index*4))
+        "[fp, #-" ^ (string_of_int (8 + (index*4)))
       else
-        (index-4)*4
+        "[fp, #" ^ (string_of_int ((index-4)*4))
   | None -> failwith ("No such argument: " ^ arg)
+
+let state_is_arg state arg =
+  match state.args with
+  | Some args -> List.mem arg args
+  | None -> false
 
 let state_add state string =
   Buffer.add_string state.body_buffer string
@@ -137,14 +142,18 @@ let gen_value state = function
     mov r3, #2"
   | Float _ -> failwith "Floats are unsupported"
 
+(* Load a local variable *)
 let gen_local state v =
   failwith "Not implemented"
 
+(* Load a global variable *)
 let gen_global state v =
   let addr = state_global_addr state v in
   state_add state ("
     ldr r3, " ^ addr)
 
+(* Generate multiple instructions and return the number of bytes
+  needed on the stack for those instructions *)
 let rec gen_instrs state instrs =
   List.fold_left max 0 (List.map (gen_instr state) instrs) 
 
@@ -158,7 +167,11 @@ and gen_instr state = function
     | None -> gen_global state v); 0
   (* TODO *)
   | BinOp (op, e1, e2) -> failwith "Not implemented"
-  | Assign (var, value) -> failwith "Not implemented"
+  | Assign (var, value) ->
+      if state_is_arg state var then
+        gen_assign_local state var value
+      else
+        gen_assign_global state var value
   | Or (e1, e2) -> failwith "Not implemented"
   | And (e1, e2) -> failwith "Not implemented"
   | UnOp (op, e) -> failwith "Not implemented"
@@ -167,6 +180,24 @@ and gen_instr state = function
   | CondEnd -> failwith "Not implemented"
   | Return x -> failwith "Not implemented"
   | Fundef _ -> failwith "Function definition not allowed here"
+
+(* Assign a value to a local variable *)
+and gen_assign_local state var value =
+  let addr = state_get_arg_addr state var in
+  (* TODO: gen_expr ? *)
+  let stack_needed = gen_instr state value;
+  (* copy the value from r3 to the argument *)
+  state_add state ("
+    str r3, " ^ addr);
+  stack_needed
+
+(* Assign a value to a global variable *)
+and gen_assign_global state var value =
+  let addr = state_global_addr state var in
+  (* TODO: gen_expr ? *)
+  let stack_needed = gen_instr state value;
+  (* TODO *)
+  failwith "Not implemented"
 
 and gen_fun state = function
   | Fundef (fname, args, body) ->
@@ -192,7 +223,7 @@ and gen_fun state = function
     mov r0, #2
     sub sp, fp, #4
     ldmfd   sp!, {fp, pc}
-    .size " ^ fname ^ ", .-" ^ fname);
+    .size " ^ fname ^ ", .-" ^ fname)
   | _ -> failwith "Not a function definition"
 
 let gen channel (funs, instrs) =
