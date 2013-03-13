@@ -46,6 +46,9 @@ let () =
   | _ -> failwith ("Unknown code generator: " ^ !codegen_arg)
   in
   let (fns, instrs) = parse (drop_errors (lex stdin)) in
+  List.iter (fun x -> print_string (string_of_expression x); print_newline ()) fns;
+  print_newline ();
+  List.iter (fun x -> print_string (string_of_expression x); print_newline ()) instrs;
   gen stdout (fns, instrs)
   (* let _ = Eval.eval_sequence (Eval_symtable.empty ()) true instrs in *)
 
