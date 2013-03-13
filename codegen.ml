@@ -7,6 +7,7 @@ type state = {
     symtable: Symtable.t;
     stringtable: Stringtable.t;
     buffer: Buffer.t;
+    body_buffer: Buffer.t;
     mutable args: string list option;
   }
 
@@ -14,11 +15,18 @@ let create_state () =
   {symtable=Symtable.create ();
    stringtable=Stringtable.create ();
    buffer=Buffer.create 16;
+   body_buffer=Buffer.create 16;
    args=None}
 
 let state_add state string =
-  Buffer.add_string state.buffer string;
-  Buffer.add_char state.buffer '\n'
+  Buffer.add_string state.body_buffer string
+
+let state_add_directly state string =
+  Buffer.add_string state.buffer string
+
+let state_merge state =
+  Buffer.add_buffer state.buffer state.body_buffer;
+  Buffer.clear state.body_buffer
 
 let state_string_addr state string =
   Stringtable.add state.stringtable string;
@@ -127,19 +135,17 @@ let gen_global state v =
   state_add state ("
     ldr r3, " ^ addr)
 
-(* TODO: return the number of stack entries needed, and write a
-gen_instrs that returns the max, and will be used by gen_fun and when
-generating the code for main. Also, write the body of a function to a
-different buffer, so that we can allocate the space on the stack
-first. *)
-let gen_instr state = function
-  | Value v -> gen_value state v
+let rec gen_instrs state instrs =
+  List.fold_left max 0 (List.map (gen_instr state) instrs) 
+
+and gen_instr state = function
+  | Value v -> gen_value state v; 0
   | Variable v -> (match state.args with
     | Some args ->
         if List.mem v args
         then gen_local state v
         else gen_global state v
-    | None -> gen_global state v)
+    | None -> gen_global state v); 0
   (* TODO *)
   | BinOp (op, e1, e2) -> failwith "Not implemented"
   | Assign (var, value) -> failwith "Not implemented"
@@ -152,27 +158,50 @@ let gen_instr state = function
   | Return x -> failwith "Not implemented"
   | Fundef _ -> failwith "Function definition not allowed here"
 
-let gen_fun state = function
-  | Fundef (fname, args, body) -> failwith "Not implemented"
+and gen_fun state = function
+  | Fundef (fname, args, body) ->
+      let stack_needed =
+        (gen_instrs state body) + (min ((List.length args)*4) 16)
+      in
+      state_add_directly state ("
+    .align 2
+    .global " ^ fname ^ "
+    .type " ^ fname ^ ", %function
+main:
+    stmfd sp!, {fp, lr}
+    add fp, sp, #4
+    sub sp, sp, #" ^ (string_of_int stack_needed));
+      state_merge state;
+      (* Return undef by default *)
+      state_add_directly state ("
+    mov r0, #2
+    sub sp, fp, #4
+    ldmfd   sp!, {fp, pc}
+    .size " ^ fname ^ ".-" ^ fname);
   | _ -> failwith "Not a function definition"
 
 let gen channel (funs, instrs) =
   let state = create_state () in
   (* Generate the function definitions *)
   List.iter (gen_fun state) funs;
-  (* Generate the main function *)
-  state_add state "
+  (* Generate the body of the main function *)
+  let stack_needed = gen_instrs state instrs in
+  (* Generate the main function 
+     TODO: use gen_fun to generate this ? *)
+  state_add_directly state ("
     .align 2
     .global main
     .type main, %function
 main:
-    stmfd   sp!, {fp, lr}
-    add     fp, sp, #4";
-    (* TODO: a sub is also needed *)
-  List.iter (gen_instr state) instrs;
-  state_add state "
-    mov     r0, r3
-    ldmfd   sp!, {fp, pc}";
+    stmfd sp!, {fp, lr}
+    add fp, sp, #4
+    sub sp, sp, #" ^ (string_of_int stack_needed));
+  state_merge state; (* merge the body of main *)
+  state_add_directly state "
+    mov r0, #0
+    sub sp, fp, #4
+    ldmfd   sp!, {fp, pc}
+    .size main, .-main";
   (* Output the processor configuration *)
   output_header channel;
   (* Output the global variables *)
@@ -188,4 +217,5 @@ main:
   state_output_addresses state channel;
   (* Add a trailing new line *)
   output_string channel "
+    .section .note.GNU-stack,\"\",%progbits
 "
