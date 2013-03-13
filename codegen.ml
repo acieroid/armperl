@@ -184,7 +184,6 @@ and gen_instr state = function
 (* Assign a value to a local variable *)
 and gen_assign_local state var value =
   let addr = state_get_arg_addr state var
-  (* TODO: gen_expr ? *)
   and stack_needed = gen_instr state value in
   (* copy the value from r3 to the argument *)
   state_add state ("
@@ -194,10 +193,13 @@ and gen_assign_local state var value =
 (* Assign a value to a global variable *)
 and gen_assign_global state var value =
   let addr = state_global_addr state var
-  (* TODO: gen_expr ? *)
   and stack_needed = gen_instr state value in
-  (* TODO *)
-  failwith "Not implemented"
+  (* Load global into r2 and store the value (which is in r3)
+     into the global *)
+  state_add state ("
+    ldr r2, " ^ addr ^ "
+    str r3, [r2, #0]");
+  stack_needed;
 
 and gen_fun state = function
   | Fundef (fname, args, body) ->
