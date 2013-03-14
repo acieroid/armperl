@@ -1,4 +1,5 @@
 Deleted:
   - obligatory parenthesis and no more ε in funcall args
-  - add an ε to <funcall args>
+  - removed the ε from <funcall args>
   - <expr> = <expr>: better compatibility
+  - Bugs in the parser with cond-end
