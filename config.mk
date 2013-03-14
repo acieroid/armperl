@@ -3,7 +3,7 @@
 # ANDROID_DK_PATH is the path where the shell can find the Android NDK and SDK
 
 OS						= linux
-ANDROID_DK_PATH	= /opt/
+ANDROID_DK_PATH	= /opt
 
 
 

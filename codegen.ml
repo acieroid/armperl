@@ -57,8 +57,8 @@ let state_arg_addr state arg =
   match state.args with
   | Some args ->
       let index = Utils.index_of arg args in
-      let addr = if index < 4 then 8 + (index*4) else (index-4)*4 in
-      "[fp, #-" ^ (string_of_int addr) ^ "]"
+      let addr = if index < 4 then -(8 + (index*4)) else (index-3)*4 in
+      "[fp, #" ^ (string_of_int addr) ^ "]"
   | None -> failwith ("No such argument: " ^ arg)
 
 (** Is the variable a function argument or a global variable ? *)
