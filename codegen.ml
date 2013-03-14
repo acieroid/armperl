@@ -230,7 +230,6 @@ and gen_instr state = function
       then gen_local state v
       else gen_global state v;
       0
-  (* TODO *)
   | BinOp (op, e1, e2) ->
       let stack_needed_e1 = gen_instr state e1 in
       state_add state ("
@@ -256,6 +255,7 @@ and gen_instr state = function
       gen_instr state (Cond (e1,
                              [Cond (e2, [Value True], Value False)],
                              Value False))
+  (* TODO *)
   | UnOp (op, e) -> failwith "unop implemented"
   | Funcall (fname, args) ->
       (* TODO: check that the number of arguments is correct *)
@@ -383,8 +383,7 @@ let gen channel (funs, instrs) =
   List.iter (gen_fun state) funs;
   (* Generate the body of the main function *)
   let stack_needed = gen_instrs state instrs in
-  (* Generate the main function 
-     TODO: use gen_fun to generate this ? *)
+  (* Generate the main function *)
   state_add_directly state ("
     .align 2
     .global main
