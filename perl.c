@@ -126,19 +126,17 @@ void *perl_equals(void *x, void *y)
   return box_int(res);
 }
 
-/* TODO: perl_different */
 void *perl_different(void *x, void *y)
 {
   int res;
-  if (to_native_int(x) == to_native_int(y)) {
-    res = 0;
-  } else {
+  if (to_native_int(x) != to_native_int(y)) {
     res = 1;
+  } else {
+    res = 0;
   }
   return box_int(res);
 }
 
-/* TODO: perl_greater */
 void *perl_greater(void *x, void *y)
 {
   int res;
@@ -150,8 +148,7 @@ void *perl_greater(void *x, void *y)
   return box_int(res);
 }
 
-/* TODO: perl_lower */
-void *perl_equals(void *x, void *y)
+void *perl_lower(void *x, void *y)
 {
   int res;
   if (to_native_int(x) < to_native_int(y)) {
@@ -162,8 +159,7 @@ void *perl_equals(void *x, void *y)
   return box_int(res);
 }
 
-/* TODO: perl_greater_equals */
-void *perl_equals(void *x, void *y)
+void *perl_greater_equals(void *x, void *y)
 {
   int res;
   if (to_native_int(x) >= to_native_int(y)) {
@@ -174,8 +170,7 @@ void *perl_equals(void *x, void *y)
   return box_int(res);
 }
 
-/* TODO: perl_lower_equals */
-void *perl_equals(void *x, void *y)
+void *perl_lower_equals(void *x, void *y)
 {
   int res;
   if (to_native_int(x) <= to_native_int(y)) {
@@ -201,28 +196,81 @@ void *perl_str_equals(void *x, void *y)
   return box_int(res);
 }
 
-/* TODO: perl_str_different */
 void *perl_str_different(void *x, void *y)
 {
   int res;
   char *s1 = to_native_string(x);
   char *s2 = to_native_string(y);
-  if (strcmp(s1, s2) == 0) {
-    res = 0;
-  } else {
+  if (strcmp(s1, s2) != 0) {
     res = 1;
+  } else {
+    res = 0;
   }
   free(s1);
   free(s2);
   return box_int(res);
 }
 
-/* TODO: perl_str_greater */
+void *perl_str_greater(void *x, void *y)
+{
+  int res;
+  char *s1 = to_native_string(x);
+  char *s2 = to_native_string(y);
+  if (strcmp(s1, s2) == 1) {
+    res = 1;
+  } else {
+    res = 0;
+  }
+  free(s1);
+  free(s2);
+  return box_int(res);
+}
+
+void *perl_str_lower(void *x, void *y)
+{
+  int res;
+  char *s1 = to_native_string(x);
+  char *s2 = to_native_string(y);
+  if (strcmp(s1, s2) == -1) {
+    res = 1;
+  } else {
+    res = 0;
+  }
+  free(s1);
+  free(s2);
+  return box_int(res);
+}
+
+void *perl_str_greater_equals(void *x, void *y)
+{
+  int res;
+  char *s1 = to_native_string(x);
+  char *s2 = to_native_string(y);
+  if (strcmp(s1, s2) >= 0) {
+    res = 1;
+  } else {
+    res = 0;
+  }
+  free(s1);
+  free(s2);
+  return box_int(res);
+}
 
 
-/* TODO: perl_str_lower */
-/* TODO: perl_str_greater_equals */
-/* TODO: perl_str_lower_equals */
+void *perl_str_lower_equals(void *x, void *y)
+{
+  int res;
+  char *s1 = to_native_string(x);
+  char *s2 = to_native_string(y);
+  if (strcmp(s1, s2) <= 0) {
+    res = 1;
+  } else {
+    res = 0;
+  }
+  free(s1);
+  free(s2);
+  return box_int(res);
+}
 
 /*********** Standard functions *************************/
 void *defined(void *arg)

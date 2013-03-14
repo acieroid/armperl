@@ -56,7 +56,7 @@ let string_of_value = function
   | Float x -> string_of_float x
   | True -> "1"
   | False -> ""
-  | String x -> "\"" ^ x ^ "\""
+  | String x -> x
   | Undef -> "undef"
 
 let string_of_unop = function
