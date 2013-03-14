@@ -89,12 +89,13 @@ let state_global_addr state var =
 
 (** Output the strings part of the assembly file *)
 let state_output_strings state channel =
+  let replace_newline = Str.global_replace (Str.regexp "\n") "\\n" in
   Stringtable.iter state.stringtable
     (fun id str ->
       output_string channel ("
     .align 2
 .Lstr" ^ (string_of_int id) ^ ":
-    .ascii \"" ^ str ^ "\\000\""))
+    .ascii \"" ^ (replace_newline str) ^ "\\000\""))
 
 (** Output the global variables part of the assembly file *)
 let state_output_globals state channel =
@@ -174,7 +175,7 @@ let gen_value state = function
   | String str ->
       let addr = state_string_addr state str in
       state_add state ("
-    ldr r4, .L" ^ addr)
+    ldr r4, " ^ addr)
   | Undef -> state_add state "
     mov r4, #2"
   | Float _ -> failwith "Floats are unsupported"
