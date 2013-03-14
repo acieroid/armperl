@@ -26,6 +26,14 @@ let create_state () =
    return_label=None;
  }
 
+(** Set the current arguments of the state *)
+let state_set_args state args =
+  state.args <- Some args
+
+(** Clear the current arguments of the state *)
+let state_clear_args state =
+  state.args <- None
+
 (** Return a new label (as a ".Ln" string) *)
 let state_new_label state =
   let n = state.last_label + 1 in
@@ -182,7 +190,7 @@ let gen_value state = function
 
 (** Load a local variable *)
 let gen_local state v =
-  failwith "Not implemented"
+  failwith "gen_local not implemented"
 
 (** Load a global variable *)
 let gen_global state v =
@@ -198,29 +206,28 @@ let rec gen_instrs state instrs =
 (** Generate an instruction *)
 and gen_instr state = function
   | Value v -> gen_value state v; 0
-  | Variable v -> (match state.args with
-    | Some args ->
-        if List.mem v args
-        then gen_local state v
-        else gen_global state v
-    | None -> gen_global state v); 0
+  | Variable v ->
+      if state_is_arg state v
+      then gen_local state v
+      else gen_global state v;
+      0
   (* TODO *)
-  | BinOp (op, e1, e2) -> failwith "Not implemented"
+  | BinOp (op, e1, e2) -> failwith "binop not implemented"
   | Assign (var, value) ->
       if state_is_arg state var then
         gen_assign_local state var value
       else
         gen_assign_global state var value
-  | Or (e1, e2) -> failwith "Not implemented"
-  | And (e1, e2) -> failwith "Not implemented"
-  | UnOp (op, e) -> failwith "Not implemented"
+  | Or (e1, e2) -> failwith "or not implemented"
+  | And (e1, e2) -> failwith "and not implemented"
+  | UnOp (op, e) -> failwith "unop implemented"
   | Funcall (fname, args) ->
       (* TODO: check that the number of arguments is correct *)
       (* TODO: merge the strings for print ? *)
       gen_funcall state fname args
-  | Cond (cond, consequent, alternative) -> failwith "Not implemented"
-  | CondEnd -> failwith "Not implemented"
-  | Return x -> failwith "Not implemented"
+  | Cond (cond, consequent, alternative) -> failwith "cond implemented"
+  | CondEnd -> failwith "condend not implemented"
+  | Return x -> failwith "return implemented"
   | Fundef _ -> failwith "Function definition not allowed here"
 
 (** Assign a value to a local variable *)
@@ -272,6 +279,7 @@ and gen_funcall state fname args =
 (** Generate a function definition *)
 and gen_fun state = function
   | Fundef (fname, args, body) ->
+      state_set_args state args;
       let return_label = state_new_return_label state in
       (* the number of bytes we need on the stack for this function *)
       let stack_needed =
@@ -293,7 +301,6 @@ and gen_fun state = function
         state_add_directly state ("
     str r" ^ (string_of_int i) ^ ", [fp, #-" ^ (string_of_int (8+i*4)) ^ "]")
       done;
-      (* TODO: load arguments on the stack *)
       state_merge state;
       (* Return undef by default *)
       state_add_directly state ("
@@ -301,7 +308,8 @@ and gen_fun state = function
 " ^ return_label ^ "
     sub sp, fp, #4
     ldmfd   sp!, {fp, pc}
-    .size " ^ fname ^ ", .-" ^ fname)
+    .size " ^ fname ^ ", .-" ^ fname);
+      state_clear_args state
   | _ -> failwith "Not a function definition"
 
 (** Main code generation function *)
