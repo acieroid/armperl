@@ -234,14 +234,14 @@ and gen_instr state = function
   | BinOp (op, e1, e2) -> failwith "binop not implemented"
   let stack_needed_e1 = gen_instr e1 in
 	state_add state ("
-		stmfd sp!,{r4}" );
+		stmfd sp!, {r4}" );
 	let stack_needed_e2 = gen_instr e2 in
 	state_add state ("
 		mov r1, r4
 		ldmfd sp!, {r0}
 		bl " ^ (function_name op) ^ "
-		mov r4, r0 ";
-		
+		mov r4, r0";
+		max stack_needed_e1 stack_needed_e2
   | Assign (var, value) ->
       if state_is_arg state var then
         gen_assign_local state var value
