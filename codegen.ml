@@ -1,23 +1,32 @@
 open Expression
 
+(** Box an integer, to be able to distinguish it from a pointer to a string *)
 let box_int n =
   (n lsl 1) + 1
 
+(** The state of the code generator *)
 type state = {
-    symtable: Symtable.t;
-    stringtable: Stringtable.t;
-    buffer: Buffer.t;
-    body_buffer: Buffer.t;
-    mutable args: string list option;
+    symtable: Symtable.t;             (** Table containing the global variables *)
+    stringtable: Stringtable.t;       (** Table containing the strings *)
+    buffer: Buffer.t;                 (** Buffer containing the generated code *)
+    body_buffer: Buffer.t;            (** Temporary buffer to store function bodies *)
+    mutable args: string list option; (** Optional list of arguments *)
+    mutable last_label: int;          (** Store the last label generated *)
+    mutable return_label: int option; (** Hold the current 'return' label *)
   }
 
+(** Create an empty state *)
 let create_state () =
   {symtable=Symtable.create ();
    stringtable=Stringtable.create ();
    buffer=Buffer.create 16;
    body_buffer=Buffer.create 16;
-   args=None}
+   args=None;
+   last_label=0;
+   return_label=None;
+ }
 
+(** Return the address of a function argument *)
 let state_get_arg_addr state arg =
   match state.args with
   | Some args ->
@@ -28,32 +37,39 @@ let state_get_arg_addr state arg =
         "[fp, #" ^ (string_of_int ((index-4)*4))
   | None -> failwith ("No such argument: " ^ arg)
 
+(** Is the variable a function argument or a global variable ? *)
 let state_is_arg state arg =
   match state.args with
   | Some args -> List.mem arg args
   | None -> false
 
+(** Add generated code to the temporary buffer *)
 let state_add state string =
   Buffer.add_string state.body_buffer string
 
+(** Add generated code to the final buffer *)
 let state_add_directly state string =
   Buffer.add_string state.buffer string
 
+(** Merge the temporary buffer into the final buffer *)
 let state_merge state =
   Buffer.add_buffer state.buffer state.body_buffer;
   Buffer.clear state.body_buffer
 
+(** Store a new string *)
 let state_string_addr state string =
   Stringtable.add state.stringtable string;
   let addr = Stringtable.get_addr state.stringtable string in
   ".Lstrs+" ^ (string_of_int addr)
 
+(** Return the address of a global variable *)
 let state_global_addr state var =
   (* Variables have the value undef by default *)
   Symtable.add state.symtable var Undef;
   let addr = Symtable.get_addr state.symtable var in
   ".Lglobals+" ^ (string_of_int addr)
 
+(** Output the strings part of the assembly file *)
 let state_output_strings state channel =
   Stringtable.iter state.stringtable
     (fun id str ->
@@ -62,6 +78,7 @@ let state_output_strings state channel =
 .Lstr" ^ (string_of_int id) ^ ":
     .ascii \"" ^ str ^ "\\000\""))
 
+(** Output the global variables part of the assembly file *)
 let state_output_globals state channel =
   let convert_value = function
     | Integer n -> string_of_int (box_int n)
@@ -80,6 +97,7 @@ let state_output_globals state channel =
 " ^ name ^ ":
     .word " ^ (convert_value value)))
 
+(** Output the addresses part of the assembly file *)
 let state_output_addresses state channel =
   (* output the addresses of the global variables *)
   output_string channel "
@@ -98,6 +116,7 @@ let state_output_addresses state channel =
       output_string channel ("
     .word .Lstr" ^ (string_of_int id)))
 
+(** Output the header of the assembly file *)
 let output_header channel =
   output_string channel "
     .arch armv5te
@@ -142,21 +161,22 @@ let gen_value state = function
     mov r4, #2"
   | Float _ -> failwith "Floats are unsupported"
 
-(* Load a local variable *)
+(** Load a local variable *)
 let gen_local state v =
   failwith "Not implemented"
 
-(* Load a global variable *)
+(** Load a global variable *)
 let gen_global state v =
   let addr = state_global_addr state v in
   state_add state ("
     ldr r4, " ^ addr)
 
-(* Generate multiple instructions and return the number of bytes
-  needed on the stack for those instructions *)
+(** Generate multiple instructions and return the number of bytes
+    needed on the stack for those instructions *)
 let rec gen_instrs state instrs =
   List.fold_left max 0 (List.map (gen_instr state) instrs) 
 
+(** Generate an instruction *)
 and gen_instr state = function
   | Value v -> gen_value state v; 0
   | Variable v -> (match state.args with
@@ -184,7 +204,7 @@ and gen_instr state = function
   | Return x -> failwith "Not implemented"
   | Fundef _ -> failwith "Function definition not allowed here"
 
-(* Assign a value to a local variable *)
+(** Assign a value to a local variable *)
 and gen_assign_local state var value =
   let addr = state_get_arg_addr state var
   and stack_needed = gen_instr state value in
@@ -193,7 +213,7 @@ and gen_assign_local state var value =
     str r4, " ^ addr);
   stack_needed
 
-(* Assign a value to a global variable *)
+(** Assign a value to a global variable *)
 and gen_assign_global state var value =
   let addr = state_global_addr state var
   and stack_needed = gen_instr state value in
@@ -204,7 +224,7 @@ and gen_assign_global state var value =
     str r4, [r5, #0]");
   stack_needed;
 
-(* Generate a function call *)
+(** Generate a function call *)
 and gen_funcall state fname args =
   let stack_needed =
     if List.length args > 4 then
@@ -230,7 +250,7 @@ and gen_funcall state fname args =
   (* Return the stack size needed *)
   List.fold_left max 0 (stack_needed::stack_needed_l)
 
-(* Generate a function definition *)
+(** Generate a function definition *)
 and gen_fun state = function
   | Fundef (fname, args, body) ->
       (* the number of bytes we need on the stack for this function *)
@@ -263,8 +283,7 @@ and gen_fun state = function
     .size " ^ fname ^ ", .-" ^ fname)
   | _ -> failwith "Not a function definition"
 
-
-
+(** Main code generation function *)
 let gen channel (funs, instrs) =
   let state = create_state () in
   (* Generate the function definitions *)
