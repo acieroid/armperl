@@ -26,8 +26,26 @@ let create_state () =
    return_label=None;
  }
 
+(** Return a new label (as a ".Ln" string) *)
+let state_new_label state =
+  let n = state.last_label + 1 in
+  state.last_label <- n;
+  ".L" ^ (string_of_int n)
+
+(** Return the current 'return' label, or output an error *)
+let state_return_label state =
+  match state.return_label with
+  | Some l -> ".Lreturn" ^ (string_of_int l)
+  | None -> failwith "Cannot return outside a subroutine"
+
+(** Return a new 'return' label *)
+let state_new_return_label state =
+  let _ = state_new_label state in
+  state.return_label <- Some state.last_label;
+  state_return_label state
+
 (** Return the address of a function argument *)
-let state_get_arg_addr state arg =
+let state_arg_addr state arg =
   match state.args with
   | Some args ->
       let index = Utils.index_of arg args in
@@ -206,7 +224,7 @@ and gen_instr state = function
 
 (** Assign a value to a local variable *)
 and gen_assign_local state var value =
-  let addr = state_get_arg_addr state var
+  let addr = state_arg_addr state var
   and stack_needed = gen_instr state value in
   (* copy the value from r4 to the argument *)
   state_add state ("
@@ -253,6 +271,7 @@ and gen_funcall state fname args =
 (** Generate a function definition *)
 and gen_fun state = function
   | Fundef (fname, args, body) ->
+      let return_label = state_new_return_label state in
       (* the number of bytes we need on the stack for this function *)
       let stack_needed =
         (gen_instrs state body) + (min ((List.length args)*4) 16) in
@@ -278,6 +297,7 @@ and gen_fun state = function
       (* Return undef by default *)
       state_add_directly state ("
     mov r0, #2
+" ^ return_label ^ "
     sub sp, fp, #4
     ldmfd   sp!, {fp, pc}
     .size " ^ fname ^ ", .-" ^ fname)
