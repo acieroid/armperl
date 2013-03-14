@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+/* TODO: implement a function that count the length of an integer */
+#include <math.h>
 
 /*********** Type stuff **** ***************************/
 #define IS_STRING(ptr) (((int) (ptr)) & 0x3 == 0)
@@ -60,7 +62,24 @@ static int to_native_int(void *x)
    deallocated when it is not needed anymore */
 static char *to_native_string(void *x)
 {
-  /* TODO */
+  char *dst = NULL;
+  int n = 0;
+  switch (type_of(x)) {
+  case STRING:
+    dst = malloc(strlen(x)*sizeof(*dst));
+    strcpy(dst, x);
+    break;
+  case UNDEF:
+    dst = malloc(sizeof(*dst));
+    dst[0] = '\0';
+    break;
+  case NUMBER:
+    n = to_native_int(x);
+    dst = malloc((((int) log10(n))+1)*sizeof(*dst));
+    sprintf(dst, "%d", n);
+    break;
+  }
+  return dst;
 }
 
 
