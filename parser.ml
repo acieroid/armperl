@@ -237,9 +237,11 @@ let rec parse =
       (* <cond> → 'if' <expr> '{' <instr list> '}' <cond end> *)
       (* <cond> → 'unless' <expr> '{' <instr list> '}' <cond end> *)
       (match stream with parser
-      | [< 'IF; e = parseExpr inh; 'LBRACE; i = parseInstrList inh; ce = parseCondEnd inh >] ->
+      | [< 'IF; e = parseExpr inh; 'LBRACE; i = parseInstrList inh;
+           'RBRACE; ce = parseCondEnd inh >] ->
           Cond (e, i, ce)
-      | [< 'UNLESS; e = parseExpr inh; 'LBRACE; i = parseInstrList inh; ce = parseCondEnd inh >] ->
+      | [< 'UNLESS; e = parseExpr inh; 'LBRACE; i = parseInstrList inh;
+           'RBRACE; ce = parseCondEnd inh >] ->
           Cond (UnOp (Not, e), i, ce))
   | _ -> unexpected stream
 
