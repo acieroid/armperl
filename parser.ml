@@ -9,10 +9,10 @@ let unoption = function
 
 let peek stream = unoption (Stream.peek stream)
 
-let unexpected stream =
-  failwith ("unexpected symbol at position " ^
-            (string_of_int (Stream.count stream) ^
-             ": " ^ (string_of_token (Stream.next stream))))
+let unexpected stream rule =
+  failwith ("unexpected symbol: " ^
+            (string_of_token (Stream.next stream)) ^
+           " while in rule " ^ rule)
 
 let rec parse =
   (** <factor> *)
@@ -32,9 +32,9 @@ let rec parse =
       | [< 'NOT; f = parseFactor inh >] -> UnOp (Not, f)
       | [< 'PLUS; f = parseFactor inh >] -> UnOp (UnaryPlus, f)
       | [< 'MINUS; f = parseFactor inh >] -> UnOp (UnaryMinus, f))
-  | _ -> unexpected stream
+  | _ -> unexpected stream "factor"
 
-  (** <term> *)
+  (** <term'> *)
   and parseTerm' inh stream = match peek stream with
   | LBRACE | RPAR | SEMICOLON | COMMA | PLUS | MINUS
   | ASSIGN | CONCAT | LAZY_OR | LAZY_AND | EQUALS | DIFFERENT
@@ -50,7 +50,7 @@ let rec parse =
       (match stream with parser
       | [< 'TIMES; f = parseFactor inh; t' = parseTerm' (BinOp (Times, inh, f)); >] -> t'
       | [< 'DIVIDE; f = parseFactor inh; t' = parseTerm' (BinOp (Divide, inh, f)); >] -> t')
-  | _ -> unexpected stream
+  | _ -> unexpected stream "term'"
 
   (** <term> *)
   and parseTerm inh stream = match peek stream with
@@ -59,7 +59,7 @@ let rec parse =
       (* <term> → <factor> <term'> *)
       (match stream with parser
       | [< f = parseFactor inh; t' = parseTerm' f >] -> t')
-  | _ -> unexpected stream
+  | _ -> unexpected stream "term'"
 
   (** <calc'> *)
   and parseCalc' inh stream = match peek stream with
@@ -78,7 +78,7 @@ let rec parse =
       | [< 'CONCAT; t = parseTerm inh; c' = parseCalc' (BinOp (Concat, inh, t)); >] -> c'
       | [< 'PLUS; t = parseTerm inh; c' = parseCalc' (BinOp (Plus, inh, t)); >] -> c'
       | [< 'MINUS; t = parseTerm inh; c' = parseCalc' (BinOp (Minus, inh, t)); >] -> c')
-  | _ -> unexpected stream
+  | _ -> unexpected stream "calc'"
 
   (** <calc> *)
   and parseCalc inh stream = match peek stream with
@@ -87,7 +87,7 @@ let rec parse =
       (* <calc> → <term> <calc'> *)
       (match stream with parser
       | [< t = parseTerm inh; c' = parseCalc' t >] -> c')
-  | _ -> unexpected stream
+  | _ -> unexpected stream "calc"
 
   (** <comp'> *)
   and parseComp' inh stream = match peek stream with
@@ -115,7 +115,7 @@ let rec parse =
       | [< 'STRING_LOWER; c = parseCalc inh; c' = parseComp' (BinOp (StrLower, inh, c)) >] -> c'
       | [< 'STRING_GREATER_EQUALS; c = parseCalc inh; c' = parseComp' (BinOp (StrGreaterEquals, inh, c)) >] -> c'
       | [< 'STRING_LOWER_EQUALS; c = parseCalc inh; c' = parseComp' (BinOp (StrLowerEquals, inh, c)) >] -> c')
-  | _ -> unexpected stream
+  | _ -> unexpected stream "comp'"
 
   (** <comp> *)
   and parseComp inh stream = match peek stream with
@@ -124,7 +124,7 @@ let rec parse =
       (* <comp> → <calc> <comp'>  *)
       (match stream with parser
       | [< c = parseCalc inh; c' = parseComp' c >] -> c')
-  | _ -> unexpected stream
+  | _ -> unexpected stream "comp"
 
   (** <expr-eq'> *)
   and parseExprEq' inh stream = match peek stream with
@@ -141,7 +141,7 @@ let rec parse =
       | [< 'DIFFERENT; e = parseExprEq' inh >] -> BinOp (Different ,inh, e)
       | [< 'STRING_EQUALS; e = parseExprEq' inh >] -> BinOp (StrEquals ,inh, e)
       | [< 'STRING_DIFFERENT; e = parseExprEq' inh >] -> BinOp (StrDifferent ,inh, e))
-  | _ -> unexpected stream
+  | _ -> unexpected stream "expr-eq'"
 
   (** <expr-eq> *)
   and parseExprEq inh stream = match peek stream with
@@ -149,7 +149,7 @@ let rec parse =
       (* <expr-eq> → <comp> <expr-eq'> *)
       (match stream with parser
       | [< c = parseComp inh; e' = parseExprEq' c >] -> e')
-  | _ -> unexpected stream
+  | _ -> unexpected stream "expr-eq"
 
   (** <expr-and'> *)
   and parseExprAnd' inh stream = match peek stream with
@@ -160,7 +160,7 @@ let rec parse =
       (* <expr-and'> → '&&' <expr-eq> <expr-and'> *)
       (match stream with parser
       | [< 'LAZY_AND; e = parseExprEq inh; a = parseExprAnd' (And (inh, e)) >] -> a)
-  | _ -> unexpected stream
+  | _ -> unexpected stream "expr-and'"
 
   (** <expr-and> *)
   and parseExprAnd inh stream = match peek stream with
@@ -168,7 +168,7 @@ let rec parse =
      (* <expr-and> → <expr-eq> <expr-and'> *)
       (match stream with parser
       | [< e = parseExprEq inh; a = parseExprAnd' e >] -> a)
-  | _ -> unexpected stream
+  | _ -> unexpected stream "expr-and"
 
   (** <expr-or'> *)
   and parseExprOr' inh stream =  match peek stream with
@@ -179,7 +179,7 @@ let rec parse =
       (* <expr-or'> → 'or' <expr-and> <expr-or'> *)
       (match stream with parser
       | [< 'LAZY_OR; e = parseExprAnd inh; e' = parseExprOr' (Or (inh, e)) >] -> e')
-  | _ -> unexpected stream
+  | _ -> unexpected stream "expr-or'"
 
   (** <expr-or> *)
   and parseExprOr inh stream = match peek stream with
@@ -187,7 +187,7 @@ let rec parse =
       (* <expr-or> → <expr-and> <expr-or'> *)
       (match stream with parser
       | [< a = parseExprAnd inh; o' = parseExprOr' a >] -> o')
-  | _ -> unexpected stream
+  | _ -> unexpected stream "expr-or"
 
   (** <expr> *)
   and parseExpr inh stream = match peek stream with
@@ -198,7 +198,7 @@ let rec parse =
       (* <expr> → 'not' <expr> *)
       (match stream with parser
       | [< 'NOT_WORD; e = parseExpr inh >] -> UnOp (Not, e))
-  | _ -> unexpected stream
+  | _ -> unexpected stream "expr"
 
   (** <simple-expr> *)
   and parseSimpleExpr inh stream = match peek stream with
@@ -213,11 +213,11 @@ let rec parse =
   | IDENTIFIER _  | CALL_MARK ->
       (* <simple expr> → <funcall> *)
       parseFuncall inh stream
-  | _ -> unexpected stream
+  | _ -> unexpected stream "simple-expr"
 	 
   (** <cond-end> *)
   and parseCondEnd inh stream = match peek stream with
-    (* TODO: missing rbrace ? *)
+    (* TODO: missing rbrace, and EOF ? recheck follow *)
   | RPAR | SEMICOLON | COMMA ->
       (* <cond end> → ε *) 
       CondEnd
@@ -230,7 +230,7 @@ let rec parse =
 	     Cond (Value True, i, c)
       | [< 'ELSEIF; e = parseExpr inh; 'LBRACE; i = parseInstrList inh; 
 	   'RBRACE; c = parseCondEnd inh >] -> Cond (e, i, c))
-  | _ -> unexpected stream
+  | _ -> unexpected stream "cond-end"
 
   (** <cond> *)
   and parseCond inh stream = match peek stream with
@@ -244,7 +244,7 @@ let rec parse =
       | [< 'UNLESS; e = parseExpr inh; 'LBRACE; i = parseInstrList inh;
            'RBRACE; ce = parseCondEnd inh >] ->
           Cond (UnOp (Not, e), i, ce))
-  | _ -> unexpected stream
+  | _ -> unexpected stream "cond"
 
   (** <instr'> *)
   and parseInstr' inh stream = match peek stream with
@@ -265,7 +265,7 @@ let rec parse =
           | Variable v -> Assign (v, e)
           | nv -> failwith ("Cannot assign a value to a non-variable: " ^
                             (string_of_expression nv))))
-  | _ -> unexpected stream
+  | _ -> unexpected stream "instr'"
 
   (** <instr> *)
   and parseInstr inh stream = match peek stream with
@@ -281,7 +281,7 @@ let rec parse =
   | IF | UNLESS ->
       (* <instr> → <cond> *)
       parseCond inh stream
-  | _ -> unexpected stream
+  | _ -> unexpected stream "instr"
 
   (** <args call list'> *)
   and parseArgsCallList' inh stream = match peek stream with
@@ -292,7 +292,7 @@ let rec parse =
       (* <args call list'> → ',' <instr> <args call list'> *)
       (match stream with parser
       | [< 'COMMA; i = parseInstr inh; a' = parseArgsCallList' inh >] -> i::a')
-  | _ -> unexpected stream
+  | _ -> unexpected stream "args call list'"
 
   (** <args call list> *)
   and parseArgsCallList inh stream = match peek stream with
@@ -305,7 +305,7 @@ let rec parse =
   | RPAR ->
       (* <args call list> → ε *)
       []
-  | _ -> unexpected stream
+  | _ -> unexpected stream "args call list"
 
   (** <funcall args> *)
   and parseFuncallArgs inh stream = match peek stream with
@@ -313,7 +313,7 @@ let rec parse =
       (* <funcall args> → '(' <args call list> ')' *)
       (match stream with parser
       | [< 'LPAR; a = parseArgsCallList inh; 'RPAR >] -> a)
-  | _ -> unexpected stream
+  | _ -> unexpected stream "funcall args"
 
   (** <funcall> *)
   and parseFuncall inh stream = match peek stream with
@@ -325,7 +325,7 @@ let rec parse =
 	  Funcall (name, args)
       | [< 'CALL_MARK; '(IDENTIFIER name); args = parseFuncallArgs inh >] ->
 	  Funcall (name, args))
-  | _ -> unexpected stream
+  | _ -> unexpected stream "funcall"
 
   (** <instr list'> *)
   and parseInstrList' inh stream = match peek stream with
@@ -337,7 +337,7 @@ let rec parse =
       (* <instr list'> → <instr> ';' <instr list'>  *)
       (match stream with parser
         [< i = parseInstr inh; 'SEMICOLON; i' = parseInstrList' inh >] -> i::i')
-  | _ -> unexpected stream
+  | _ -> unexpected stream "instr list'"
 
   (** <instr list> *)
   and parseInstrList inh stream = match peek stream with
@@ -351,7 +351,7 @@ let rec parse =
       (* <instr list> → '{' <instr list> '}' *)
       (match stream with parser
       | [< 'LBRACE; i = parseInstrList inh; 'RBRACE >] -> i)
-  | _ -> unexpected stream
+  | _ -> unexpected stream "instr list"
 
   (** <arg list'> *)
   and parseArgList' inh stream = match peek stream with
@@ -363,7 +363,7 @@ let rec parse =
   | RPAR ->
       (* <arg list'> → ε *)
       []
-  | _ -> unexpected stream
+  | _ -> unexpected stream "arg list'"
 
   (** <arg list> *)
   and parseArgList inh stream = match peek stream with
@@ -375,7 +375,7 @@ let rec parse =
   | RPAR ->
     (* <arg list> → ε *)
       []
-  | _ -> unexpected stream
+  | _ -> unexpected stream "arg list"
 
   (** <function args> *)
   and parseFunctionArgs inh stream = match peek stream with
@@ -384,7 +384,7 @@ let rec parse =
       (match stream with parser
         [< 'LPAR; args = parseArgList inh; 'RPAR >] ->
           args)
-  | _ -> unexpected stream
+  | _ -> unexpected stream "function args"
 
   (** <function> *)
   and parseFunction inh stream = match peek stream with
@@ -394,7 +394,7 @@ let rec parse =
         [< 'SUB; 'IDENTIFIER name; args = parseFunctionArgs inh;
            'LBRACE; body = parseInstrList inh; 'RBRACE >] ->
              Fundef (name, args, body))
-  | _ -> unexpected stream
+  | _ -> unexpected stream "function"
 
   (** <function list'> *)
   and parseFunctionList' inh stream = match peek stream with
@@ -408,7 +408,7 @@ let rec parse =
       (match stream with parser
       | [< f = parseFunction inh; l = parseFunctionList' inh >] ->
           f::l)
-  | _ -> unexpected stream
+  | _ -> unexpected stream "function list'"
 
   (** <function list> *)
   and parseFunctionList inh stream = match peek stream with
@@ -417,7 +417,7 @@ let rec parse =
       (match stream with parser
       | [< f = parseFunction inh; l = parseFunctionList' inh >] ->
           f::l)
-  | _ -> unexpected stream
+  | _ -> unexpected stream "function list"
 
   (** <program'> *)
   and parseProgram' inh stream = match peek stream with
@@ -430,7 +430,7 @@ let rec parse =
   | EOF ->
       (* <program'> → ε *)
       []
-  | _ -> unexpected stream
+  | _ -> unexpected stream "program'"
 
   (** <program> *)
   and parseProgram inh stream = match peek stream with
@@ -445,7 +445,7 @@ let rec parse =
       (match stream with parser
       | [< l = parseFunctionList inh; p = parseProgram' inh >] ->
           (l, p))
-  | _ -> unexpected stream
+  | _ -> unexpected stream "program"
   and parseS inh stream = match stream with parser
   | [< p = parseProgram inh >] -> p
 in
