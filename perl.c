@@ -13,6 +13,7 @@ enum {
   UNDEF = 2
 };
 
+/* return the type of the value stored in the argument */
 static int type_of(void *ptr) {
   if (IS_STRING(ptr)) {
     return STRING;
@@ -28,16 +29,19 @@ static int type_of(void *ptr) {
 
 
 /*********** Helper functions ***************************/
+/* convert a native integer to a perl value */
 static void *box_int(int x)
 {
   return (void *) ((x << 1) + 1);
 }
 
+/* convert a boxed integer to a native int */
 static int unbox_int(int x)
 {
   return (x >> 1);
 }
 
+/* convert a perl value to a native int */
 static int to_native_int(void *x)
 {
   int n = 0;
@@ -52,6 +56,8 @@ static int to_native_int(void *x)
   }
 }
 
+/* convert a perl value to a native string. The string should be
+   deallocated when it is not needed anymore */
 static char *to_native_string(void *x)
 {
   /* TODO */
