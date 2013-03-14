@@ -113,7 +113,17 @@ void *perl_divide(void *x, void *y)
   return box_int(to_native_int(x) / to_native_int(y));
 }
 
-/* TODO: perl_concat */
+void *perl_concat(void *x, void *y)
+{
+  char *s1, *s2, *res;
+  s1 = to_native_string(x);
+  s2 = to_native_string(y);
+  res = malloc((strlen(s1) + strlen(s2))*sizeof(*res));
+  sprintf(res, "%s%s", s1, s2);
+  free(s1);
+  free(s2);
+  return (void *)res;
+}
 
 void *perl_equals(void *x, void *y)
 {

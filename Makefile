@@ -16,9 +16,11 @@ TAGS		= annot,debug
 LIBS		= str
 EXTENSION	= byte
 
+CFLAGS		= -fno-short-enums -fstrict-aliasing -O2
+
 all:
 	rm -f *.o
-	ocamlbuild ${OPTS} -tags ${TAGS} -libs ${LIBS} ${TARGET}.${EXTENSION}
+	ocamlbuild $(OPTS) -tags $(TAGS) -libs $(LIBS) $(TARGET).$(EXTENSION)
 
 lib:
 	$(CC) -S $(CFLAGS) perl.c
@@ -34,4 +36,5 @@ try:
 	$(CC) -c $(CFLAGS) $< -o $@
 
 clean:
+	rm *.o $(TARGET)
 	ocamlbuild -clean
