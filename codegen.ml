@@ -57,10 +57,8 @@ let state_arg_addr state arg =
   match state.args with
   | Some args ->
       let index = Utils.index_of arg args in
-      if index < 4 then
-        "[fp, #-" ^ (string_of_int (8 + (index*4)))
-      else
-        "[fp, #" ^ (string_of_int ((index-4)*4))
+      let addr = if index < 4 then 8 + (index*4) else (index-4)*4 in
+      "[fp, #-" ^ (string_of_int addr) ^ "]"
   | None -> failwith ("No such argument: " ^ arg)
 
 (** Is the variable a function argument or a global variable ? *)
@@ -190,7 +188,9 @@ let gen_value state = function
 
 (** Load a local variable *)
 let gen_local state v =
-  failwith "gen_local not implemented"
+  let addr = state_arg_addr state v in
+  state_add state ("
+    ldr r4, " ^ addr)
 
 (** Load a global variable *)
 let gen_global state v =
@@ -297,7 +297,7 @@ and gen_fun state = function
     stmfd sp!, {fp, lr}
     add fp, sp, #4
     sub sp, sp, #" ^ (string_of_int stack_increment));
-      for i = 0 to min (List.length args) 4 do
+      for i = 0 to (min (List.length args) 4)-1 do
         state_add_directly state ("
     str r" ^ (string_of_int i) ^ ", [fp, #-" ^ (string_of_int (8+i*4)) ^ "]")
       done;

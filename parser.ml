@@ -3,7 +3,7 @@ open Expression
 
 let unoption = function
   | Some x -> 
-      print_string (string_of_token x); print_newline ();
+      (* print_string (string_of_token x); print_newline (); *)
       x
   | None -> failwith "Premature end of input"
 
@@ -319,7 +319,7 @@ let rec parse =
   and parseFuncall inh stream = match peek stream with
   | IDENTIFIER _ | CALL_MARK ->
       (* <funcall> → identifier <funcall args> *)
-      (*  <funcall> → '&' identifier <funcall args> *)
+      (* <funcall> → '&' identifier <funcall args> *)
       (match stream with parser
       | [< '(IDENTIFIER name); args = parseFuncallArgs inh >] ->
 	  Funcall (name, args)
