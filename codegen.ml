@@ -141,6 +141,25 @@ let state_output_addresses state channel =
       output_string channel ("
     .word .Lstr" ^ (string_of_int id)))
 
+let function_name = function
+  | Plus -> "perl_plus"
+  | Minus -> "perl_minus"
+  | Times -> "perl_times"
+  | Divide -> "perl_divide"
+  | Concat -> "perl_concat"
+  | Equals -> "perl_equals"
+  | Different -> "perl_different"
+  | Greater -> "perl_greater"
+  | Lower -> "perl_lower"
+  | GreaterEquals -> "perl_greater_equals"
+  | LowerEquals -> "perl_lower_equals"
+  | StrEquals -> "perl_str_equals"
+  | StrDifferent -> "perl_str_different"
+  | StrGreater -> "perl_str_greater"
+  | StrLower -> "perl_str_lower"
+  | StrGreaterEquals -> "perl_str_greater_equals"
+  | StrLowerEquals -> "perl_str_lower_equals"
+
 (** Output the header of the assembly file *)
 let output_header channel =
   output_string channel "
@@ -213,6 +232,16 @@ and gen_instr state = function
       0
   (* TODO *)
   | BinOp (op, e1, e2) -> failwith "binop not implemented"
+  let stack_needed_e1 = gen_instr e1 in
+	state_add state ("
+		stmfd sp!, {r4}" );
+	let stack_needed_e2 = gen_instr e2 in
+	state_add state ("
+		mov r1, r4
+		ldmfd sp!, {r0}
+		bl " ^ (function_name op) ^ "
+		mov r4, r0";
+		max stack_needed_e1 stack_needed_e2
   | Assign (var, value) ->
       if state_is_arg state var then
         gen_assign_local state var value
