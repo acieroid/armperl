@@ -253,9 +253,31 @@ and gen_instr state = function
   | Funcall (fname, args) ->
       (* TODO: check that the number of arguments is correct *)
       (* TODO: merge the strings for print *)
+      (* TODO: compute the last argument for substr *)
       gen_funcall state fname args
-  | Cond (cond, consequent, alternative) -> failwith "cond implemented"
-  | CondEnd -> failwith "condend not implemented"
+  | Cond (cond, consequent, alternative) ->
+      let alternative_label = state_new_label state
+      and end_label = state_new_label state
+      and stack_needed_cond = gen_instr state cond in
+      (* r4 contains true or false, jump if it is false *)
+      state_add state ("
+    cmp r4, #" ^ (string_of_int (box_int 1)) ^ "
+    bne " ^ alternative_label);
+      (* generate consequent *)
+      let stack_needed_consequent = gen_instrs state consequent in
+      (* jump to the end *)
+      state_add state ("
+    b " ^ end_label);
+      (* add the alternative label *)
+      state_add state ("
+" ^ alternative_label);
+      (* generate alternative *)
+      let stack_needed_alternative = gen_instr state alternative in
+      (* add the end label *)
+      state_add state ("
+" ^ end_label);
+      max (max stack_needed_alternative stack_needed_consequent) stack_needed_cond
+  | CondEnd -> 0
   | Return x ->
       let stack_needed = gen_instr state x in
       state_add state ("
