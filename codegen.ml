@@ -247,8 +247,15 @@ and gen_instr state = function
         gen_assign_local state var value
       else
         gen_assign_global state var value
-  | Or (e1, e2) -> failwith "or not implemented"
-  | And (e1, e2) -> failwith "and not implemented"
+  | Or (e1, e2) ->
+      (* TODO: check if the generated code is correct *)
+      gen_instr state (Cond (e1, [Value True],
+                             Cond (e2, [Value True], Value False)))
+  | And (e1, e2) ->
+      (* TODO: check if the generated code is correct *)
+      gen_instr state (Cond (e1,
+                             [Cond (e2, [Value True], Value False)],
+                             Value False))
   | UnOp (op, e) -> failwith "unop implemented"
   | Funcall (fname, args) ->
       (* TODO: check that the number of arguments is correct *)
@@ -256,6 +263,7 @@ and gen_instr state = function
       (* TODO: compute the last argument for substr *)
       gen_funcall state fname args
   | Cond (cond, consequent, alternative) ->
+      (* TODO: check if the generated code is correct *)
       let alternative_label = state_new_label state
       and end_label = state_new_label state
       and stack_needed_cond = gen_instr state cond in
