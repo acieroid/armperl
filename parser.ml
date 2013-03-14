@@ -3,7 +3,7 @@ open Expression
 
 let unoption = function
   | Some x -> 
-      (* print_string (string_of_token x); print_newline (); *)
+      print_string (string_of_token x); print_newline ();
       x
   | None -> failwith "Premature end of input"
 
@@ -137,10 +137,10 @@ let rec parse =
       (*<expr-eq'> → '!=' <expr-eq'>*)
       (*<expr-eq'> → '==' <expr-eq'>*)
       (match stream with parser
-      | [< 'EQUALS; e = parseExprEq' inh >] -> BinOp (Equals, inh, e)
-      | [< 'DIFFERENT; e = parseExprEq' inh >] -> BinOp (Different ,inh, e)
-      | [< 'STRING_EQUALS; e = parseExprEq' inh >] -> BinOp (StrEquals ,inh, e)
-      | [< 'STRING_DIFFERENT; e = parseExprEq' inh >] -> BinOp (StrDifferent ,inh, e))
+      | [< 'EQUALS; e = parseExprEq inh >] -> BinOp (Equals, inh, e)
+      | [< 'DIFFERENT; e = parseExprEq inh >] -> BinOp (Different ,inh, e)
+      | [< 'STRING_EQUALS; e = parseExprEq inh >] -> BinOp (StrEquals ,inh, e)
+      | [< 'STRING_DIFFERENT; e = parseExprEq inh >] -> BinOp (StrDifferent ,inh, e))
   | _ -> unexpected stream "expr-eq'"
 
   (** <expr-eq> *)

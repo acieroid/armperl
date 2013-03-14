@@ -76,10 +76,11 @@ TODO: no cond end for else ?
 
 <expr-eq>        → <comp> <expr-eq'>
 
-<expr-eq'>       → '==' <expr-eq'>
-                 | '!=' <expr-eq'>
-                 | 'eq' <expr-eq'>
-                 | 'ne' <expr-eq'>
+# TODO: first et follow
+<expr-eq'>       → '==' <expr-eq>
+                 | '!=' <expr-eq>
+                 | 'eq' <expr-eq>
+                 | 'ne' <expr-eq>
                  |  ε
 
 <comp>           → <calc> <comp'>
