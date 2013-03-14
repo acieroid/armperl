@@ -2,3 +2,4 @@ Deleted:
   - obligatory parenthesis and no more ε in funcall args
   - removed the ε from <funcall args>
   - <expr> = <expr>: better compatibility
+  - Add a cleaner interface (like gcc, pass the .pl file and it generates the .s)

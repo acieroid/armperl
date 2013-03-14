@@ -8,7 +8,7 @@ fac:
   sub sp, sp, #8 @ 1 argument
   str r0, [fp, #-8]
 
-  ldr r5, [fp, #-8]
+  ldr r3, [fp, #-8]
   cmp r3, #0
   bge .L2 @ n > 0
   mvn r3, #0 @ return -1

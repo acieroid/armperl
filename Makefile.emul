@@ -17,9 +17,12 @@ SRC	= $(wildcard *.c)
 ASM	= $(SRC:.c=.s)
 OBJS	= $(SRC:.c=.o)
 BIN	= main.bin
-P
-ARSER	= $(wildcard *.cup)
+PARSER	= $(wildcard *.cup)
 LEXER	= $(wildcard *.flex)
+
+ASM_SRC	= $(wildcard *.s)
+ASM_OBJS= $(ASM_SRC:.s=.o)
+TARGET	= a.out
 
 all: $(ASM) $(BIN)
 
@@ -53,6 +56,9 @@ asm: $(ASM)
 main.bin: $(OBJS)
 	$(CC) -o $@ $^ $(CFLAGS) $(LIBS)
 
+build: $(ASM_OBJS)
+	$(CC) -o $(TARGET) $^ $(CFLAGS) $(LIBS)
+
 %.o : %.s
 	$(CC) -c $(CFLAGS) $< -o $@
 
@@ -63,3 +69,4 @@ main.bin: $(OBJS)
 
 clean:
 	rm -f $(OBJS) $(ASM) $(BIN)
+

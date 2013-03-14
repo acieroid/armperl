@@ -3,7 +3,7 @@
 
 sub fac($n) {
   if ($n < 0) {
-    return -1; # invalid argument
+    return 0; # invalid argument
   } elsif ($n == 0) {
     return 1;
   } else {
