@@ -1,0 +1,65 @@
+include config.mk
+
+SYSROOT		= ${NDK_PATH}/platforms/android-$(API_LEVEL)/arch-$(ARCHITECTURE)
+FULL_PATH	= ${NDK_PATH}/toolchains/$(TOOLCHAIN)/prebuilt/$(HOST)/bin/$(PREFIX)
+
+CC	= $(FULL_PATH)gcc --sysroot=$(SYSROOT)
+AR	= $(FULL_PATH)ar --sysroot=$(SYSROOT)
+AS	= $(FULL_PATH)as --sysroot=$(SYSROOT)
+CXX	= $(FULL_PATH)c++ --sysroot=$(SYSROOT)
+LD	= $(FULL_PATH)ld --sysroot=$(SYSROOT)
+
+ADB	= $(SDK_PATH)/platform-tools/adb
+EMULATOR= $(SDK_PATH)/tools/emulator
+ANDROID	= $(SDK_PATH)/tools/android
+
+SRC	= $(wildcard *.c)
+ASM	= $(SRC:.c=.s)
+OBJS	= $(SRC:.c=.o)
+BIN	= main.bin
+P
+ARSER	= $(wildcard *.cup)
+LEXER	= $(wildcard *.flex)
+
+all: $(ASM) $(BIN)
+
+install: emulator
+	$(foreach bin,$(BIN),$(ADB) wait-for-device push $(bin) /data/local/;)
+
+create:
+	$(ANDROID) create avd -n "$(EMULATOR_NAME)" -t "${EMULATOR_VERSION}"
+
+emulator:
+ifneq ($(shell $(ADB) get-state),device)
+	$(EMULATOR) -avd "$(EMULATOR_NAME)"&
+endif
+
+run: emulator install
+	$(foreach bin,$(BIN),$(ADB) wait-for-device shell /data/local/$(bin);)
+
+java:
+	$(foreach javasrc,$(wildcard *.java),$(JAVAC) -cp "$(CUP)":. $(javasrc);)
+
+jflex:
+	$(foreach lex,$(LEXER),$(JFLEX) $(lex);)
+
+cup:
+	$(foreach cup,$(PARSER),$(JAVA) -cp "$(CUP)":. java_cup.Main -parser $(PARSER_NAME) -symbols $(SYMBOL_NAME) $(cup);)
+
+grammar: jflex cup java
+
+asm: $(ASM)
+
+main.bin: $(OBJS)
+	$(CC) -o $@ $^ $(CFLAGS) $(LIBS)
+
+%.o : %.s
+	$(CC) -c $(CFLAGS) $< -o $@
+
+%.s : %.c
+	$(CC) $(CFLAGS) $< -S
+
+.PHONY: clean
+
+clean:
+	rm -f $(OBJS) $(ASM) $(BIN)
