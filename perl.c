@@ -1,13 +1,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-/* TODO: implement a function that count the length of an integer */
-#include <math.h>
 
 /*********** Type stuff **** ***************************/
-#define IS_STRING(ptr) (((int) (ptr)) & 0x3 == 0)
-#define IS_NUMBER(ptr) (((int) (ptr)) & 0x1 == 1)
-#define IS_UNDEF(ptr)  (((int) (ptr)) & 0x3 == 2)
+#define IS_STRING(ptr) ((((int) (ptr)) & 0x3) == 0)
+#define IS_NUMBER(ptr) ((((int) (ptr)) & 0x1) == 1)
+#define IS_UNDEF(ptr)  ((((int) (ptr)) & 0x3) == 2)
 
 enum {
   STRING = 0,
@@ -43,6 +41,16 @@ static int unbox_int(int x)
   return (x >> 1);
 }
 
+/* return the size of an integer (in number of characters needed) */
+static int intlen(int n)
+{
+  int i = 0;
+  for (; n > 10; i++) {
+    n /= 10;
+  }
+  return i+1;
+}
+
 /* convert a perl value to a native int */
 static int to_native_int(void *x)
 {
@@ -56,6 +64,7 @@ static int to_native_int(void *x)
     sscanf((char *) x, "%d", &n);
     return n;
   }
+  return n;
 }
 
 /* convert a perl value to a native string. The string should be
@@ -75,7 +84,7 @@ static char *to_native_string(void *x)
     break;
   case NUMBER:
     n = to_native_int(x);
-    dst = malloc((((int) log10(n))+1)*sizeof(*dst));
+    dst = malloc((intlen(n)+1)*sizeof(*dst));
     sprintf(dst, "%d", n);
     break;
   }
@@ -146,7 +155,7 @@ void *print(void *arg)
 {
   switch (type_of(arg)) {
   case STRING:
-    printf("%s", arg);
+    printf("%s", (char *) arg);
     break;
   case NUMBER:
     printf("%d", to_native_int(arg));
@@ -159,20 +168,19 @@ void *print(void *arg)
 
 void *length(void *arg)
 {
-  int n = 0, len = 0;
+  int len = 0;
   switch (type_of(arg)) {
   case STRING:
-    return box_int(strlen(arg));
+    len = strlen(arg);
+    break;
   case UNDEF:
-    return box_int(0);
-  case NUMBER:
-    n = to_native_int(arg);
     len = 0;
-    for (len = 0; ; len++) {
-      n = n/10;
-    }
-    return box_int(len);
+    break;
+  case NUMBER:
+    len = intlen(to_native_int(arg));
+    break;
   }
+  return box_int(len);
 }
 
 void *scalar(void *arg)

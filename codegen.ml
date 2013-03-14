@@ -278,12 +278,12 @@ and gen_instr state = function
     b " ^ end_label);
       (* add the alternative label *)
       state_add state ("
-" ^ alternative_label);
+" ^ alternative_label ^ ":");
       (* generate alternative *)
       let stack_needed_alternative = gen_instr state alternative in
       (* add the end label *)
       state_add state ("
-" ^ end_label);
+" ^ end_label ^ ":");
       max (max stack_needed_alternative stack_needed_consequent) stack_needed_cond
   | CondEnd -> 0
   | Return x ->
@@ -369,7 +369,7 @@ and gen_fun state = function
       (* Return undef by default *)
       state_add_directly state ("
     mov r0, #2
-" ^ return_label ^ "
+" ^ return_label ^ ":
     sub sp, fp, #4
     ldmfd   sp!, {fp, pc}
     .size " ^ fname ^ ", .-" ^ fname);
