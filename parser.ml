@@ -217,16 +217,17 @@ let rec parse =
 	 
   (** <cond-end> *)
   and parseCondEnd inh stream = match peek stream with
+    (* TODO: missing rbrace ? *)
   | RPAR | SEMICOLON | COMMA ->
       (* <cond end> → ε *) 
       CondEnd
   | ELSE | ELSEIF ->
-      (* <cond end> → 'else' <expr> '{' <instr list> '}' <cond end> *)
+      (* <cond end> → 'else' '{' <instr list> '}' <cond end> *)
       (* <cond end> → 'elsif' <expr> '{' <instr list> '}' <cond end> *)
       (match stream with parser
-      | [< 'ELSE; e = parseExpr inh; 'LBRACE; i = parseInstrList inh; 
+      | [< 'ELSE; 'LBRACE; i = parseInstrList inh; 
 	   'RBRACE; c = parseCondEnd inh >] ->
-	     Cond (e, i, c)
+	     Cond (Value True, i, c)
       | [< 'ELSEIF; e = parseExpr inh; 'LBRACE; i = parseInstrList inh; 
 	   'RBRACE; c = parseCondEnd inh >] -> Cond (e, i, c))
   | _ -> unexpected stream
