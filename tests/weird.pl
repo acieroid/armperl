@@ -8,4 +8,4 @@ sub bar() {
   return &foo(return 1);
 }
 
-print &bar();
+print(&bar());
