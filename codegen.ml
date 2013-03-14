@@ -113,9 +113,12 @@ let state_output_globals state channel =
     | Undef -> "2"
     | Float _ -> failwith "Floats are unsupported"
   in
+  output_string channel ("
+    .data");
   Symtable.iter state.symtable
     (fun id name value ->
       output_string channel ("
+    .global " ^ name ^ "
     .align 2
     .type " ^ name ^ ", %object
     .size " ^ name ^ ", 4
@@ -215,7 +218,8 @@ let gen_local state v =
 let gen_global state v =
   let addr = state_global_addr state v in
   state_add state ("
-    ldr r4, " ^ addr)
+    ldr r4, " ^ addr ^ "
+    ldr r4, [r4, #0]")
 
 (** Generate multiple instructions and return the number of bytes
     needed on the stack for those instructions *)
@@ -404,7 +408,7 @@ main:
   state_output_globals state channel;
   (* Start the read-only section *)
   output_string channel "
-    .section .rodata";
+    .text";
   (* Output the strings definitions *)
   state_output_strings state channel;
   (* Output the code *)

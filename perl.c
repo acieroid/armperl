@@ -285,11 +285,13 @@ void *perl_str_lower_equals(void *x, void *y)
 /*********** Standard functions *************************/
 void *defined(void *arg)
 {
-  return (void *)!IS_UNDEF(arg);
+  int res = !IS_UNDEF(arg);
+  return (void *)box_int(res);
 }
 
 void *print(void *arg)
 {
+  printf("Printing %x\n", arg);
   switch (type_of(arg)) {
   case STRING:
     printf("%s", (char *) arg);
