@@ -69,7 +69,47 @@ void *perl_minus(void *x, void *y)
   return box_int(to_native_int(x) - to_native_int(y));
 }
 
-/* TODO: other operators */
+/* TODO: perl_times */
+/* TODO: perl_divide */
+/* TODO: perl_concat */
+
+void *perl_equals(void *x, void *y)
+{
+  int res;
+  if (to_native_int(x) == to_native_int(y)) {
+    res = 1;
+  } else {
+    res = 0;
+  }
+  return box_int(res);
+}
+
+/* TODO: perl_different */
+/* TODO: perl_greater */
+/* TODO: perl_lower */
+/* TODO: perl_greater_equals */
+/* TODO: perl_lower_equals */
+
+void *perl_str_equals(void *x, void *y)
+{
+  int res;
+  char *s1 = to_native_string(x);
+  char *s2 = to_native_string(y);
+  if (strcmp(s1, s2) == 0) {
+    res = 1;
+  } else {
+    res = 0;
+  }
+  free(s1);
+  free(s2);
+  return box_int(res);
+}
+
+/* TODO: perl_str_different */
+/* TODO: perl_str_greater */
+/* TODO: perl_str_lower */
+/* TODO: perl_str_greater_equals */
+/* TODO: perl_str_lower_equals */
 
 /*********** Standard functions *************************/
 void *defined(void *arg)
