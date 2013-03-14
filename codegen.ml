@@ -231,17 +231,17 @@ and gen_instr state = function
       else gen_global state v;
       0
   (* TODO *)
-  | BinOp (op, e1, e2) -> failwith "binop not implemented"
-  let stack_needed_e1 = gen_instr e1 in
-	state_add state ("
-		stmfd sp!, {r4}" );
-	let stack_needed_e2 = gen_instr e2 in
-	state_add state ("
-		mov r1, r4
-		ldmfd sp!, {r0}
-		bl " ^ (function_name op) ^ "
-		mov r4, r0";
-		max stack_needed_e1 stack_needed_e2
+  | BinOp (op, e1, e2) ->
+      let stack_needed_e1 = gen_instr state e1 in
+      state_add state ("
+    stmfd sp!, {r4}" );
+      let stack_needed_e2 = gen_instr state e2 in
+      state_add state ("
+    mov r1, r4
+    ldmfd sp!, {r0}
+    bl " ^ (function_name op) ^ "
+    mov r4, r0");
+      max stack_needed_e1 stack_needed_e2
   | Assign (var, value) ->
       if state_is_arg state var then
         gen_assign_local state var value
@@ -252,11 +252,16 @@ and gen_instr state = function
   | UnOp (op, e) -> failwith "unop implemented"
   | Funcall (fname, args) ->
       (* TODO: check that the number of arguments is correct *)
-      (* TODO: merge the strings for print ? *)
+      (* TODO: merge the strings for print *)
       gen_funcall state fname args
   | Cond (cond, consequent, alternative) -> failwith "cond implemented"
   | CondEnd -> failwith "condend not implemented"
-  | Return x -> failwith "return implemented"
+  | Return x ->
+      let stack_needed = gen_instr state x in
+      state_add state ("
+    mov r0, r4
+    b " ^ (state_return_label state));
+      stack_needed
   | Fundef _ -> failwith "Function definition not allowed here"
 
 (** Assign a value to a local variable *)
