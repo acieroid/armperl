@@ -29,7 +29,8 @@ type value =
   | True | False
   | Undef
 
-(* TODO: standard functions *)
+(* TODO: standard functions
+   TODO: move this in the evaluator *)
 type perl_function = {
     name: string;
     defined: bool;
