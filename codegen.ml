@@ -295,7 +295,7 @@ and gen_unop state op e =
   | Not ->
       let stack_needed = gen_instr state e in
       state_add state ("
-    mov r4 r0
+    mov r4, r0
     bl perl_not");
       stack_needed
 

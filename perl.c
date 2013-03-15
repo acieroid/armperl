@@ -151,9 +151,9 @@ void *perl_greater(void *x, void *y)
 {
   int res;
   if (to_native_int(x) > to_native_int(y)) {
-    res = 0;
-  } else {
     res = 1;
+  } else {
+    res = 0;
   }
   return box_int(res);
 }
@@ -226,7 +226,7 @@ void *perl_str_greater(void *x, void *y)
   int res;
   char *s1 = to_native_string(x);
   char *s2 = to_native_string(y);
-  if (strcmp(s1, s2) == 1) {
+  if (strcmp(s1, s2) > 0) {
     res = 1;
   } else {
     res = 0;
@@ -241,7 +241,7 @@ void *perl_str_lower(void *x, void *y)
   int res;
   char *s1 = to_native_string(x);
   char *s2 = to_native_string(y);
-  if (strcmp(s1, s2) == -1) {
+  if (strcmp(s1, s2) < 0) {
     res = 1;
   } else {
     res = 0;
@@ -298,7 +298,6 @@ void *defined(void *arg)
 
 void *print(void *arg)
 {
-  printf("Printing %x\n", arg);
   switch (type_of(arg)) {
   case STRING:
     printf("%s", (char *) arg);
