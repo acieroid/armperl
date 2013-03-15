@@ -293,7 +293,7 @@ void *perl_not(void *x)
 void *defined(void *arg)
 {
   int res = !IS_UNDEF(arg);
-  return (void *)box_int(res);
+  return box_int(res);
 }
 
 void *print(void *arg)
@@ -348,9 +348,11 @@ void *substr(void *str, void *offset, void *length)
     dst = malloc(size*sizeof(*dst));
     strncpy(dst, (char *) str + to_native_int(offset),
             size);
+    break;
   case UNDEF:
     dst = malloc(sizeof(*dst));
     dst[0] = '\0';
+    break;
   case NUMBER:
     return substr(to_native_string(str), offset, length);
   }

@@ -4,6 +4,5 @@ Deleted:
   - <expr> = <expr>: better compatibility
 
 Bugs:
-  - jumps.pl does not evaluate correctly, but compiles correctly
   - test lib.pl does not work
-  - Add functions (number of parameters) to the symbol table
+  - Add functions (number of parameters) to the symbol table, and auto fill the last argument to substr, and concat the arguments of print

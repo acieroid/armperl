@@ -4,7 +4,7 @@ open Eval_symtable
 exception Exn_return of value * Eval_symtable.t
 
 let is_primitive = function
-  | "print" -> true
+  | "defined" | "print" | "length" | "scalar" | "substr" -> true
   | _ -> false
 
 let call_primitive symtable f args =
@@ -12,6 +12,7 @@ let call_primitive symtable f args =
   | "print" ->
       List.iter (fun x -> print_string (string_of_value x)) args;
       Undef, symtable
+  (* TODO: define other primitives *)
   | _ -> failwith ("undefined primitive: " ^ f)
 
 let int_repr = function

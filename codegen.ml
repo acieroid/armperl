@@ -375,9 +375,10 @@ and gen_funcall state fname args =
       state_add state ("
     str r4, [sp, #" ^ (string_of_int ((i-4)*4)) ^ "]");
     stack_needed) args in
-  (* Call the function *)
+  (* Call the function, and after it returns, store the value in r4 *)
   state_add state ("
-    bl " ^ fname);
+    bl " ^ fname ^ "
+    mov r4, r0");
   (* Return the stack size needed *)
   List.fold_left max 0 (stack_needed::stack_needed_l)
 
