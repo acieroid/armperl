@@ -295,8 +295,9 @@ and gen_unop state op e =
   | Not ->
       let stack_needed = gen_instr state e in
       state_add state ("
-    mov r4, r0
-    bl perl_not");
+    mov r0, r4
+    bl perl_not
+    mov r4, r0");
       stack_needed
 
 (** Generate a conditional jump *)
