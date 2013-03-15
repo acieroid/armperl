@@ -282,6 +282,13 @@ void *perl_str_lower_equals(void *x, void *y)
   return box_int(res);
 }
 
+void *perl_not(void *x)
+{
+  int value = to_native_int(x);
+  int res = (value == 0);
+  return box_int(res);
+}
+
 /*********** Standard functions *************************/
 void *defined(void *arg)
 {

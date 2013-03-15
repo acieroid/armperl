@@ -250,8 +250,8 @@ and gen_instr state = function
       gen_instr state (Cond (e1,
                              [Cond (e2, [Value True], Value False)],
                              Value False))
-  (* TODO *)
-  | UnOp (op, e) -> failwith "unop implemented"
+  | UnOp (op, e) ->
+      gen_unop state op e
   | Funcall (fname, args) ->
       (* TODO: check that the number of arguments is correct *)
       (* TODO: merge the strings for print *)
@@ -282,6 +282,22 @@ and gen_binop state op e1 e2 =
     bl " ^ (function_name op) ^ "
     mov r4, r0");
   max stack_needed_e1 stack_needed_e2
+
+(** Generate a unary operation *)
+and gen_unop state op e =
+  match op with
+  | UnaryPlus ->
+      (* unary plus does nothing *)
+      gen_instr state e
+  | UnaryMinus ->
+      (* -x is equivalent to 0-x *)
+      gen_binop state Minus (Value (Integer 0)) e
+  | Not ->
+      let stack_needed = gen_instr state e in
+      state_add state ("
+    mov r4 r0
+    bl perl_not");
+      stack_needed
 
 (** Generate a conditional jump *)
 and gen_cond state cond consequent alternative =
