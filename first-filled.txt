@@ -1,4 +1,5 @@
-﻿First{<factor>} = {'(', '!', '+', '-', '&', var, integer, string, identifier}
+﻿
+First{<factor>} = {'(', '!', '+', '-', '&', var, integer, string, identifier}
 First{<term'>} = {'*', '/'}
 First{<term>} = {'(', '!', '+', '-', '&', var, integer, string, identifier}
 First{<calc'>} = {'+', '-', '.'}

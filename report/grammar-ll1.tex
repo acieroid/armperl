@@ -1,0 +1,113 @@
+﻿<S>              → <program> EOF
+
+<program>        → <function list> <program'>
+                 \alt <instr list>
+
+<program'>       → <instr list>
+                 \alt $\epsilon$
+
+<function list>  → <function> <function list'>
+                 
+<function list'> → <function> <function list'>
+		 \alt $\epsilon$
+
+<function>       → \texttt{sub} identifier <function args> \texttt{\{} <instr list> \texttt{\}}
+
+<function args>  → \texttt{(} <arg list> \texttt{)}
+                 \alt $\epsilon$
+
+<arg list>       → var <arg list'>
+                 \alt $\epsilon$
+
+<arg list'>      → \texttt{,} var <arg list'>
+                 \alt $\epsilon$
+
+<instr list>     → <instr> \texttt{;} <instr list'>
+                 \alt \texttt{\{} <instr list> \texttt{\}}
+
+<instr list'>    → <instr> \texttt{;} <instr list'>
+                 \alt $\epsilon$
+
+<funcall>        → \texttt{&} identifier <funcall args>
+                 \alt identifier <funcall args>
+
+<funcall args>   → \texttt{(} <args call list> \texttt{)}
+
+<args call list> → <instr> <args call list'>
+                 \alt $\epsilon$
+
+<args call list'> → \texttt{,} <instr> <args call list'>
+                 \alt $\epsilon$
+
+<instr>          → <cond>
+                 \alt <expr> <instr'> 
+                 \alt \texttt{return} <expr>
+
+<instr'>         → \texttt{=} <expr>
+                 \alt \texttt{if} <expr>
+                 \alt \texttt{unless} <expr>
+                 \alt $\epsilon$
+
+<cond>           → \texttt{if} <expr> \texttt{\{} <instr list> \texttt{\}} <cond end>
+                 \alt \texttt{unless} <expr> \texttt{\{} <instr list> \texttt{\}} <cond end>
+
+<cond end>       → \texttt{else} <expr> \texttt{\{} <instr list> \texttt{\}}
+                 \alt \texttt{elsif} <expr> \texttt{\{} <instr list> \texttt{\}} <cond end>
+                 \alt $\epsilon$
+
+<simple expr>    → <funcall>
+                 \alt var
+                 \alt integer
+                 \alt string
+
+<expr>           → \texttt{not} <expr>
+                 \alt <expr-or>
+
+<expr-or>        → <expr-and> <expr-or'>
+
+<expr-or'>       → \texttt{||} <expr-and> <expr-or'>
+                 \alt $\epsilon$
+
+<expr-and>       → <expr-eq> <expr-and'>
+
+<expr-and'>      → \texttt{&&} <expr-eq> <expr-and'>
+                 \alt $\epsilon$
+
+<expr-eq>        → <comp> <expr-eq'>
+
+<expr-eq'>       → \texttt{==} <expr-eq>
+                 \alt \texttt{!=} <expr-eq>
+                 \alt \texttt{eq} <expr-eq>
+                 \alt \texttt{ne} <expr-eq>
+                 \alt  $\epsilon$
+
+<comp>           → <calc> <comp'>
+
+<comp'>          → \texttt{>} <calc> <comp'>
+                 \alt \texttt{<} <calc> <comp'>
+                 \alt \texttt{>=} <calc> <comp'>
+                 \alt \texttt{<=} <calc> <comp'>
+                 \alt \texttt{lt} <calc> <comp'>
+                 \alt \texttt{gt} <calc> <comp'>
+                 \alt \texttt{le} <calc> <comp'>
+                 \alt \texttt{ge} <calc> <comp'>
+                 \alt $\epsilon$
+
+<calc>           → <term> <calc'>
+
+<calc'>          → \texttt{+} <term> <calc'>
+                 \alt \texttt{-} <term> <calc'>
+                 \alt \texttt{.} <term> <calc'>
+                 \alt $\epsilon$
+                 
+<term>           → <factor> <term'>
+
+<term'>          → \texttt{*} <factor> <term'>
+                 \alt \texttt{/} <factor> <term'>
+                 \alt $\epsilon$
+
+<factor>         → <simple expr>
+                 \alt \texttt{!} <factor>
+                 \alt \texttt{+} <factor>
+                 \alt \texttt{-} <factor>
+                 \alt \texttt{(} <expr> \texttt{)}
