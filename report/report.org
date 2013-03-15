@@ -1,0 +1,126 @@
+#+TITLE: INFO-F-403 -- Project
+#+AUTHOR: Vadim Baele -- Quentin Stievenart
+#+OPTIONS:   H:3 num:t toc:nil \n:nil @:t ::t |:t ^:t -:t f:t *:t <:t todo:nil
+#+LATEX_HEADER: \usepackage[a4paper]{geometry}
+#+LATEX_HEADER: \geometry{hscale=0.7,vscale=0.7,centering}
+#+LATEX_HEADER: \usepackage[pdftex]{hyperref}
+#+LATEX_HEADER: \hypersetup{colorlinks,citecolor=black,filecolor=black,linkcolor=black,urlcolor=black}
+#+LATEX_HEADER: \usepackage{syntax}
+The purpose of this project is to develop a compiler for a simplified
+version of Perl, that compiles to ARM assembler, in order to be able
+to execute compiled Perl code on Android devices. The simplified
+version of Perl to be implemented is described in the project statement.
+* Lexer
+** Lexical Units
+The lexical units of this simplified version of Perl are given here,
+with their regular expression and and  the corresponding token used in
+the implementation. While each of the lexical unit have a
+different token name, some are grouped into categories for a matter of
+clarity.
+
+  - *Symbols*:
+    - ={=: =LBRACE=
+    - =}=: =RBRACE=
+    - =(=: =LPAR=
+    - =)=: =RPAR=
+    - =;=: =SEMICOLON=
+    - \texttt{,}: =COMMA=
+    - =&=: =CALL_MARK=
+    - \texttt{\=}: =ASSIGN=
+  - *Operators*:
+    - =+=: =PLUS=
+    - =-=: =MINUS=
+    - =*=: =TIMES=
+    - =/=: =DIVIDE=
+    - =||=: =LAZY_OR=
+    - =&&=: =LAZY_AND=
+    - \texttt{\=\=}: =EQUALS=
+    - \texttt{!=}: =DIFFERENT=
+    - =>=: =GREATER=
+    - =<=: =LOWER=
+    - \texttt{>=}: =GREATER_EQUALS=
+    - \texttt{<=}: =LOWER_EQUALS=
+    - =eq=: =STRING_EQUALS=
+    - =ne=: =STRING_DIFFERENT=
+    - =gt=: =STRING_GREATER=
+    - =ge=: =STRING_GREATER_EQUALS=
+    - =lt=: =STRING_LOWER=
+    - =le=: =STRING_LOWER_EQUALS=
+    - =not=: =NOT_WORD=
+    - =!=: =NOT=
+  - *Keywords*:
+    - =if=: =IF=
+    - =unless=: =UNLESS=
+    - =else=: =ELSE=
+    - =elsif=: =ELSEIF=
+    - =return=: =RETURN=
+    - =sub=: =SUB=
+  - *Integer*: =[0-9]+=: =INTEGER=
+  - *String*: =("[^"]"|'[^']')=: =STRING=
+  - *Identifier*: =[a-zA-Z][a-zA-Z0-9]*=: =IDENTIFIER=
+  - *Variable*: =$[a-zA-Z0-9]+=: =VARIABLE=
+** Deterministic Finite Automaton
+The DFA is divided in multiple figure for a matter of clarity. All the
+following figures have the same start state, and some refer to the
+special state =to identifier=, which /redirects/ the DFA into the
+corresponding figure. The accepting states are represented with states
+with dashed lines.
+
+\begin{figure}
+\centerline{\includegraphics[width=0.7\textwidth]{dfa.png}}
+\caption{DFA for single character symbols, spaces and comments}
+\end{figure}
+
+\begin{figure}
+\centerline{\includegraphics[width=0.7\textwidth]{dfa-multi-char-sym.png}}
+\caption{DFA for multi-character symbols}
+\end{figure}
+
+\begin{figure}
+\centerline{\includegraphics[width=0.7\textwidth]{dfa-int-string.png}}
+\caption{DFA for integer and strings}
+\end{figure}
+
+\begin{figure}
+\centerline{\includegraphics[width=0.7\textwidth]{dfa-var-identifier.png}}
+\caption{DFA for variables and identifiers}
+\end{figure}
+
+\begin{figure}
+\centerline{\includegraphics[width=1.45\textwidth]{dfa-keywords.png}}
+\caption{DFA for keywords}
+\end{figure}
+
+\begin{figure}
+\centerline{\includegraphics[width=\textwidth]{dfa-e.png}}
+\caption{DFA for keywords starting with \texttt{e}}
+\end{figure}
+
+** Implementation
+The different tokens are defined as a type (in =token.ml=). The lexer
+(or scanner) is implemented in =hand_lexer.ml= and its implementation
+is a simple translation from the DFA to OCaml code, which looks the
+next character from the input stream and goes to the corresponding
+state.
+
+Another lexer is implemented with Ocamllex, in =ocamllex_lexer.ml=,
+and the user can choose between the two implementations using the =-l=
+flag when calling the compiler.
+* Parser
+** Modified grammar
+The grammar used is a modification of the first grammar given (in the
+project statement). This modified is given below.
+
+# TODO: replace the 'foo' by \texttt{foo}
+\setlength{\grammarparsep}{20pt plus 1pt minus 1pt}
+\setlength{\grammarindent}{12em}
+\begin{grammar}
+\input{grammar.tex}
+\end{grammar}
+
+** First and follows
+** Parsing Table
+** Grammar decoration
+** Implementation
+* Code generation
+** Implementation

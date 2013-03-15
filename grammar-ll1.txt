@@ -85,6 +85,7 @@ TODO: no cond end for else ?
 
 <comp>           → <calc> <comp'>
 
+# TODO: associativity should be like expr-eq
 <comp'>          → '>' <calc> <comp'>
                  | '<' <calc> <comp'>
                  | '>=' <calc> <comp'>

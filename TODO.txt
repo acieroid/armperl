@@ -6,3 +6,7 @@ Deleted:
 Bugs:
   - test lib.pl does not work
   - Add functions (number of parameters) to the symbol table, and auto fill the last argument to substr, and concat the arguments of print
+  - Replace false by undef
+  - grammar's TODO
+  - test post cond, unless
+  - Test the example from the UV
