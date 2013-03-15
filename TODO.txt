@@ -6,3 +6,4 @@ Deleted:
 Bugs:
   - jumps.pl does not evaluate correctly, but compiles correctly
   - test lib.pl does not work
+  - Add functions (number of parameters) to the symbol table

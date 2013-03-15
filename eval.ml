@@ -159,8 +159,10 @@ and eval symtable local = function
   | Cond (test, consequents, alternative) ->
       (* Non-0 is treated as true *)
       (match eval symtable local test with
-      | (Integer 0, symtable') -> eval symtable' local alternative
-      | (_, symtable') -> eval_sequence symtable' local consequents) 
+      | (False, symtable') | (Integer 0, symtable') ->
+          eval symtable' local alternative
+      | (_, symtable') ->
+          eval_sequence symtable' local consequents) 
   | CondEnd ->
       Undef, symtable
   | Return x ->
