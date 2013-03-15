@@ -235,16 +235,7 @@ and gen_instr state = function
       else gen_global state v;
       0
   | BinOp (op, e1, e2) ->
-      let stack_needed_e1 = gen_instr state e1 in
-      state_add state ("
-    stmfd sp!, {r4}" );
-      let stack_needed_e2 = gen_instr state e2 in
-      state_add state ("
-    mov r1, r4
-    ldmfd sp!, {r0}
-    bl " ^ (function_name op) ^ "
-    mov r4, r0");
-      max stack_needed_e1 stack_needed_e2
+      gen_binop state op e1 e2
   | Assign (var, value) ->
       if state_is_arg state var then
         gen_assign_local state var value
@@ -268,35 +259,64 @@ and gen_instr state = function
       gen_funcall state fname args
   | Cond (cond, consequent, alternative) ->
       (* TODO: check if the generated code is correct *)
-      let alternative_label = state_new_label state
-      and end_label = state_new_label state
-      and stack_needed_cond = gen_instr state cond in
-      (* r4 contains true or false, jump if it is false *)
-      state_add state ("
-    cmp r4, #" ^ (string_of_int (box_int 1)) ^ "
-    bne " ^ alternative_label);
-      (* generate consequent *)
-      let stack_needed_consequent = gen_instrs state consequent in
-      (* jump to the end *)
-      state_add state ("
-    b " ^ end_label);
-      (* add the alternative label *)
-      state_add state ("
-" ^ alternative_label ^ ":");
-      (* generate alternative *)
-      let stack_needed_alternative = gen_instr state alternative in
-      (* add the end label *)
-      state_add state ("
-" ^ end_label ^ ":");
-      max (max stack_needed_alternative stack_needed_consequent) stack_needed_cond
+      gen_cond state cond consequent alternative
   | CondEnd -> 0
   | Return x ->
-      let stack_needed = gen_instr state x in
-      state_add state ("
+      gen_return state x
+  | Fundef _ -> failwith "Function definition not allowed here"
+
+(** Generate a binary operation *)
+and gen_binop state op e1 e2 =
+  (* Generate e1 *)
+  let stack_needed_e1 = gen_instr state e1 in
+  (* Push the result on the stack *)
+  state_add state ("
+    stmfd sp!, {r4}" );
+  (* Generate e2 *)
+  let stack_needed_e2 = gen_instr state e2 in
+  (* Store the result of e2 in r1, the result of e1 in r0, and call
+  the function that does the operation *)
+  state_add state ("
+    mov r1, r4
+    ldmfd sp!, {r0}
+    bl " ^ (function_name op) ^ "
+    mov r4, r0");
+  max stack_needed_e1 stack_needed_e2
+
+(** Generate a conditional jump *)
+and gen_cond state cond consequent alternative =
+  let alternative_label = state_new_label state
+  and end_label = state_new_label state
+  (* Generate the code for the condition *)
+  and stack_needed_cond = gen_instr state cond in
+  (* r4 contains true or false, jump if it is false *)
+  state_add state ("
+    cmp r4, #" ^ (string_of_int (box_int 1)) ^ "
+    bne " ^ alternative_label);
+  (* generate consequent *)
+  let stack_needed_consequent = gen_instrs state consequent in
+  (* jump to the end *)
+  state_add state ("
+    b " ^ end_label);
+  (* add the alternative label *)
+  state_add state ("
+" ^ alternative_label ^ ":");
+  (* generate alternative *)
+  let stack_needed_alternative = gen_instr state alternative in
+  (* add the end label *)
+  state_add state ("
+" ^ end_label ^ ":");
+  max (max stack_needed_alternative stack_needed_consequent) stack_needed_cond
+
+(** Generate a return statement *)
+and gen_return state x =
+  let stack_needed = gen_instr state x in
+  (* Jump to the current function's return label *)
+  state_add state ("
     mov r0, r4
     b " ^ (state_return_label state));
-      stack_needed
-  | Fundef _ -> failwith "Function definition not allowed here"
+  stack_needed
+
 
 (** Assign a value to a local variable *)
 and gen_assign_local state var value =
