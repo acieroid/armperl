@@ -61,14 +61,16 @@ let lex_keyword state start kwd =
 
 let rec try_lex_keyword state start kwd acc =
   match start with
-  | [] -> lex_keyword state (implode start) kwd
+  | [] ->
+      lex_keyword state (implode (List.rev acc)) kwd
   | (hd::tl) ->
       (match state.stream with parser
       | [< 'c when c == hd >] ->
           try_lex_keyword state tl kwd ([c] @ acc)
       | [< 'c when is_identifier_char c >] ->
           IDENTIFIER (lex_identifier state ([c] @ acc))
-      | [< >] -> IDENTIFIER (implode (List.rev acc)))
+      | [< >] ->
+          IDENTIFIER (implode (List.rev acc)))
 
 let rec lexer state =
   let ret x = Right x and

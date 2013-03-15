@@ -3,7 +3,5 @@ Deleted:
   - removed the ε from <funcall args>
   - <expr> = <expr>: better compatibility
   - Add a cleaner interface (like gcc, pass the .pl file and it generates the .s)
-  - global.pl example segfaults
   - jumps.pl does not evaluate correctly, but compiles correctly
-  - Lexer problem: it lexes substr as SUB str (it seems so)
   - test lib.pl does not work
