@@ -204,8 +204,8 @@ needed to properly implement the grammar.
 The /first/ and /follow/ sets of the different non-terminal symbol are
 given below.
 
-\setlength{\grammarparsep}{0.25cm}
-\setlength{\grammarindent}{1cm}
+\setlength{\grammarparsep}{20pt plus 1pt minus 1pt}
+\setlength{\grammarindent}{12em}
 \begin{grammar}
 \input{first-follow.tex}
 \end{grammar}
