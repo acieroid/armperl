@@ -2,6 +2,14 @@ open Expression
 
 module StringMap = Map.Make(String)
 
+
+type perl_function = {
+    name: string;
+    defined: bool;
+    args: string list;
+    body: expr list;
+  }
+
 type t = {
     variables: value StringMap.t;
     functions: perl_function StringMap.t;

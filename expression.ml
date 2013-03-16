@@ -29,15 +29,6 @@ type value =
   | True | False
   | Undef
 
-(* TODO: standard functions
-   TODO: move this in the evaluator *)
-type perl_function = {
-    name: string;
-    defined: bool;
-    args: string list;
-    body: expr list;
-  }
-
 and expr =
   | Value of value
   | Variable of string
