@@ -340,7 +340,7 @@ void *perl_fun_substr(void *str, void *offset, void *length)
   int size = 0;
   switch(type_of(str)) {
   case STRING:
-    if (length != NULL) {
+    if (length != NULL && !IS_UNDEF(length)) {
       size = to_native_int(length);
     } else {
       size = strlen(str) - to_native_int(offset);

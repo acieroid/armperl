@@ -385,9 +385,32 @@ and gen_funcall state fname args =
 
 (** Generate a native function call *)
 and gen_native_funcall state fname args =
-  (* TODO: merge the strings for print *)
-  (* TODO: compute the last argument for substr *)
-  gen_funcall state fname args
+  let err args expected =
+    failwith ("Native function arity not respected: got " ^
+              (string_of_int (List.length args)) ^
+              " arguments instead of " ^ expected ^ " for function " ^ fname) in
+  match fname with
+  | "print" ->
+      (* Concatenate all the arguments *)
+      let stack_needed = gen_instr state
+          (List.fold_right (fun arg expr -> BinOp(Concat, arg, expr))
+             args (Value (String ""))) in
+      state_add state ("
+    mov r0, r4
+    bl perl_fun_print
+    mov r4, r0");
+      stack_needed
+  | "substr" ->
+      (match List.length args with
+      | 2 -> 
+          (* Set the last argument to Undef *)
+          gen_funcall state fname (args @ [Value Undef])
+      | 3 -> gen_funcall state fname args
+      | _ -> err args "2 or 3")
+  | "defined" when (List.length args) != 1 -> err args "1"
+  | "length" when (List.length args) != 1 -> err args "1"
+  | "scalar" when (List.length args) != 1 -> err args "1"
+  | _ -> gen_funcall state fname args
 
 (** Generate a function definition *)
 and gen_fun state = function
