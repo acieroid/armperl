@@ -238,11 +238,9 @@ and gen_instr state = function
       else
         gen_assign_global state var value
   | Or (e1, e2) ->
-      (* TODO: check if the generated code is correct *)
       gen_instr state (Cond (e1, [Value True],
                              Cond (e2, [Value True], Value False)))
   | And (e1, e2) ->
-      (* TODO: check if the generated code is correct *)
       gen_instr state (Cond (e1,
                              [Cond (e2, [Value True], Value False)],
                              Value False))
