@@ -51,7 +51,6 @@
 <cond>           → 'if' <expr> '{' <instr list> '}' <cond end>
                  | 'unless' <expr> '{' <instr list> '}' <cond end>
 
-# TODO: first et follow
 <cond end>       → 'else' '{' <instr list> '}'
                  | 'elsif' <expr> '{' <instr list> '}' <cond end>
                  | ε
@@ -76,7 +75,6 @@
 
 <expr-eq>        → <comp> <expr-eq'>
 
-# TODO: first et follow
 <expr-eq'>       → '==' <comp>
                  | '!=' <comp>
                  | 'eq' <comp>

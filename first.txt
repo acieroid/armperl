@@ -1,36 +1,37 @@
-﻿First{<factor>} = {'(', '!', '+', '-'} + First{<simple expr>}
-First{<term'>} = {'*', '/'}
-First{<term>} = First{<factor>}
-First{<calc'>} = {'+', '-', '.'}
-First{<calc>} = First{<term>}
-First{<comp'>} = {'>', '<', '>=', '<=', 'lt', 'gt', 'le', 'ge'}
-First{<comp>} = First{<calc>}
-First{<expr-eq'>} = {'==', '!=', 'eq', 'ne'}
-First{<expr-eq>} = First{<comp>}
-First{<expr-and'>} = {'&&'}
-First{<expr-and>} = First{<expr-eq>}
-First{<expr-or'>} = {'||'}
-First{<expr-or>} = First{<expr-and>}
-First{<expr>} = {'not'} + First{<expr-or>}
-First{<simple expr>} = {var, integer, string} + First{<funcall>}
-First{<cond end>} = {'else', 'elsif'}
-First{<cond>} = {'if', 'unless'}
-First{<instr>} = {'return', var} + First{<cond>} + First{<expr>}
-First{<instr'>} = {'=', 'if', 'unless'}
+﻿First{<factor>}          = {'(', '!', '+', '-'} + First{<simple expr>}
+First{<term'>}           = {'*', '/'}
+First{<term>}            = First{<factor>}
+First{<calc'>}           = {'+', '-', '.'}
+First{<calc>}            = First{<term>}
+First{<comp'>}           = {'>', '<', '>=', '<=', 'lt', 'gt', 'le', 'ge'}
+First{<comp>}            = First{<calc>}
+First{<expr-eq'>}        = {'==', '!=', 'eq', 'ne'}
+First{<expr-eq>}         = First{<comp>}
+First{<expr-and'>}       = {'&&'}
+First{<expr-and>}        = First{<expr-eq>}
+First{<expr-or'>}        = {'||'}
+First{<expr-or>}         = First{<expr-and>}
+First{<expr>}            = {'not'} + First{<expr-or>}
+First{<simple expr>}     = {var, integer, string} + First{<funcall>}
+First{<cond end>}        = {'else', 'elsif'}
+First{<cond>}            = {'if', 'unless'}
+First{<instr>}           = {'return'} + First{<cond>} + First{<expr>}
+First{<instr'>}          = {'=', 'if', 'unless'}
 First{<args call list'>} = {','}
-First{<args call list>} = First{<instr>}
-First{<funcall args>} = {'('}
-First{<funcall>} = {'&', identifier}
-First{<instr list'>} = First{<instr>}
-First{<instr list>} = {'{'} + First{<instr>}
-First{<arg list'>} = {','}
-First{<arg list>} = {var}
-First{<function args>} = {'('}
-First{<function>} = {'sub'}
-First{<function list'>} = First{<function>}
-First{<function list>} = First{<function>}
-First{<program'>} = First{<instr list>}
-First{<program>} = First{<function list>} + First{<instr list>}
+First{<args call list>}  = First{<instr>}
+First{<funcall args>}    = {'('}
+First{<funcall>}         = {'&', identifier}
+First{<instr list'>}     = First{<instr>}
+First{<instr list>}      = {'{'} + First{<instr>}
+First{<arg list'>}       = {','}
+First{<arg list>}        = {var}
+First{<function args>}   = {'('}
+First{<function>}        = {'sub'}
+First{<function list'>}  = First{<function>}
+First{<function list>}   = First{<function>}
+First{<program>}         = First{<function list>} + First{<instr list>}
+First{<program'>}        = First{<instr list>}
+First{<S>}               = First{<program>}
 
 Follow{<program>} = {EOF}
 Follow{<function list>} = First{<program'>} + Follow{<program>}
