@@ -57,10 +57,9 @@ let eval_binop op left right =
 let eval_unop op x =
   match op with
   | Not ->
-      (match x with
-      | Integer 0 -> Integer 1
-      | Float 0. -> Float 1.
-      | _ -> Integer 0)
+      (match int_repr x with
+      | 0 -> True
+      | _ -> False)
   | UnaryPlus -> x
   | UnaryMinus ->
       (* This is Perl's behaviour *)
@@ -101,8 +100,8 @@ and call_primitive f args =
       (match List.length args with
       | 1 ->
           (match List.nth args 0 with
-          | Undef -> True
-          | _ -> False)
+          | Undef -> False
+          | _ -> True)
       | _ -> failwith "Bad number of arguments when calling 'defined'")
   | "length" ->
       (match List.length args with
