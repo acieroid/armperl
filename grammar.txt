@@ -12,6 +12,7 @@
                  | ε
 
 <arg list>       → <arg list> ',' var
+                 | var
                  | ε
 
 <instr list>     → <instr list> <instr> ';'

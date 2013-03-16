@@ -1,0 +1,133 @@
+﻿FFirst\{<factor>\}          = \{\lit{(}, \lit{!}, \lit{+}, \lit{-}, \lit{\&}, var, integer, string, identifier\}
+
+FFirst\{<term'>\}           = \{\lit{*}, \lit{/}\}
+
+FFirst\{<term>\}            = \{\lit{(}, \lit{!}, \lit{+}, \lit{-}, \lit{\&}, var, integer, string, identifier\}
+
+FFirst\{<calc'>\}           = \{\lit{+}, \lit{-}, \lit{.}\}
+
+FFirst\{<calc>\}            = \{\lit{(}, \lit{!}, \lit{+}, \lit{-}, \lit{\&}, var, integer, string, identifier\}
+
+FFirst\{<comp'>\}           = \{\lit{>}, \lit{\textless}, \lit{>=}, \lit{\textless=}, \lit{lt}, \lit{gt}, \lit{le}, \lit{ge}\}
+
+FFirst\{<comp>\}            = \{\lit{(}, \lit{!}, \lit{+}, \lit{-}, \lit{\&}, var, integer, string, identifier\}
+
+FFirst\{<expr-eq'>\}        = \{\lit{==}, \lit{!=}, \lit{eq}, \lit{ne}\}
+
+FFirst\{<expr-eq>\}         = \{\lit{(}, \lit{!}, \lit{+}, \lit{-}, \lit{\&}, var, integer, string, identifier\}
+
+FFirst\{<expr-and'>\}       = \{\lit{\&\&}\}
+
+FFirst\{<expr-and>\}        = \{\lit{(}, \lit{!}, \lit{+}, \lit{-}, \lit{\&}, var, integer, string, identifier\}
+
+FFirst\{<expr-or'>\}        = \{\lit{||}\}
+
+FFirst\{<expr-or>\}         = \{\lit{(}, \lit{!}, \lit{+}, \lit{-}, \lit{\&}, var, integer, string, identifier\}
+
+FFirst\{<expr>\}            = \{\lit{not}, \lit{(}, \lit{!}, \lit{+}, \lit{-}, \lit{\&}, var, integer, string, identifier\}
+
+FFirst\{<simple expr>\}     = \{var, integer, string, \lit{\&}, identifier\}
+
+FFirst\{<cond end>\}        = \{\lit{else}, \lit{elsif}\}
+
+FFirst\{<cond>\}            = \{\lit{if}, \lit{unless}\}
+
+FFirst\{<instr>\}           = \{\lit{return}, \lit{if}, \lit{unless}, \lit{not}, \lit{(}, \lit{!}, \lit{+}, \lit{-}, \lit{\&}, var, integer, string, identifier\}
+
+FFirst\{<instr'>\}          = \{\lit{=}, \lit{if}, \lit{unless}\}
+
+FFirst\{<args call list'>\} = \{\lit{,}\}
+
+FFirst\{<args call list>\}  = \{\lit{return}, \lit{if}, \lit{unless}, \lit{not}, \lit{(}, \lit{!}, \lit{+}, \lit{-}, \lit{\&}, var, integer, string, identifier\}
+
+FFirst\{<funcall args>\}    = \{\lit{(}\}
+
+FFirst\{<funcall>\}         = \{\lit{\&}, identifier\}
+
+FFirst\{<instr list'>\}     = \{\lit{return}, \lit{if}, \lit{unless}, \lit{not}, \lit{(}, \lit{!}, \lit{+}, \lit{-}, \lit{\&}, var, integer, string, identifier\}
+
+FFirst\{<instr list>\}      = \{\lit{\{}, \lit{return}, \lit{if}, \lit{unless}, \lit{not}, \lit{(}, \lit{!}, \lit{+}, \lit{-}, \lit{\&}, var, integer, string, identifier\}
+
+FFirst\{<arg list'>\}       = \{\lit{,}\}
+
+FFirst\{<arg list>\}        = \{var\}
+
+FFirst\{<function args>\}   = \{\lit{(}\}
+
+FFirst\{<function>\}        = \{\lit{sub}\}
+
+FFirst\{<function list'>\}  = \{\lit{sub}\}
+
+FFirst\{<function list>\}   = \{\lit{sub}\}
+
+FFirst\{<program>\}         = \{\lit{sub}, \lit{\{}, \lit{return}, \lit{if}, \lit{unless}, \lit{not}, \lit{(}, \lit{!}, \lit{+}, \lit{-}, \lit{\&}, var, integer, string, identifier\}
+
+FFirst\{<program'>\}        = \{\lit{\{}, \lit{return}, \lit{if}, \lit{unless}, \lit{not}, \lit{(}, \lit{!}, \lit{+}, \lit{-}, \lit{\&}, var, integer, string, identifier\}
+
+FFirst\{<S>\}               = \{\lit{sub}, \lit{\{}, \lit{return}, \lit{if}, \lit{unless}, \lit{not}, \lit{(}, \lit{!}, \lit{+}, \lit{-}, \lit{\&}, var, integer, string, identifier\}
+
+FFollow\{<program>\}         = \{\texttt{EOF}\}
+
+FFollow\{<program'>\}        = \{\texttt{EOF}\}
+
+FFollow\{<function list>\}   = \{\lit{\{}, \lit{return}, \lit{if}, \lit{unless}, \lit{not}, \lit{(}, \lit{!}, \lit{+}, \lit{-}, \lit{\&}, var, integer, string, identifier, \texttt{EOF}\}
+
+FFollow\{<function>\}        = \{\lit{sub}, \lit{\{}, \lit{return}, \lit{if}, \lit{unless}, \lit{not}, \lit{(}, \lit{!}, \lit{+}, \lit{-}, \lit{\&}, var, integer, string, identifier, \texttt{EOF}\}
+
+FFollow\{<function list'>\}  = \{\lit{\{}, \lit{return}, \lit{if}, \lit{unless}, \lit{not}, \lit{(}, \lit{!}, \lit{+}, \lit{-}, \lit{\&}, var, integer, string, identifier, \texttt{EOF}\}
+
+FFollow\{<function args>\}   = \{\lit{\{}\}
+
+FFollow\{<instr list>\}      = \{\lit{\}}, \texttt{EOF}\}
+
+FFollow\{<arg list>\}        = \{\lit{)}\}
+
+FFollow\{<arg list'>\}       = \{\lit{)}\}
+
+FFollow\{<instr>\}           = \{\lit{;}, \lit{,}, \lit{)}\}
+
+FFollow\{<instr'>\}          = \{\lit{;}, \lit{,}, \lit{)}\}
+
+FFollow\{<instr list'>\}     = \{\lit{\}}, \texttt{EOF}\}
+
+FFollow\{<funcall args>\}    = \{\lit{*}, \lit{/}, \lit{+}, \lit{-}, \lit{.}, \lit{>}, \lit{\textless}, \lit{\textless=}, \lit{>=}, \lit{lt}, \lit{gt}, \lit{le}, \lit{ge}, \lit{==}, \lit{!=}, \lit{eq}, \lit{ne}, \lit{\&\&}, \lit{||}, \lit{=}, \lit{\{}, \lit{)}, \lit{;}, \lit{,}, \lit{if}, \lit{unless}\}
+
+FFollow\{<args call list>\}  = \{\lit{)}\}
+
+FFollow\{<args call list'>\} = \{\lit{)}\}
+
+FFollow\{<cond>\}            = \{\lit{;}, \lit{,}, \lit{)}\}
+
+FFollow\{<expr>\}            = \{\lit{\{}, \lit{)}, \lit{;}, \lit{,}, \lit{=}, \lit{if}, \lit{unless}\}
+
+FFollow\{<cond end>\}        = \{\lit{;}, \lit{,}, \lit{)}\}
+
+FFollow\{<funcall>\}         = \{\lit{*}, \lit{/}, \lit{+}, \lit{-}, \lit{.}, \lit{>}, \lit{\textless}, \lit{\textless=}, \lit{>=}, \lit{lt}, \lit{gt}, \lit{le}, \lit{ge}, \lit{==}, \lit{!=}, \lit{eq}, \lit{ne}, \lit{\&\&}, \lit{||}, \lit{=}, \lit{\{}, \lit{)}, \lit{;}, \lit{,}, \lit{if}, \lit{unless}\}
+
+FFollow\{<simple expr>\}     = \{\lit{*}, \lit{/}, \lit{+}, \lit{-}, \lit{.}, \lit{>}, \lit{\textless}, \lit{\textless=}, \lit{>=}, \lit{lt}, \lit{gt}, \lit{le}, \lit{ge}, \lit{==}, \lit{!=}, \lit{eq}, \lit{ne}, \lit{\&\&}, \lit{||}, \lit{=}, \lit{\{}, \lit{)}, \lit{;}, \lit{,}, \lit{if}, \lit{unless}\}
+
+FFollow\{<expr-or>\}         = \{\lit{=}, \lit{\{}, \lit{)}, \lit{;}, \lit{,}, \lit{if}, \lit{unless}\}
+
+FFollow\{<expr-and>\}        = \{\lit{||}, \lit{=}, \lit{\{}, \lit{)}, \lit{;}, \lit{,}, \lit{if}, \lit{unless}\}
+
+FFollow\{<expr-or'>\}        = \{\lit{=}, \lit{\{}, \lit{)}, \lit{;}, \lit{,}, \lit{if}, \lit{unless}\}
+
+FFollow\{<expr-eq>\}         = \{\lit{\&\&}, \lit{||}, \lit{=}, \lit{\{}, \lit{)}, \lit{;}, \lit{,}, \lit{if}, \lit{unless}\}
+
+FFollow\{<expr-and'>\}       = \{\lit{||}, \lit{=}, \lit{\{}, \lit{)}, \lit{;}, \lit{,}, \lit{if}, \lit{unless}\}
+
+FFollow\{<comp>\}            = \{\lit{==}, \lit{!=}, \lit{eq}, \lit{ne}, \lit{\&\&}, \lit{||}, \lit{=}, \lit{\{}, \lit{)}, \lit{;}, \lit{,}, \lit{if}, \lit{unless}\}
+
+FFollow\{<expr-eq'>\}        = \{\lit{\&\&}, \lit{||}, \lit{=}, \lit{\{}, \lit{)}, \lit{;}, \lit{,}, \lit{if}, \lit{unless}\}
+
+FFollow\{<calc>\}            = \{\lit{>}, \lit{\textless}, \lit{\textless=}, \lit{>=}, \lit{lt}, \lit{gt}, \lit{le}, \lit{ge}, \lit{==}, \lit{!=}, \lit{eq}, \lit{ne}, \lit{\&\&}, \lit{||}, \lit{=}, \lit{\{}, \lit{)}, \lit{;}, \lit{,}, \lit{if}, \lit{unless}\}
+
+FFollow\{<comp'>\}           = \{\lit{==}, \lit{!=}, \lit{eq}, \lit{ne}, \lit{\&\&}, \lit{||}, \lit{=}, \lit{\{}, \lit{)}, \lit{;}, \lit{,}, \lit{if}, \lit{unless}\}
+
+FFollow\{<term>\}            = \{\lit{+}, \lit{-}, \lit{.}, \lit{>}, \lit{\textless}, \lit{\textless=}, \lit{>=}, \lit{lt}, \lit{gt}, \lit{le}, \lit{ge}, \lit{==}, \lit{!=}, \lit{eq}, \lit{ne}, \lit{\&\&}, \lit{||}, \lit{=}, \lit{\{}, \lit{)}, \lit{;}, \lit{,}, \lit{if}, \lit{unless}\}
+
+FFollow\{<calc'>\}           = \{\lit{>}, \lit{\textless}, \lit{\textless=}, \lit{>=}, \lit{lt}, \lit{gt}, \lit{le}, \lit{ge}, \lit{==}, \lit{!=}, \lit{eq}, \lit{ne}, \lit{\&\&}, \lit{||}, \lit{=}, \lit{\{}, \lit{)}, \lit{;}, \lit{,}, \lit{if}, \lit{unless}\}
+
+FFollow\{<factor>\}          = \{\lit{*}, \lit{/}, \lit{+}, \lit{-}, \lit{.}, \lit{>}, \lit{\textless}, \lit{\textless=}, \lit{>=}, \lit{lt}, \lit{gt}, \lit{le}, \lit{ge}, \lit{==}, \lit{!=}, \lit{eq}, \lit{ne}, \lit{\&\&}, \lit{||}, \lit{=}, \lit{\{}, \lit{)}, \lit{;}, \lit{,}, \lit{if}, \lit{unless}\}
+
+FFollow\{<term'>\}           = \{\lit{+}, \lit{-}, \lit{.}, \lit{>}, \lit{\textless}, \lit{\textless=}, \lit{>=}, \lit{lt}, \lit{gt}, \lit{le}, \lit{ge}, \lit{==}, \lit{!=}, \lit{eq}, \lit{ne}, \lit{\&\&}, \lit{||}, \lit{=}, \lit{\{}, \lit{)}, \lit{;}, \lit{,}, \lit{if}, \lit{unless}\}
