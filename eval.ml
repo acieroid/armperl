@@ -7,14 +7,6 @@ let is_primitive = function
   | "defined" | "print" | "length" | "scalar" | "substr" -> true
   | _ -> false
 
-let call_primitive symtable f args =
-  match f with
-  | "print" ->
-      List.iter (fun x -> print_string (string_of_value x)) args;
-      Undef, symtable
-  (* TODO: define other primitives *)
-  | _ -> failwith ("undefined primitive: " ^ f)
-
 let int_repr = function
     | Integer x -> x
     | True -> 1
@@ -100,6 +92,45 @@ and eval_fun symtable f args =
   let v, _ = eval_sequence symtable' true f.body in
   v, symtable
 
+and call_primitive f args =
+  match f with
+  | "print" ->
+      List.iter (fun x -> print_string (string_of_value x)) args;
+      Undef
+  | "defined" ->
+      (match List.length args with
+      | 1 ->
+          (match List.nth args 0 with
+          | Undef -> True
+          | _ -> False)
+      | _ -> failwith "Bad number of arguments when calling 'defined'")
+  | "length" ->
+      (match List.length args with
+      | 1 ->
+          let v = List.nth args 0 in
+          Integer (String.length (string_of_value v))
+      | _ -> failwith "Bad number of arguments when calling 'length'")
+  | "scalar" ->
+      (match List.length args with
+      | 1 -> List.nth args 0
+      | _ -> failwith "Bad number of arguments when calling 'scalar'")
+  | "substr" ->
+      (match List.length args with
+      | 2 ->
+          let v = List.nth args 0 in
+          let str = string_of_value v in
+          let offset = List.nth args 1 in
+          let length = (String.length str) - (int_repr offset) in
+          String (String.sub str (int_repr offset) length)
+      | 3 ->
+          let v = List.nth args 0 in
+          let str = string_of_value v in
+          let offset = List.nth args 1
+          and length = List.nth args 2 in
+          String (String.sub str (int_repr offset) (int_repr length))
+      | _ -> failwith "Bad number of arguments whe calling 'subsrt'")
+  | _ -> failwith ("undefined primitive: " ^ f)
+
 and eval symtable local = function
   | Value x -> (x, symtable)
   | Variable name ->
@@ -119,7 +150,7 @@ and eval symtable local = function
       (match left' with
       | False -> eval symtable' local right
       | _ -> left', symtable')
-  | And (left, right) -> 
+  | And (left, right) ->
       let left', symtable' = eval symtable local left in
       (match left' with
       | False -> False, symtable'
@@ -145,7 +176,7 @@ and eval symtable local = function
               ([], symtable) args in
           let args' = List.rev args_rev in
           if is_primitive f then
-              call_primitive symtable f args'
+            call_primitive f args', symtable'
           else
             let f' =
               (match find_fun symtable f with
@@ -163,7 +194,7 @@ and eval symtable local = function
       | (False, symtable') | (Integer 0, symtable') ->
           eval symtable' local alternative
       | (_, symtable') ->
-          eval_sequence symtable' local consequents) 
+          eval_sequence symtable' local consequents)
   | CondEnd ->
       Undef, symtable
   | Return x ->
@@ -172,4 +203,3 @@ and eval symtable local = function
       else
         let v, st = (eval symtable local x) in
         raise (Exn_return (v, st))
-

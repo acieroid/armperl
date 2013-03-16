@@ -7,5 +7,4 @@ Bugs:
   - test lib.pl does not work
   - Replace false by undef
   - grammar's TODO
-  - Eval's TODO
   - Write basic README
