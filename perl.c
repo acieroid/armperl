@@ -330,7 +330,7 @@ void *perl_fun_length(void *arg)
 
 void *perl_fun_scalar(void *arg)
 {
-  /* TODO: what does scalar do? */
+  /* Since we only have scalar values, scalar actually does nothing */
   return arg;
 }
 
