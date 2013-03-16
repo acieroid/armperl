@@ -1,43 +1,44 @@
 ﻿<program>        →  <function list> <instr list>
-                 \alt <function list>
-                 \alt <instr list>
+                 \alt  <function list>
+                 \alt  <instr list>
 
 <function list>  → <function list> <function>
                  \alt <function>
 
-<function>       → \texttt{sub} identifier <function args> \texttt{\{} <instr list> \texttt{\}}
+<function>       → \lit{sub} identifier <function args>
+                   \lit{\{} <instr list> \lit{\}}
 
-<function args>  → \texttt{(} <arg list> \texttt{)}
+<function args>  → \lit{(} <arg list> \lit{)}
                  \alt $\epsilon$
 
-<arg list>       → <arg list> \texttt{,} var
+<arg list>       → <arg list> \lit{,} var
                  \alt $\epsilon$
 
-<instr list>     → <instr list> <instr> \texttt{;}
-                 \alt \texttt{\{} <instr list> \texttt{\}}
-                 \alt <instr> \texttt{;}
+<instr list>     → <instr list> <instr> \lit{;}
+                 \alt \lit{\{} <instr list> \lit{\}}
+                 \alt <instr> \lit{;}
 
-<funcall>        → \texttt{\&} identifier <funcall args> 
+<funcall>        → \lit{\&} identifier <funcall args> 
                  \alt identifier <funcall args> 
 
-<funcall args>   → \texttt{(} <args call list> \texttt{)}
+<funcall args>   → \lit{(} <args call list> \lit{)}
 
-<args call list> → <args call list> \texttt{,} <instr>
+<args call list> → <args call list> \lit{,} <instr>
                  \alt <instr>
                  \alt $\epsilon$
 
 <instr>          → <cond>
                  \alt <expr>
-                 \alt <expr> \texttt{=} <expr>
-                 \alt <expr> \texttt{if} <expr>
-                 \alt <expr> \texttt{unless} <expr>
-                 \alt \texttt{return} <expr>
+                 \alt <expr> \lit{=} <expr>
+                 \alt <expr> \lit{if} <expr>
+                 \alt <expr> \lit{unless} <expr>
+                 \alt \lit{return} <expr>
 
-<cond>           → \texttt{if} <expr> \texttt{\{} <instr list> \texttt{\}} <cond end>
-                 \alt \texttt{unless} <expr> \texttt{\{} <instr list> \texttt{\}} <cond end>
+<cond>           → \lit{if} <expr> \lit{\{} <instr list> \lit{\}} <cond end>
+                 \alt \lit{unless} <expr> \lit{\{} <instr list> \lit{\}} <cond end>
 
-<cond end>       → \texttt{else} <expr> \texttt{\{} <instr list> \texttt{\}} <cond end>
-                 \alt \texttt{elsif} <expr> \texttt{\{} <instr list> \texttt{\}} <cond end>
+<cond end>       → \lit{else} \lit{\{} <instr list> \lit{\}}
+                 \alt \lit{elsif} <expr> \lit{\{} <instr list> \lit{\}} <cond end>
                  \alt $\epsilon$
 
 <simple expr>    → <funcall>
@@ -45,43 +46,42 @@
                  \alt integer
                  \alt string
 
-<expr>           → \texttt{not} <expr>
+<expr>           → \lit{not} <expr>
                  \alt <expr-or>
 
-<expr-or>        → <expr-or> \texttt{||} <expr-and>
+<expr-or>        → <expr-or> \lit{||} <expr-and>
                  \alt <expr-and>
 
-<expr-and>       → <expr-and> \texttt{\&\&} <expr-eq>
+<expr-and>       → <expr-and> \lit{\&\&} <expr-eq>
                  \alt <expr-eq>
 
-<expr-eq>        → <expr-eq> \texttt{==} <expr-eq>
-                 \alt <expr-eq> \texttt{!=} <expr-eq>
-                 \alt <expr-eq> \texttt{eq} <expr-eq>
-                 \alt <expr-eq> \texttt{ne} <expr-eq>
+<expr-eq>        → <comp> \lit{==} <comp>
+                 \alt <comp> \lit{!=} <comp>
+                 \alt <comp> \lit{eq} <comp>
+                 \alt <comp> \lit{ne} <comp>
                  \alt <comp>
 
-<comp>           → <comp> '>' <comp>
-                 \alt <comp> '<' <comp>
-                 \alt <comp> '>=' <comp>
-                 \alt <comp> '<=' <comp>
-                 \alt <comp> \texttt{lt} <comp>
-                 \alt <comp> \texttt{gt} <comp>
-                 \alt <comp> \texttt{le} <comp>
-                 \alt <comp> \texttt{ge} <comp>
+<comp>           → <calc> \lit{>} <calc>
+                 \alt <calc> '\textless' <calc>
+                 \alt <calc> \lit{>=} <calc>
+                 \alt <calc> '\textless=' <calc>
+                 \alt <calc> \lit{lt} <calc>
+                 \alt <calc> \lit{gt} <calc>
+                 \alt <calc> \lit{le} <calc>
+                 \alt <calc> \lit{ge} <calc>
                  \alt <calc>
 
-<calc>           → <calc> \texttt{+} <term>
-                 \alt <calc> \texttt{-} <term>
-                 \alt <calc> \texttt{.} <term>
+<calc>           → <calc> \lit{+} <term>
+                 \alt <calc> \lit{-} <term>
+                 \alt <calc> \lit{.} <term>
                  \alt <term>
-                 
 
-<term>           → <term> \texttt{*} <factor>
-                 \alt <term> \texttt{/} <factor>
+<term>           → <term> \lit{*} <factor>
+                 \alt <term> \lit{/} <factor>
                  \alt <factor>
 
 <factor>         → <simple expr>
-                 \alt \texttt{!} <factor>
-                 \alt \texttt{+} <factor>
-                 \alt \texttt{-} <factor>
-                 \alt \texttt{(} <expr> \texttt{)}
+                 \alt \lit{!} <factor>
+                 \alt \lit{+} <factor>
+                 \alt \lit{-} <factor>
+                 \alt \lit{(} <expr> \lit{)}

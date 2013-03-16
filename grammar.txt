@@ -37,7 +37,7 @@
 <cond>           → 'if' <expr> '{' <instr list> '}' <cond end>
                  | 'unless' <expr> '{' <instr list> '}' <cond end>
 
-<cond end>       → 'else' <expr> '{' <instr list> '}' <cond end>
+<cond end>       → 'else' '{' <instr list> '}'
                  | 'elsif' <expr> '{' <instr list> '}' <cond end>
                  | ε
 
@@ -55,20 +55,20 @@
 <expr-and>       → <expr-and> '&&' <expr-eq>
                  | <expr-eq>
 
-<expr-eq>        → <expr-eq> '==' <expr-eq>
-                 | <expr-eq> '!=' <expr-eq>
-                 | <expr-eq> 'eq' <expr-eq>
-                 | <expr-eq> 'ne' <expr-eq>
+<expr-eq>        → <comp> '==' <comp>
+                 | <comp> '!=' <comp>
+                 | <comp> 'eq' <comp>
+                 | <comp> 'ne' <comp>
                  | <comp>
 
-<comp>           → <comp> '>' <comp>
-                 | <comp> '<' <comp>
-                 | <comp> '>=' <comp>
-                 | <comp> '<=' <comp>
-                 | <comp> 'lt' <comp>
-                 | <comp> 'gt' <comp>
-                 | <comp> 'le' <comp>
-                 | <comp> 'ge' <comp>
+<comp>           → <calc> '>' <calc>
+                 | <calc> '<' <calc>
+                 | <calc> '>=' <calc>
+                 | <calc> '<=' <calc>
+                 | <calc> 'lt' <calc>
+                 | <calc> 'gt' <calc>
+                 | <calc> 'le' <calc>
+                 | <calc> 'ge' <calc>
                  | <calc>
 
 <calc>           → <calc> '+' <term>

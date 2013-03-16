@@ -112,6 +112,8 @@ flag when calling the compiler.
 The grammar used is a modification of the first grammar given (in the
 project statement). This modified is given below.
 
+# TODO: explain what was modified
+
 \setlength{\grammarparsep}{20pt plus 1pt minus 1pt}
 \setlength{\grammarindent}{12em}
 \begin{grammar}
@@ -127,7 +129,7 @@ needed to properly implement the grammar.
 \setlength{\grammarparsep}{20pt plus 1pt minus 1pt}
 \setlength{\grammarindent}{12em}
 \begin{grammar}
-\input{grammar-ll1.tex}
+#\input{grammar-ll1.tex}
 \end{grammar}
 
 ** First and follows

@@ -51,8 +51,8 @@
 <cond>           → 'if' <expr> '{' <instr list> '}' <cond end>
                  | 'unless' <expr> '{' <instr list> '}' <cond end>
 
-TODO: no cond end for else ?
-<cond end>       → 'else' <expr> '{' <instr list> '}' <cond end>
+# TODO: first et follow
+<cond end>       → 'else' '{' <instr list> '}'
                  | 'elsif' <expr> '{' <instr list> '}' <cond end>
                  | ε
 
@@ -77,23 +77,22 @@ TODO: no cond end for else ?
 <expr-eq>        → <comp> <expr-eq'>
 
 # TODO: first et follow
-<expr-eq'>       → '==' <expr-eq>
-                 | '!=' <expr-eq>
-                 | 'eq' <expr-eq>
-                 | 'ne' <expr-eq>
+<expr-eq'>       → '==' <comp>
+                 | '!=' <comp>
+                 | 'eq' <comp>
+                 | 'ne' <comp>
                  |  ε
 
 <comp>           → <calc> <comp'>
 
-# TODO: associativity should be like expr-eq
-<comp'>          → '>' <calc> <comp'>
-                 | '<' <calc> <comp'>
-                 | '>=' <calc> <comp'>
-                 | '<=' <calc> <comp'>
-                 | 'lt' <calc> <comp'>
-                 | 'gt' <calc> <comp'>
-                 | 'le' <calc> <comp'>
-                 | 'ge' <calc> <comp'>
+<comp'>          → '>' <calc>
+                 | '<' <calc>
+                 | '>=' <calc>
+                 | '<=' <calc>
+                 | 'lt' <calc>
+                 | 'gt' <calc>
+                 | 'le' <calc>
+                 | 'ge' <calc>
                  | ε
 
 <calc>           → <term> <calc'>
