@@ -27,6 +27,9 @@ val set_locals : t -> string list -> unit
 (** Return the current local variables (or None) *)
 val get_locals : t -> string list option
 
+(** Clear the local variables *)
+val clear_locals : t -> unit
+
 (** Return true if the given variable is a local variable *)
 val is_local : t -> string -> bool
 

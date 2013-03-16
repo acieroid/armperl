@@ -10,7 +10,6 @@ type state = {
     stringtable: Stringtable.t;       (** Table containing the strings *)
     buffer: Buffer.t;                 (** Buffer containing the generated code *)
     body_buffer: Buffer.t;            (** Temporary buffer to store function bodies *)
-    mutable args: string list option; (** Optional list of arguments *)
     mutable last_label: int;          (** Store the last label generated *)
     mutable return_label: int option; (** Hold the current 'return' label *)
   }
@@ -21,18 +20,17 @@ let create_state symtable =
    stringtable=Stringtable.create ();
    buffer=Buffer.create 16;
    body_buffer=Buffer.create 16;
-   args=None;
    last_label=0;
    return_label=None;
  }
 
 (** Set the current arguments of the state *)
 let state_set_args state args =
-  state.args <- Some args
+  Symtable.set_locals state.symtable args
 
 (** Clear the current arguments of the state *)
 let state_clear_args state =
-  state.args <- None
+  Symtable.clear_locals state.symtable
 
 (** Return a new label (as a ".Ln" string) *)
 let state_new_label state =
@@ -54,7 +52,7 @@ let state_new_return_label state =
 
 (** Return the address of a function argument *)
 let state_arg_addr state arg =
-  match state.args with
+  match Symtable.get_locals state.symtable with
   | Some args ->
       let index = Utils.index_of arg args in
       let addr = if index < 4 then -(8 + (index*4)) else (index-3)*4 in
@@ -63,9 +61,7 @@ let state_arg_addr state arg =
 
 (** Is the variable a function argument or a global variable ? *)
 let state_is_arg state arg =
-  match state.args with
-  | Some args -> List.mem arg args
-  | None -> false
+  Symtable.is_local state.symtable arg
 
 (** Add generated code to the temporary buffer *)
 let state_add state string =
@@ -107,12 +103,13 @@ let state_output_globals state channel =
     .data");
   Symtable.iter_globals state.symtable
     (fun id name ->
+      let sym = "perl_global_" ^ name in
       output_string channel ("
-    .global " ^ name ^ "
+    .global " ^ sym ^ "
     .align 2
-    .type " ^ name ^ ", %object
-    .size " ^ name ^ ", 4
-" ^ name ^ ":
+    .type " ^ sym ^ ", %object
+    .size " ^ sym ^ ", 4
+" ^ sym ^ ":
     .word 2")) (* all globals are undef by default *)
 
 (** Output the addresses part of the assembly file *)
@@ -124,7 +121,7 @@ let state_output_addresses state channel =
   Symtable.iter_globals state.symtable
     (fun id var ->
       output_string channel ("
-    .word " ^ var));
+    .word perl_global_" ^ var));
   (* output the addresses of the strings *)
   output_string channel "
     .align 2
@@ -247,8 +244,6 @@ and gen_instr state = function
   | UnOp (op, e) ->
       gen_unop state op e
   | Funcall (fname, args) ->
-      (* TODO: merge the strings for print *)
-      (* TODO: compute the last argument for substr *)
       (try 
         let arity = Symtable.get_fun state.symtable fname in
         if arity = (List.length args) then
@@ -383,14 +378,15 @@ and gen_funcall state fname args =
     stack_needed) args in
   (* Call the function, and after it returns, store the value in r4 *)
   state_add state ("
-    bl " ^ fname ^ "
+    bl perl_fun_" ^ fname ^ "
     mov r4, r0");
   (* Return the stack size needed *)
   List.fold_left max 0 (stack_needed::stack_needed_l)
 
 (** Generate a native function call *)
 and gen_native_funcall state fname args =
-  (* TODO *)
+  (* TODO: merge the strings for print *)
+  (* TODO: compute the last argument for substr *)
   gen_funcall state fname args
 
 (** Generate a function definition *)
@@ -408,9 +404,9 @@ and gen_fun state = function
       in
       state_add_directly state ("
     .align 2
-    .global " ^ fname ^ "
-    .type " ^ fname ^ ", %function
-" ^ fname ^ ":
+    .global perl_fun_" ^ fname ^ "
+    .type perl_fun_" ^ fname ^ ", %function
+perl_fun_" ^ fname ^ ":
     stmfd sp!, {fp, lr}
     add fp, sp, #4
     sub sp, sp, #" ^ (string_of_int stack_increment));
@@ -425,7 +421,7 @@ and gen_fun state = function
 " ^ return_label ^ ":
     sub sp, fp, #4
     ldmfd   sp!, {fp, pc}
-    .size " ^ fname ^ ", .-" ^ fname);
+    .size perl_fun_" ^ fname ^ ", .-perl_fun_" ^ fname);
       state_clear_args state
   | _ -> failwith "Not a function definition"
 

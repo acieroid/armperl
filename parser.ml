@@ -426,6 +426,7 @@ let rec parse stream =
            'LBRACE; body = parseInstrList; 'RBRACE >] ->
              (try
                Symtable.add_fun symtable name (List.length args);
+               Symtable.clear_locals symtable;
                Fundef (name, args, body)
              with
              | Symtable.Already_defined ->

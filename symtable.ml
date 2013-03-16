@@ -35,6 +35,9 @@ let set_locals st vars =
 let get_locals st =
   st.locals
 
+let clear_locals st =
+  st.locals <- None
+
 let is_local st var =
   match st.locals with
   | None -> false

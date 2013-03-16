@@ -290,13 +290,13 @@ void *perl_not(void *x)
 }
 
 /*********** Standard functions *************************/
-void *defined(void *arg)
+void *perl_fun_defined(void *arg)
 {
   int res = !IS_UNDEF(arg);
   return box_int(res);
 }
 
-void *print(void *arg)
+void *perl_fun_print(void *arg)
 {
   switch (type_of(arg)) {
   case STRING:
@@ -311,7 +311,7 @@ void *print(void *arg)
   return NULL;
 }
 
-void *length(void *arg)
+void *perl_fun_length(void *arg)
 {
   int len = 0;
   switch (type_of(arg)) {
@@ -328,13 +328,13 @@ void *length(void *arg)
   return box_int(len);
 }
 
-void *scalar(void *arg)
+void *perl_fun_scalar(void *arg)
 {
   /* TODO: what does scalar do? */
   return arg;
 }
 
-void *substr(void *str, void *offset, void *length)
+void *perl_fun_substr(void *str, void *offset, void *length)
 {
   char *dst = NULL;
   int size = 0;
@@ -354,7 +354,7 @@ void *substr(void *str, void *offset, void *length)
     dst[0] = '\0';
     break;
   case NUMBER:
-    return substr(to_native_string(str), offset, length);
+    return perl_fun_substr(to_native_string(str), offset, length);
   }
   return dst;
 }
