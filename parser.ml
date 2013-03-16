@@ -48,9 +48,9 @@ let rec parse =
       (* <term'> → '*' <factor> <term'> *)
       (* <term'> → '/' <factor> <term'> *)
       (match stream with parser
-      | [< 'TIMES; f = parseFactor inh;
+      | [< 'TIMES; f = parseFactor;
            t' = parseTerm' (BinOp (Times, inh, f)); >] -> t'
-      | [< 'DIVIDE; f = parseFactor inh;
+      | [< 'DIVIDE; f = parseFactor;
            t' = parseTerm' (BinOp (Divide, inh, f)); >] -> t')
   | _ -> unexpected stream "term'"
 
@@ -71,7 +71,7 @@ let rec parse =
   | STRING_GREATER | STRING_LOWER
   | STRING_GREATER_EQUALS | STRING_LOWER_EQUALS
   | IF | UNLESS ->
-     (* <calc'> → ε *)
+      (* <calc'> → ε *)
       inh
   | CONCAT | PLUS | MINUS ->
       (* <calc'> → '.' <term> <calc'>*)
@@ -188,7 +188,7 @@ let rec parse =
   and parseExprAnd stream = match peek stream with
   | VAR _ | INTEGER _ | STRING _ | IDENTIFIER _
   | CALL_MARK | LPAR | NOT | PLUS | MINUS ->
-     (* <expr-and> → <expr-eq> <expr-and'> *)
+      (* <expr-and> → <expr-eq> <expr-and'> *)
       (match stream with parser
       | [< e = parseExprEq; a = parseExprAnd' e >] -> a)
   | _ -> unexpected stream "expr-and"
@@ -468,7 +468,7 @@ let rec parse =
       (match stream with parser
       | [< l = parseInstrList >] -> ([], l))
   | SUB ->
-      (*  <program> →  <function list> <program'>  *)
+      (* <program> → <function list> <program'> *)
       (match stream with parser
       | [< l = parseFunctionList; p = parseProgram' >] ->
           (l, p))

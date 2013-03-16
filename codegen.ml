@@ -88,9 +88,8 @@ let state_string_addr state string =
 
 (** Return the address of a global variable *)
 let state_global_addr state var =
-  (* Variables have the value undef by default *)
-  Symtable.add state.symtable var Undef;
-  let addr = Symtable.get_addr state.symtable var in
+  Symtable.add_global state.symtable var;
+  let addr = Symtable.get_global_addr state.symtable var in
   ".Lglobals+" ^ (string_of_int addr)
 
 (** Output the strings part of the assembly file *)
@@ -105,25 +104,17 @@ let state_output_strings state channel =
 
 (** Output the global variables part of the assembly file *)
 let state_output_globals state channel =
-  let convert_value = function
-    | Integer n -> string_of_int (box_int n)
-    | String s -> state_string_addr state s
-    | True -> string_of_int (box_int 1)
-    | False -> string_of_int (box_int 0)
-    | Undef -> "2"
-    | Float _ -> failwith "Floats are unsupported"
-  in
   output_string channel ("
     .data");
-  Symtable.iter state.symtable
-    (fun id name value ->
+  Symtable.iter_globals state.symtable
+    (fun id name ->
       output_string channel ("
     .global " ^ name ^ "
     .align 2
     .type " ^ name ^ ", %object
     .size " ^ name ^ ", 4
 " ^ name ^ ":
-    .word " ^ (convert_value value)))
+    .word 2")) (* all globals are undef by default *)
 
 (** Output the addresses part of the assembly file *)
 let state_output_addresses state channel =
@@ -131,8 +122,8 @@ let state_output_addresses state channel =
   output_string channel "
     .align 2
 .Lglobals:";
-  Symtable.iter state.symtable
-    (fun id var value ->
+  Symtable.iter_globals state.symtable
+    (fun id var ->
       output_string channel ("
     .word " ^ var));
   (* output the addresses of the strings *)

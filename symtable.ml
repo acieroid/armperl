@@ -1,25 +1,49 @@
-type t = (string, (int * Expression.value)) Hashtbl.t
+exception Already_defined
+
+type t = {
+    (** The globals with an identifier to find their addresses *)
+    globals: (string, int) Hashtbl.t;
+    (** The local variables *)
+    mutable locals: string list option;
+    (** The functions with their arity *)
+    funs: (string, int) Hashtbl.t;
+  }
 
 let create () =
-  Hashtbl.create 16
+  {globals=Hashtbl.create 16; locals=None; funs=Hashtbl.create 16}
 
-let add st string v =
-  match Hashtbl.mem st string with
+let add_global st string =
+  match Hashtbl.mem st.globals string with
   | true -> ()
   | false ->
-      Hashtbl.add st string (Hashtbl.length st, v)
+      Hashtbl.add st.globals string (Hashtbl.length st.globals)
 
-let find st str =
-  let id, v = Hashtbl.find st str in
-  v
-
-let get_addr st str =
-  let id, v = Hashtbl.find st str in
+let get_global_addr st str =
+  let id = Hashtbl.find st.globals str in
   id * 4
 
-let iter st f =
-  let a = Array.make (Hashtbl.length st) (-1, "", Expression.Undef) in
-  Hashtbl.iter (fun str (id, v) ->
-    a.(id) <- (id, str, v)) st;
-  Array.sort (fun (a, _, _) (b, _, _) -> compare a b) a;
-  Array.iter (fun (id, str, v) -> f id str v) a
+let iter_globals st f =
+  let a = Array.make (Hashtbl.length st.globals) (-1, "") in
+  Hashtbl.iter (fun str id ->
+    a.(id) <- (id, str)) st.globals;
+  Array.sort (fun (a, _) (b, _) -> compare a b) a;
+  Array.iter (fun (id, str) -> f id str) a
+
+let set_locals st vars =
+  st.locals <- Some vars
+
+let get_locals st =
+  st.locals
+
+let is_local st var =
+  match st.locals with
+  | None -> false
+  | Some vars -> List.mem var vars
+
+let add_fun st fname arity =
+  match Hashtbl.mem st.funs fname with
+  | true -> raise Already_defined
+  | false -> Hashtbl.add st.funs fname arity
+
+let get_fun st fname =
+  Hashtbl.find st.funs fname
