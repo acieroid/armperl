@@ -55,12 +55,12 @@ let () =
   and chan_out = match !out_arg with
   | "" -> stdout
   | f -> open_out f in
-  let (fns, instrs) = parse (drop_errors (lex chan_in)) in
+  let (fns, instrs), symtable = parse (drop_errors (lex chan_in)) in
   if !evaluate_arg then
     let (_, st) = Eval.eval_sequence (Eval_symtable.empty ()) true fns in
     let _ = Eval.eval_sequence st true instrs in
     ()
   else
-    gen chan_out (fns, instrs)
+    gen chan_out (fns, instrs) symtable
 
     

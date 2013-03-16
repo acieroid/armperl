@@ -14,7 +14,8 @@ let unexpected stream rule =
             (string_of_token (Stream.next stream)) ^
            " while in rule " ^ rule)
 
-let rec parse =
+let rec parse stream =
+  let symtable = Symtable.create () in
   (** <factor> *)
   let rec parseFactor stream = match peek stream with
   | VAR _ | INTEGER _ | STRING _ | IDENTIFIER _ | CALL_MARK ->
@@ -233,7 +234,9 @@ let rec parse =
       (* <simple expr> → integer *)
       (* <simple expr> → string *)
       (match stream with parser 
-      | [< 'VAR x >] -> Variable x
+      | [< 'VAR x >] ->
+          Symtable.add_var symtable x;
+          Variable x
       | [< 'INTEGER n >] -> Value (Integer n)
       | [< 'STRING s >] -> Value (String s))
   | IDENTIFIER _  | CALL_MARK ->
@@ -410,6 +413,7 @@ let rec parse =
       (* <function args>  → '(' <arg list> ')' *)
       (match stream with parser
         [< 'LPAR; args = parseArgList; 'RPAR >] ->
+          Symtable.set_locals symtable args;
           args)
   | _ -> unexpected stream "function args"
 
@@ -420,7 +424,12 @@ let rec parse =
       (match stream with parser
         [< 'SUB; 'IDENTIFIER name; args = parseFunctionArgs;
            'LBRACE; body = parseInstrList; 'RBRACE >] ->
-             Fundef (name, args, body))
+             (try
+               Symtable.add_fun symtable name (List.length args);
+               Fundef (name, args, body)
+             with
+             | Symtable.Already_defined ->
+                 failwith ("Function already defined: " ^ name)))
   | _ -> unexpected stream "function"
 
   (** <function list'> *)
@@ -478,4 +487,4 @@ let rec parse =
   and parseS stream = match stream with parser
   | [< p = parseProgram >] -> p
 in
-  parseS
+  parseS stream, symtable

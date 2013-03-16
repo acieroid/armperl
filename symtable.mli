@@ -11,11 +11,15 @@ type t
 val create : unit -> t
 
 (** Add a global variable to the symbol table. *)
-val add_global : t -> string  -> unit
+val add_global : t -> string -> unit
 
 (** Get the address of a variable in the symbol table. Addresses are
     4-bit aligned (ie. are multiple of 4). *)
 val get_global_addr : t -> string -> int
+
+(** Do a traversal of the globals variables of the symbol table, in
+    the order in which the elements where added *)
+val iter_globals : t -> (int -> string -> unit) -> unit
 
 (** Change the local variables of the symbol table *)
 val set_locals : t -> string list -> unit
@@ -26,9 +30,9 @@ val get_locals : t -> string list option
 (** Return true if the given variable is a local variable *)
 val is_local : t -> string -> bool
 
-(** Do a traversal of the globals variables of the symbol table, in
-    the order in which the elements where added *)
-val iter_globals : t -> (int -> string -> unit) -> unit
+(** Add a variable to the global variables if it is not already in the
+    local variables *)
+val add_var : t -> string -> unit
 
 (** Add a function (and its number of parameters) to the symbol
     table. Raise Already_defined if the function is already defined. *)

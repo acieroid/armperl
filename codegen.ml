@@ -16,8 +16,8 @@ type state = {
   }
 
 (** Create an empty state *)
-let create_state () =
-  {symtable=Symtable.create ();
+let create_state symtable =
+  {symtable=symtable;
    stringtable=Stringtable.create ();
    buffer=Buffer.create 16;
    body_buffer=Buffer.create 16;
@@ -88,7 +88,6 @@ let state_string_addr state string =
 
 (** Return the address of a global variable *)
 let state_global_addr state var =
-  Symtable.add_global state.symtable var;
   let addr = Symtable.get_global_addr state.symtable var in
   ".Lglobals+" ^ (string_of_int addr)
 
@@ -410,8 +409,8 @@ and gen_fun state = function
   | _ -> failwith "Not a function definition"
 
 (** Main code generation function *)
-let gen channel (funs, instrs) =
-  let state = create_state () in
+let gen channel (funs, instrs) symtable =
+  let state = create_state symtable in
   (* Generate the function definitions *)
   List.iter (gen_fun state) funs;
   (* Generate the body of the main function *)

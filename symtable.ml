@@ -40,6 +40,12 @@ let is_local st var =
   | None -> false
   | Some vars -> List.mem var vars
 
+let add_var st var =
+  if is_local st var then
+    ()
+  else
+    add_global st var
+
 let add_fun st fname arity =
   match Hashtbl.mem st.funs fname with
   | true -> raise Already_defined
