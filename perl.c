@@ -345,9 +345,10 @@ void *perl_fun_substr(void *str, void *offset, void *length)
     } else {
       size = strlen(str) - to_native_int(offset);
     }
-    dst = malloc(size*sizeof(*dst));
+    dst = malloc((size+1)*sizeof(*dst));
     strncpy(dst, (char *) str + to_native_int(offset),
             size);
+    dst[size] = '\0';
     break;
   case UNDEF:
     dst = malloc(sizeof(*dst));

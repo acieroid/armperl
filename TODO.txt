@@ -4,7 +4,5 @@ Deleted:
   - <expr> = <expr>: better compatibility
 
 Bugs:
-  - test lib.pl does not work
   - Replace false by undef
   - grammar's TODO
-  - Write basic README
