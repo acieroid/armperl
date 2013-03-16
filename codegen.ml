@@ -134,7 +134,8 @@ let state_output_addresses state channel =
       output_string channel ("
     .word .Lstr" ^ (string_of_int id)))
 
-let function_name = function
+(** Return the name of the function to call to apply an operator *)
+let operator_function = function
   | Plus -> "perl_plus"
   | Minus -> "perl_minus"
   | Times -> "perl_times"
@@ -152,6 +153,11 @@ let function_name = function
   | StrLower -> "perl_str_lower"
   | StrGreaterEquals -> "perl_str_greater_equals"
   | StrLowerEquals -> "perl_str_lower_equals"
+
+(** Return true if the function given is native *)
+let is_native = function
+  | "defined" | "print" | "length" | "scalar" | "substr" -> true
+  | _ -> false
 
 (** Output the header of the assembly file *)
 let output_header channel =
@@ -243,12 +249,25 @@ and gen_instr state = function
   | UnOp (op, e) ->
       gen_unop state op e
   | Funcall (fname, args) ->
-      (* TODO: check that the number of arguments is correct *)
       (* TODO: merge the strings for print *)
       (* TODO: compute the last argument for substr *)
-      gen_funcall state fname args
+      (try 
+        let arity = Symtable.get_fun state.symtable fname in
+        if arity = (List.length args) then
+          gen_funcall state fname args
+        else
+          failwith ("Function arity not respected: got " ^
+                    (string_of_int (List.length args)) ^
+                    " arguments instead of " ^
+                    (string_of_int arity) ^
+                    " for function " ^ fname)
+      with
+      | Not_found ->
+          if is_native fname then
+            gen_native_funcall state fname args
+          else
+            failwith ("Undefined function: " ^ fname))
   | Cond (cond, consequent, alternative) ->
-      (* TODO: check if the generated code is correct *)
       gen_cond state cond consequent alternative
   | CondEnd -> 0
   | Return x ->
@@ -269,7 +288,7 @@ and gen_binop state op e1 e2 =
   state_add state ("
     mov r1, r4
     ldmfd sp!, {r0}
-    bl " ^ (function_name op) ^ "
+    bl " ^ (operator_function op) ^ "
     mov r4, r0");
   max stack_needed_e1 stack_needed_e2
 
@@ -324,7 +343,6 @@ and gen_return state x =
     b " ^ (state_return_label state));
   stack_needed
 
-
 (** Assign a value to a local variable *)
 and gen_assign_local state var value =
   let addr = state_arg_addr state var
@@ -371,6 +389,11 @@ and gen_funcall state fname args =
     mov r4, r0");
   (* Return the stack size needed *)
   List.fold_left max 0 (stack_needed::stack_needed_l)
+
+(** Generate a native function call *)
+and gen_native_funcall state fname args =
+  (* TODO *)
+  gen_funcall state fname args
 
 (** Generate a function definition *)
 and gen_fun state = function
