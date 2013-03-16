@@ -129,7 +129,7 @@ needed to properly implement the grammar.
 \setlength{\grammarparsep}{20pt plus 1pt minus 1pt}
 \setlength{\grammarindent}{12em}
 \begin{grammar}
-#\input{grammar-ll1.tex}
+\input{grammar-ll1.tex}
 \end{grammar}
 
 ** First and follows
