@@ -178,7 +178,8 @@ let output_header channel =
   least significant bit of an integer is always 1 (thus, integers are
   31 bits).
 
-  True and False are stored respectively as the integers 1 and 0.
+  True is stored as integer 1, and false as undef (to achieve a
+  similar behaviour as Perl).
 
   Strings are stored in pointers, so that the two least significant
   bits are always 0.
@@ -191,13 +192,11 @@ let gen_value state = function
     mov r4, #" ^ (string_of_int (box_int x)))
   | True -> state_add state ("
     mov r4, #" ^ (string_of_int (box_int 1)))
-  | False -> state_add state ("
-    mov r4, #" ^ (string_of_int (box_int 0)))
   | String str ->
       let addr = state_string_addr state str in
       state_add state ("
     ldr r4, " ^ addr)
-  | Undef -> state_add state "
+  | False | Undef -> state_add state "
     mov r4, #2"
   | Float _ -> failwith "Floats are unsupported"
 

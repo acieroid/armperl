@@ -16,7 +16,7 @@ TAGS		= annot,debug
 LIBS		= str
 EXTENSION	= byte
 
-CFLAGS		= -fno-short-enums -fstrict-aliasing -O2
+CFLAGS		= -fno-short-enums -fstrict-aliasing -O2 -Wall -g
 
 all:
 	rm -f *.o

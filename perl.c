@@ -7,6 +7,11 @@
 #define IS_NUMBER(ptr) ((((int) (ptr)) & 0x1) == 1)
 #define IS_UNDEF(ptr)  ((((int) (ptr)) & 0x3) == 2)
 
+/* True is represented as integer 1 */
+#define TRUE  ((void *) ((1 << 1) + 1))
+/* And false as Undef */
+#define FALSE ((void *) 2)
+
 enum {
   STRING = 0,
   NUMBER = 1,
@@ -127,173 +132,171 @@ void *perl_concat(void *x, void *y)
 
 void *perl_equals(void *x, void *y)
 {
-  int res;
   if (to_native_int(x) == to_native_int(y)) {
-    res = 1;
+    return TRUE;
   } else {
-    res = 0;
+    return FALSE;
   }
-  return box_int(res);
 }
 
 void *perl_different(void *x, void *y)
 {
-  int res;
   if (to_native_int(x) != to_native_int(y)) {
-    res = 1;
+    return TRUE;
   } else {
-    res = 0;
+    return FALSE;
   }
-  return box_int(res);
 }
 
 void *perl_greater(void *x, void *y)
 {
-  int res;
   if (to_native_int(x) > to_native_int(y)) {
-    res = 1;
+    return TRUE;
   } else {
-    res = 0;
+    return FALSE;
   }
-  return box_int(res);
 }
 
 void *perl_lower(void *x, void *y)
 {
-  int res;
   if (to_native_int(x) < to_native_int(y)) {
-    res = 1;
+    return TRUE;
   } else {
-    res = 0;
+    return FALSE;
   }
-  return box_int(res);
 }
 
 void *perl_greater_equals(void *x, void *y)
 {
-  int res;
   if (to_native_int(x) >= to_native_int(y)) {
-    res = 1;
+    return TRUE;
   } else {
-    res = 0;
+    return FALSE;
   }
-  return box_int(res);
 }
 
 void *perl_lower_equals(void *x, void *y)
 {
-  int res;
   if (to_native_int(x) <= to_native_int(y)) {
-    res = 1;
+    return TRUE;
   } else {
-    res = 0;
+    return FALSE;
   }
-  return box_int(res);
 }
 
 void *perl_str_equals(void *x, void *y)
 {
-  int res;
+  void *res;
   char *s1 = to_native_string(x);
   char *s2 = to_native_string(y);
   if (strcmp(s1, s2) == 0) {
-    res = 1;
+    res = TRUE;
   } else {
-    res = 0;
+    res = FALSE;
   }
   free(s1);
   free(s2);
-  return box_int(res);
+  return res;
 }
 
 void *perl_str_different(void *x, void *y)
 {
-  int res;
+  void *res;
   char *s1 = to_native_string(x);
   char *s2 = to_native_string(y);
   if (strcmp(s1, s2) != 0) {
-    res = 1;
+    res = TRUE;
   } else {
-    res = 0;
+    res = FALSE;
   }
   free(s1);
   free(s2);
-  return box_int(res);
+  return res;
 }
 
 void *perl_str_greater(void *x, void *y)
 {
-  int res;
+  void *res;
   char *s1 = to_native_string(x);
   char *s2 = to_native_string(y);
   if (strcmp(s1, s2) > 0) {
-    res = 1;
+    res = TRUE;
   } else {
-    res = 0;
+    res = FALSE;
   }
   free(s1);
   free(s2);
-  return box_int(res);
+  return res;
 }
 
 void *perl_str_lower(void *x, void *y)
 {
-  int res;
+  void *res;
   char *s1 = to_native_string(x);
   char *s2 = to_native_string(y);
   if (strcmp(s1, s2) < 0) {
-    res = 1;
+    res = TRUE;
   } else {
-    res = 0;
+    res = FALSE;
   }
   free(s1);
   free(s2);
-  return box_int(res);
+  return res;
 }
 
 void *perl_str_greater_equals(void *x, void *y)
 {
-  int res;
+  void *res;
   char *s1 = to_native_string(x);
   char *s2 = to_native_string(y);
   if (strcmp(s1, s2) >= 0) {
-    res = 1;
+    res = TRUE;
   } else {
-    res = 0;
+    res = FALSE;
   }
   free(s1);
   free(s2);
-  return box_int(res);
+  return res;
 }
 
 
 void *perl_str_lower_equals(void *x, void *y)
 {
-  int res;
+  void *res;
   char *s1 = to_native_string(x);
   char *s2 = to_native_string(y);
   if (strcmp(s1, s2) <= 0) {
-    res = 1;
+    res = TRUE;
   } else {
-    res = 0;
+    res = FALSE;
   }
   free(s1);
   free(s2);
-  return box_int(res);
+  return res;
 }
 
 void *perl_not(void *x)
 {
+  void *res;
   int value = to_native_int(x);
-  int res = (value == 0);
-  return box_int(res);
+  if (value == 0) {
+    res = TRUE;
+  } else {
+    res = FALSE;
+  }
+  return res;
 }
 
 /*********** Standard functions *************************/
 void *perl_fun_defined(void *arg)
 {
-  int res = !IS_UNDEF(arg);
-  return box_int(res);
+  void *res;
+  if (!IS_UNDEF(arg)) {
+    res = TRUE;
+  } else {
+    res = FALSE;
+  }
+  return res;
 }
 
 void *perl_fun_print(void *arg)
