@@ -34,6 +34,7 @@ First{<program'>}        = First{<instr list>}
 First{<S>}               = First{<program>}
 
 Follow{<program>}         = {EOF}
+Follow{<program'>}        = Follow{<program>}
 Follow{<function list>}   = First{<program'>} + Follow{<program>}
 Follow{<program'>}        = Follow{<program>}
 Follow{<function>}        = First{<function list'>} + Follow{<function list>}
