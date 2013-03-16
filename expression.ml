@@ -49,7 +49,7 @@ let string_of_value = function
   | True -> "1"
   | False -> ""
   | String x -> x
-  | Undef -> "undef"
+  | Undef -> ""
 
 let string_of_unop = function
   | Not -> "not"

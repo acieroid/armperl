@@ -4,5 +4,5 @@ Deleted:
   - <expr> = <expr>: better compatibility
 
 Bugs:
-  - Replace false by undef
+  - ops.pl, postcond.pl, lib.pl does not evaluate correctly
   - grammar's TODO
