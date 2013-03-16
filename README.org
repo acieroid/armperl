@@ -1,0 +1,21 @@
+ARMPerl - Compiler for a subset of Perl
+
+University Project for the course "Introduction to Language Theory and
+Compilation" (INFO-F-403) at ULB.
+
+Authors: Vadim Baele and Quentin Stievenart
+
+* Compilation
+To compile the project, you need OCaml installed. Any version will do,
+as long as you also have ocamlbuild installed.
+
+Just run =make= to compile the compiler.
+* Testing
+To compile a Perl program, run =./main.byte -i foo.pl -o foo.s=. You
+can then use the =lib=, =obj= and =try= rules with =make= to build an
+executable and execute it on an Android device, for example: =make lib
+&& make obj && make try=.
+
+For more information, see =./main.byte -help=.
+
+
