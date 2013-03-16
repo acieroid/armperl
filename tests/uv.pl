@@ -1,7 +1,7 @@
 sub println($str){
 	# You can consider the call of print with &: &print('#',$str,$varNewLine,'#');
 	#print('#',$str,'#',$varNewLine);
-	print('#'.$str.'#'.$varNewLine);
+	print('#',$str,'#',$varNewLine);
 }
 
 sub identite($var1){
