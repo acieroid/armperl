@@ -1,10 +1,10 @@
-﻿<S>              → <program> \texttt{EOF} (1)
+﻿<S>              → <program> \texttt{EOF}
 
-<program>        → <function list> <program'> (2)
-                 \alt <instr list> (3)
+<program>        → <function list> <program'>
+                 \alt <instr list>
 
-<program'>       → <instr list> (4)
-                 \alt $\epsilon$ (5)
+<program'>       → <instr list>
+                 \alt $\epsilon$
 
 <function list>  → <function> <function list'>
                  
