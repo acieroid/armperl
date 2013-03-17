@@ -51,7 +51,11 @@
 The purpose of this project is to develop a compiler for a simplified
 version of Perl, that compiles to ARM assembler, in order to be able
 to execute compiled Perl code on Android devices. The simplified
-version of Perl to be implemented is described in the project statement.
+version of Perl to be implemented is described in the project
+statement.
+
+Note that most of the documentation of the code is written in the
+interface files (=.mli=).
 * Lexer
 ** Lexical Units
 The lexical units of this simplified version of Perl are given here,
@@ -155,9 +159,6 @@ Which means that the lexer reads its input from an input channel
 either=, meaning that the stream can contain either a token, or a
 string (which describes a lexing error).
 
-Another lexer is implemented with Ocamllex, in =ocamllex_lexer.ml=,
-and the user can choose between the two implementations using the =-l=
-flag when calling the compiler.
 * Parser
 ** Modified grammar
 The grammar used is a modification of the first grammar given (in the
@@ -224,7 +225,9 @@ The parsing table for the LL(1) grammar is given in tables
 #+CAPTION: Parsing table (1)
 #+LABEL: tbl:ParsingTable1
 #+ATTR_LaTeX: longtable align=|l||c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|
+|-------------------+-----+---------+--------+------------+-----+--------+----+----+----+----+----+----+----|
 |                   | var | integer | string | identifier | sub | return |  & |  { |  } |  ( |  ) |  ; |  , |
+|-------------------+-----+---------+--------+------------+-----+--------+----+----+----+----+----+----+----|
 |-------------------+-----+---------+--------+------------+-----+--------+----+----+----+----+----+----+----|
 | <S>               |     |       1 |      1 |          1 |   1 |      1 |  1 |  1 |    |  1 |    |    |    |
 |-------------------+-----+---------+--------+------------+-----+--------+----+----+----+----+----+----+----|
@@ -295,11 +298,12 @@ The parsing table for the LL(1) grammar is given in tables
 | <factor>          |  76 |      76 |     76 |         76 |     |        | 76 |    |    | 80 |    |    |    |
 |-------------------+-----+---------+--------+------------+-----+--------+----+----+----+----+----+----+----|
 
-#+LATEX: \footnotesize
 #+CAPTION: Parsing table (2)
 #+LABEL: tbl:ParsingTable2
 #+ATTR_LaTeX: longtable align=|l||c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|
+|-------------------+----+--------+------+-------+-----+----+----+----+----+----+----+----+----+----|
 |                   | if | unless | else | elsif | not |  ! |  + |  - |  * |  / |  = |  . | or | && |
+|-------------------+----+--------+------+-------+-----+----+----+----+----+----+----+----+----+----|
 |-------------------+----+--------+------+-------+-----+----+----+----+----+----+----+----+----+----|
 | <S>               |  1 |      1 |      |       |   1 |  1 |  1 |    |    |    |    |    |    |    |
 |-------------------+----+--------+------+-------+-----+----+----+----+----+----+----+----+----+----|
@@ -370,11 +374,12 @@ The parsing table for the LL(1) grammar is given in tables
 | <factor>          |    |        |      |       |     | 77 | 78 | 79 |    |    |    |    |    |    |
 |-------------------+----+--------+------+-------+-----+----+----+----+----+----+----+----+----+----|
 
-#+LATEX: \footnotesize
 #+CAPTION: Parsing table (3)
 #+LABEL: tbl:ParsingTable3
 #+ATTR_LaTeX: longtable align=|l||c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|
+|-------------------+----+----+----+----+----+----+----+----+----+----+----+----+-----|
 |                   | == | != |  > |  < | >= | <= | eq | ne | gt | lt | ge | le | EOF |
+|-------------------+----+----+----+----+----+----+----+----+----+----+----+----+-----|
 |-------------------+----+----+----+----+----+----+----+----+----+----+----+----+-----|
 | <S>               |    |    |    |    |    |    |    |    |    |    |    |    |     |
 |-------------------+----+----+----+----+----+----+----+----+----+----+----+----+-----|
@@ -445,6 +450,7 @@ The parsing table for the LL(1) grammar is given in tables
 | <factor>          |    |    |    |    |    |    |    |    |    |    |    |    |     |
 |-------------------+----+----+----+----+----+----+----+----+----+----+----+----+-----|
 
+\normalsize
 ** Grammar decoration
 The grammar has been decorated to produce an abstract syntax tree. The
 decoration of the grammar is given below (the numbers corresponds to
@@ -465,6 +471,7 @@ lots of different cases into account during code generation (eg. a
 =unless x= condition is translated in the same way as would be an =if
 (not x)= condition).
 
+\footnotesize
   1. =<S>.node= = =<program>.node=
   2. =<program>.node= = =(<function list>.node, <program'>.node)=
   3. =<program>.node= = =([], <instr list>.node)=
@@ -567,6 +574,7 @@ lots of different cases into account during code generation (eg. a
   78. =<factor>.node= = =UnOp(UnaryPlus, <factor>= $_1$ =.node)=
   79. =<factor>.node= = =UnOp(UnaryMinus, <factor>= $_1$ =.node)=
   80. =<factor>.node= = =<expr>.node=
+\normalsize
 
 ** Implementation
 The implementation of the parser simply consisted of transcripting the
@@ -652,9 +660,71 @@ label, the alternative label, the code of the alternative, and finally
 of the end label.
 
 The special operators =&&= and =||= are generated as conditions:
-  - =a && b= is equivalent to =if (a) { b; } else { false; }
-  - =a || b= is equivalent to =if (a) { true; } else { b; }=
-
+  - =e1 && e2= is equivalent to =if (e1) { e2; } else { false; };=
+  - =e1 || e2= is equivalent to =if (e1) { true; } else { e2; };=
 ** Function definitions
+A function definition is generated as follows:
+  - a /return/ label is generated and stored in the code generator state
+  - the name of the function arguments are also stored in the code
+    generator state, in order to distinguish local and global variables
+  - the body of the function is generated in a separate buffer, in
+    order to know by how much bytes the stack should grow (this
+    information is returned by each code generation function)
+  - the function is declared and stores the =fp= and =lr= registers on
+    the stack
+  - the stack pointer is decremented by the space needed by the body,
+    plus the space needed to store the function arguments
+  - the first function arguments (up to the first four) are stored
+    onto the stack
+  - the code for the body of the function is merged with the current code
+  - the value =undef= is stored in =r0=
+  - the return label is printed
+  - the stack is restored as it was before, and the function
+    terminates, returning the value stored in =r0= (either =undef=, or
+    something else if the function used a =return= instruction)
 ** Function calls
+Two types of functions can be called: native functions, and
+user-defined functions. Native functions handle their arguments in a
+special way (eg. =print= can take any number of arguments), while
+user-defined functions all behave in the same way.
+
+The native functions acts as follows:
+  - =print= concatenates all its arguments, by transforming a call
+    from =print(e1,e2,e3…)= to =print(e1.e2.e3)=
+  - =substr= passes =undef= as the last argument if it is called with
+    only two arguments. The native function will thus compute the
+    correct value of the last argument when its value is =undef=
+  - In all the other cases, the number of arguments have to be
+    checked, but the function call is generated exactly as a normal
+    function call
+
+For user-defined functions, first there is a check to test whether the
+function is called with the correct number of arguments (if this in
+not the case, the code generator reports an error). Then:
+  - the arguments are evaluated right-to-left, and pushed on the stack
+    one by one
+  - the first four arguments (or less, if there is less than four
+    arguments) are popped from the stack and stored in the registers
+    =r0= to =r3=
+  - the function is called (=bl= instruction)
+  - once the function has returned, its return value (which is in
+    =r0=) is copied into =r4=
 ** Returns
+A =return= instruction simply consists of computing the return value,
+and then jumping to the current /return/ label. If there is no such
+label (which means that the code generated is not inside a function
+body), an error is displayed, because return instructions outside
+function definitions are not allowed.
+* Miscellaneous
+The architecture of the program is such that it is easy to extend it
+with another lexer, parser, or code generator. For example, a second
+lexer, that uses Ocamllex, is already implemented and can be used
+using the =-l ocamllex= flag.
+
+Also, a Perl evaluator has been implemented, and can be called
+(instead of the code generator) with the =-e= flag. This allowed us to
+first have a working program without needing a code generator, and
+thus refine the grammar and abstract syntax tree early in the
+project. It could be used to automate tests: if the output of the
+evaluated program and the execution of a compiled program is the same,
+then the chances that the generated program is correct are high.
