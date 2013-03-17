@@ -54,13 +54,13 @@ to execute compiled Perl code on Android devices. The simplified
 version of Perl to be implemented is described in the project
 statement.
 
-This report describe the implementation of the compiler, written in
+This report describes the implementation of the compiler, written in
 OCaml. Note that most of the documentation of the code is written in
 the interface files (=.mli=).
 * Lexer
 ** Lexical Units
 The lexical units of this simplified version of Perl are given here,
-with their regular expression and and the corresponding token used in
+with their regular expression and the corresponding token used in
 the implementation. Some of the tokens are grouped into categories for
 a matter of clarity.
 
@@ -106,7 +106,7 @@ a matter of clarity.
   - *Identifier*: =[a-zA-Z][a-zA-Z0-9]*= : =IDENTIFIER=
   - *Variable*: =$[a-zA-Z0-9]+= : =VARIABLE=
 ** Deterministic Finite Automaton
-The DFA is divided in multiple figure for a matter of clarity. All the
+The DFA is divided in multiple figures for a matter of clarity. All the
 following figures have the same start state, and some refer to the
 special state =to identifier=, which /redirects/ the DFA into the
 corresponding figure. The accepting states are represented with dashed lines.
@@ -132,7 +132,7 @@ corresponding figure. The accepting states are represented with dashed lines.
 \end{figure}
 
 \begin{figure}
-\centerline{\includegraphics[width=1.45\textwidth]{dfa-keywords.png}}
+\centerline{\includegraphics[width=1.40\textwidth]{dfa-keywords.png}}
 \caption{DFA for keywords}
 \end{figure}
 
@@ -751,3 +751,20 @@ then the chances that the generated assembly code is correct are high.
 
 The compiler has been tested on multiple examples (in the directory
 =tests/=), and produces the expected result for all of them.
+\\
+
+The command =make= can be used to compile the compiler (it should work
+with any modern version of OCaml installed, as long as it supplies
+=ocamlbuild=). To compile a Perl file to an assembler file, use the
+following command:
+
+#+BEGIN_SRC caml
+ocamlrun -b ./main.byte -i tests/lib.pl -o foo.s
+#+END_SRC
+
+And to compile the assembler file to an executable and run it on an
+android device (connected phone or virtual machine):
+
+#+BEGIN_SRC caml
+make lib && make obj && make try
+#+END_SRC
