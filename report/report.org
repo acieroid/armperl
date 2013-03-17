@@ -7,6 +7,7 @@
 #+LATEX_HEADER: \hypersetup{colorlinks,citecolor=black,filecolor=black,linkcolor=black,urlcolor=black}
 #+LATEX_HEADER: \usepackage{syntax}
 #+LATEX_HEADER: \usepackage{listings}
+#+LATEX_HEADER: \usepackage{amsmath}
 #+LATEX_HEADER: \usepackage{etoolbox} % for patching
 #+LATEX_HEADER: \makeatletter
 #+LATEX_HEADER: % define the main command on the model of the original one
@@ -175,20 +176,26 @@ project's statement are the following:
     cause problems in the parsing table
   - =<instr list>=: every instruction has to end with a semicolon,
     else the first and follow sets of every non-terminals would be
-    really big and the chances of having a conflict would grow.
+    really big and the chances of having a conflict would grow. This
+    implies a major difference with Perl: conditions also have to end
+    with a semicolon, for example: =if … { … };=
   - =<funcall>=: functions can now be called without being prefixed by a
     =&=
   - =<funcall args>=: function calls now have mandatory parentheses,
-    to avoid conflicts
-  - =<instr>= and =<cond>=: post-condition forms are now in this
-    non-terminal, to avoid conflicts (since now =<cond>= cannot start
-    with an =<expr>=)
+    to avoid conflicts (this conflict should however not arise, due to
+    the mandatory semicolon, but this change was made before)
+  - =<instr>= and =<cond>=: post-condition forms are now in the
+    non-terminal =<instr>=, to avoid conflicts (since now =<cond>=
+    cannot start with an =<expr>=, which conflicted with the fact that
+    =<instr>= can start with an =<expr>=)
+  - =<instr>=: an assignation is now an instruction instead of an
+    expression, which makes more sense
   - =<cond end>=: the =else= branch was incorrect
   - =<expr>=: the old =<expr>= non-terminal has been splitted in
     multiple non-terminals in order to respect the operators'
     precedences
 
-** LL(1) grammar
+** LL(1) grammar \label{sec:LL}
 The grammar has been converted to a LL(1) grammar by
 eliminating left-recursion, and the result is given below. A =<S>=
 non-terminal symbol has been added to handle the =EOF= character,
@@ -438,9 +445,125 @@ The parsing table for the LL(1) grammar is given in tables
 | <factor>          |    |    |    |    |    |    |    |    |    |    |    |    |     |
 |-------------------+----+----+----+----+----+----+----+----+----+----+----+----+-----|
 
-
-
 ** Grammar decoration
+The grammar has been decorated to produce an abstract syntax tree. The
+decoration of the grammar is given below (the numbers corresponds to
+the rules of the grammar given in section \ref{sec:LL}), where =[]=
+corresponds to the empty list, and =::= is the /cons/ operation (which
+creates a list from a head and a tail). =inh= is an inherited
+attribute, while =node= is a synthesized attribute. When a
+non-terminal has the same name on the left-hand side and right-hand
+side of one rule, those in the right-hand side are numbered
+left-to-right, while the one on the left-hand side remains the same.
+
+The resulting abstract syntax tree can then be converted to assembly
+code, which is described in section \ref{sec:Codegen}.
+
+  1. =<S>.node= = =<program>.node=
+  2. =<program>.node= = =(<function list>.node, <program'>.node)=
+  3. =<program>.node= = =([], <instr list>.node)=
+  4. =<program'>.node= = =<instr list>.node=
+  5. =<program'>.node= = =[]=
+  6. =<function list>.node= = =<function>.node :: <function list'>.node=
+  7. =<function list'>.node= = =<function>.node :: <function list'>.node=
+  8. =<function list'>.node= = =[]=
+  9. =<function>.node= = =Fundef(identifier.entry, <function args>.node, <instr list>.node=
+  10. =<function args>.node= = =<arg list>.node=
+  11. =<function args>.node= = =[]=
+  12. =<arg list>.node= = =var.entry :: <arg list'>.node=
+  13. =<arg list>.node= = =[]=
+  14. =<arg list'>.node= = =var.entry :: <arg list'>.node=
+  15. =<arg list'>.node= = =[]=
+  16. =<instr list>.node= = =<instr>.node :: <instr list'>.node=
+  17. =<instr list>.node= = =<instr list>.node=
+  18. =<instr list'>.node= = =<instr>.node :: <instr list'>.node=
+  19. =<instr list>.node= = =[]=
+  20. =<funcall>.node= = =Funcall(identifier.entry, <funcall args>.node)=
+  21. =<funcall>.node= = =Funcall(identifier.entry, <funcall args>.node)=
+  22. =<funcall args>.node= = =<args call list>.node=
+  23. =<args call list>.node= = =<instr>.node :: <args call list'>.node=
+  24. =<args call list>.node= = =[]=
+  25. =<args call list'>.node= = =<instr>.node :: <args call list'>.node=
+  26. =<args call list'>.node= = =[]=
+  27. =<instr>.node= = =<cond>.node=
+  28. =<instr'>.inh= = =<expr.node>=
+      =<instr>.node= = =<instr'>.node=
+  29. =<instr>.node= = =Return(<expr>.node)=
+  30. =<instr'>.node= = =Assign (<instr'>.inh.variable, <expr>.node)=
+  31. =<instr'>.node= = =Cond(<expr>.node, [<instr'>.inh], CondEnd)=
+  32. =<instr'>.node= = =Cond(UnOp(Not, <expr>.node), [<instr'>.inh], CondEnd)=
+  33. =<instr'>.node= = =<instr'>.inh=
+  34. =<cond>.node= = =Cond(<expr>.node, <instr list>.node, <cond end>.node=
+  35. =<cond>.node= = =Cond(UnOp(Not, <expr>.node), <instr list>.node, <cond end>.node=
+  36. =<cond end>.node= = =Cond(Value True, <instr list>.node, CondEnd)=
+  37. =<cond end>.node= = =Cond(<expr>.node, <instr list>.node, <cond end>.node)=
+  38. =<cond end>.node= = =CondEnd=
+  39. =<simple expr>.node= = =<funcall>.node=
+  40. =<simple expr>.node= = =Variable var.entry=
+  41. =<simple expr>.node= = =Value integer.entry=
+  42. =<simple expr>.node= = =Value string.entry=
+  43. =<expr>.node= = =UnOp(Not, <expr>.node)=
+  44. =<expr>.node= = =<expr-or>.node=
+  45. =<expr-or'>.inh= = =<expr-and>.node= \\
+      =<expr-or>.node= = =<expr-or'>.node=
+  46. =<expr-or'>= $_1$ =.inh= = =Or(<expr-or'>.inh  <expr-and>.node)= \\
+      =<expr-or'>.node= = =<expr-or'>= $_1$ =.node=
+  47. =<expr-or'>.node= = =<expr-or'>.inh=
+  48. =<expr-and'>.inh= = =<expr-eq>.node= \\
+      =<expr-and>.node= = =<expr-and'>.node=
+  49. =<expr-and'>= $_1$ =.inh= = =And(<expr-and'>.inh, <expr-eq>.node>)= \\
+      =<expr-and'>.node= = =<expr-and'>= $_1$ =.node=
+  50. =<expr-and'>.node= = =<expr-and'>.inh=
+  51. =<expr-eq'>.inh= = =<comp>.node= \\
+      =<expr-eq>.node== = =<expr-eq'>.node=
+  52. =<expr-eq'>.node= = =BinOp(Equals, <expr-eq'>.inh, <expr-eq'>= $_1$ =.node)=
+  53. =<expr-eq'>.node= = =BinOp(Different, <expr-eq'>.inh, <expr-eq'>= $_1$ =.node)=
+  54. =<expr-eq'>.node= = =BinOp(StrEquals, <expr-eq'>.inh, <expr-eq'>= $_1$ =.node)=
+  55. =<expr-eq'>.node= = =BinOp(StrDifferent, <expr-eq'>.inh, <expr-eq'>= $_1$ =.node)=
+  56. =<expr-eq'>.node= = =<expr-eq'>.inh=
+  57. =<comp'>.inh= = =<calc>.node= \\
+      =<comp>.node= = =<comp'>.node=
+  58. =<comp'>= $_1$ =.inh= = =BinOp(Greater, <comp'>.inh, <calc>.node)= \\
+      =<comp'>.node= = =<comp'>= $_1$ =.node=
+  59. =<comp'>= $_1$ =.inh= = =BinOp(Lower, <comp'>.inh, <calc>.node)= \\
+      =<comp'>.node= = =<comp'>= $_1$ =.node=
+  60. =<comp'>= $_1$ =.inh= = =BinOp(GreaterEquals, <comp'>.inh, <calc>.node)= \\
+      =<comp'>.node= = =<comp'>= $_1$ =.node=
+  61. =<comp'>= $_1$ =.inh= = =BinOp(LowerEquals, <comp'>.inh, <calc>.node)= \\
+      =<comp'>.node= = =<comp'>= $_1$ =.node=
+  62. =<comp'>= $_1$ =.inh= = =BinOp(StrLower, <comp'>.inh, <calc>.node)= \\
+      =<comp'>.node= = =<comp'>= $_1$ =.node=
+  63. =<comp'>= $_1$ =.inh= = =BinOp(StrGreater, <comp'>.inh, <calc>.node)= \\
+      =<comp'>.node= = =<comp'>= $_1$ =.node=
+  64. =<comp'>= $_1$ =.inh= = =BinOp(StrLowerEquals, <comp'>.inh, <calc>.node)= \\
+      =<comp'>.node= = =<comp'>= $_1$ =.node=
+  65. =<comp'>= $_1$ =.inh= = =BinOp(StrGreaterEquals, <comp'>.inh, <calc>.node)= \\
+      =<comp'>.node= = =<comp'>= $_1$ =.node=
+  66. =<comp'>.node= = =<comp'>.inh=
+  67. =<calc'>.inh= = =<term>.node= \\
+      =<calc>.node= = =<calc'>.node=
+  68. =<calc'>= $_1$ =.inh= = =BinOp(Plus, <calc'>.inh, <term>.node)= \\
+      =<calc'>.node= = =<calc'>= $_1$ =.node=
+  69. =<calc'>= $_1$ =.inh= = =BinOp(Minus, <calc'>.inh, <term>.node)= \\
+      =<calc'>.node= = =<calc'>= $_1$ =.node=
+  70. =<calc'>= $_1$ =.inh= = =BinOp(Concat, <calc'>.inh, <term>.node)= \\
+      =<calc'>.node= = =<calc'>= $_1$ =.node=
+  71. =<calc'>.node= = =<calc'>.inh=
+  72. =<term'>.inh= = =<factor>.node= \\
+      =<term>.node= = =<term'>.node=
+  73. =<term'>= $_1$ =.inh= = =BinOp(Times, <term'>.inh, <factor>)= \\
+      =<term'>.node= = =<term'>= $_1$ =.node=
+  74. =<term'>= $_1$ =.inh= = =BinOp(Divide, <term'>.inh, <factor>)= \\
+      =<term'>.node= = =<term'>= $_1$ =.node=
+  75. =<term'>.node= = =<term'>.inh=
+  76. =<factor>.node= = =<simple expr>.node=
+  77. =<factor>.node= = =UnOp(Not, <factor>= $_1$ =.node)=
+  78. =<factor>.node= = =UnOp(UnaryPlus, <factor>= $_1$ =.node)=
+  79. =<factor>.node= = =UnOp(UnaryMinus, <factor>= = $_1$ = =.node)=
+  80. =<factor>.node= = =<expr>.node=
+
 ** Implementation
-* Code generation
+* Code generation \label{sec:Codegen}
+The code generation step consists of converting the abstract syntax
+tree to ARM assembly code.
 ** Implementation

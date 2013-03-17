@@ -250,12 +250,11 @@ let rec parse stream =
       (* <cond end> → ε *) 
       CondEnd
   | ELSE | ELSEIF ->
-      (* <cond end> → 'else' '{' <instr list> '}' <cond end> *)
+      (* <cond end> → 'else' '{' <instr list> '}' *)
       (* <cond end> → 'elsif' <expr> '{' <instr list> '}' <cond end> *)
       (match stream with parser
-      | [< 'ELSE; 'LBRACE; i = parseInstrList; 
-	   'RBRACE; c = parseCondEnd >] ->
-	     Cond (Value True, i, c)
+      | [< 'ELSE; 'LBRACE; i = parseInstrList; 'RBRACE >] ->
+	     Cond (Value True, i, CondEnd)
       | [< 'ELSEIF; e = parseExpr; 'LBRACE; i = parseInstrList; 
 	   'RBRACE; c = parseCondEnd >] -> Cond (e, i, c))
   | _ -> unexpected stream "cond-end"
@@ -410,11 +409,14 @@ let rec parse stream =
   (** <function args> *)
   and parseFunctionArgs stream = match peek stream with
   | LPAR ->
-      (* <function args>  → '(' <arg list> ')' *)
+      (* <function args> → '(' <arg list> ')' *)
       (match stream with parser
         [< 'LPAR; args = parseArgList; 'RPAR >] ->
           Symtable.set_locals symtable args;
           args)
+  | RBRACE ->
+      (* <function args> → ε *)
+      []
   | _ -> unexpected stream "function args"
 
   (** <function> *)
