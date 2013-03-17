@@ -457,7 +457,13 @@ side of one rule, those in the right-hand side are numbered
 left-to-right, while the one on the left-hand side remains the same.
 
 The resulting abstract syntax tree can then be converted to assembly
-code, which is described in section \ref{sec:Codegen}.
+code, which is described in section \ref{sec:Codegen}. The advantage
+of using an abstract syntax tree is that both the decoration of the
+grammar and the code generation are simplified. The decoration of the
+grammar already does some simplifications, which avoid having to take
+lots of different cases into account during code generation (eg. a
+=unless x= condition is translated in the same way as would be an =if
+(not x)= condition).
 
   1. =<S>.node= = =<program>.node=
   2. =<program>.node= = =(<function list>.node, <program'>.node)=
@@ -609,10 +615,38 @@ stored in a string table. After the code has been generated, it is
 being prepended by the declaration of all those strings. This allow to
 easily manage strings, and to only have one instance of each string,
 even if it appears multiple times in the source code.
-** Variables
+** Variables and assignments
+Global variables are gathered during parsing, and have their value set
+to =undef= by default. Their value is declared at the beginning of the
+assembly file, and they are refered in the code as a certain offset
+from the =Lglobals= label.
+
+Local variables (function arguments) are simply stored on the stack,
+and are referred as their address on the stack.
+
+The assignments simply consists of storing a new value into the
+address of the destination variable.
 ** Binary operations
+A binary operation =BinOp(op, e1, e2)= is computed as follow:
+  - Compute =e1=, and push it on the stack
+  - Compute =e2=, and store it in the =r1= register
+  - Restore the computed value of =e1= into the =r0= register
+  - Call the native function corresponding to =op=
+  - Move the return value of the function (which is in =r0=) into =r4=
 ** Unary operations
+There are three possible unary operations:
+  - *Unary plus*: it in fact doesn't do anything, so the code
+    generated is the same as the code without this unary operation
+  - *Unary minus*: the code for =-x= is generated as the code for
+    =0-x=, using the binary operation code generation
+  - *Not*: the code for the expression is first computed, then the
+    result is passed to the function =perl_not=, which does the
+    negation of its argument.
 ** Conditions
+Each condition branch uses two labels: an /alternative/ label, and an
+/end/ label. First, the code for the condition is generated. If the
+result of the condition is false
+
 ** Function calls
 ** Function definitions
 ** Returns

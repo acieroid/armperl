@@ -309,8 +309,8 @@ and gen_cond state cond consequent alternative =
   and stack_needed_cond = gen_instr state cond in
   (* r4 contains true or false, jump if it is false *)
   state_add state ("
-    cmp r4, #" ^ (string_of_int (box_int 1)) ^ "
-    bne " ^ alternative_label);
+    cmp r4, #2
+    beq " ^ alternative_label);
   (* generate consequent *)
   let stack_needed_consequent = gen_instrs state consequent in
   (* jump to the end *)
