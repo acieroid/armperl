@@ -272,7 +272,7 @@ and gen_binop state op e1 e2 =
   let stack_needed_e1 = gen_instr state e1 in
   (* Push the result on the stack *)
   state_add state ("
-    stmfd sp!, {r4}" );
+    stmfd sp!, {r4}");
   (* Generate e2 *)
   let stack_needed_e2 = gen_instr state e2 in
   (* Store the result of e2 in r1, the result of e1 in r0, and call
@@ -363,19 +363,21 @@ and gen_funcall state fname args =
     else
       0
   in
-  (* TODO: store the arguments on the stack before putting them in r0-r3 *)
-  (* Generate the arguments *)
-  let stack_needed_l = List.mapi (fun i arg ->
-    (* Generate this argument *)
+  (* Generate the arguments (in reverse order), saving them on the stack *)
+  let stack_needed_l = List.map (fun arg ->
     let stack_needed = gen_instr state arg in
-    (* Put it in the correct register or push it on the stack *)
+    state_add state ("
+    stmfd sp!, {r4}");
+    stack_needed) (List.rev args)
+  and args_indexes = List.mapi (fun i _ -> i) args in
+  List.iter (fun i ->
+    (* Put this argument in the correct register or leave it on the stack *)
     if i < 4 then
       state_add state ("
-    mov r" ^ (string_of_int i) ^ ", r4")
+    ldmfd sp!, {r" ^ (string_of_int i) ^ "}")
     else
-      state_add state ("
-    str r4, [sp, #" ^ (string_of_int ((i-4)*4)) ^ "]");
-    stack_needed) args in
+      ())
+    args_indexes;
   (* Call the function, and after it returns, store the value in r4 *)
   state_add state ("
     bl perl_fun_" ^ fname ^ "
