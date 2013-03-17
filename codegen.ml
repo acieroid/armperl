@@ -363,6 +363,7 @@ and gen_funcall state fname args =
     else
       0
   in
+  (* TODO: store the arguments on the stack before putting them in r0-r3 *)
   (* Generate the arguments *)
   let stack_needed_l = List.mapi (fun i arg ->
     (* Generate this argument *)

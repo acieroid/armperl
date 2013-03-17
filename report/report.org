@@ -559,11 +559,60 @@ code, which is described in section \ref{sec:Codegen}.
   76. =<factor>.node= = =<simple expr>.node=
   77. =<factor>.node= = =UnOp(Not, <factor>= $_1$ =.node)=
   78. =<factor>.node= = =UnOp(UnaryPlus, <factor>= $_1$ =.node)=
-  79. =<factor>.node= = =UnOp(UnaryMinus, <factor>= = $_1$ = =.node)=
+  79. =<factor>.node= = =UnOp(UnaryMinus, <factor>= $_1$ =.node)=
   80. =<factor>.node= = =<expr>.node=
 
 ** Implementation
+The implementation of the parser simply consisted of transcripting the
+combination of the rules of the action table with the decorated
+grammar into OCaml code. The parser is implemented in =parser.ml=, and
+each non-terminal is represented by a function that parses it from a
+stream.
+
+The type signature of the parser is the following:
+
+#+BEGIN_SRC caml
+val parse : token Stream.t -> (expr list * expr list) * Symtable.t
+#+END_SRC
+
+Thus, the parser reads its input from a stream of token (which is the
+stream emitted by the parser, with the errors removed), and returns
+three things: a list of function definitions, a list of instructions,
+and a symbol table. The symbol table contains the list of global
+variables and the arity of the functions, and will be used by the code
+generator.
+
 * Code generation \label{sec:Codegen}
 The code generation step consists of converting the abstract syntax
 tree to ARM assembly code.
-** Implementation
+
+The following conventions are used by the code generator:
+  - Every computed value is stored into the =r4= register
+  - Global variables are stored with their name prefixed by
+    =perl_global_=, and functions are stored with their name prefixed
+    by =perl_fun_=, to allow having the same name for a variable and a
+    function
+
+** Values
+The different values are represented as follow:
+  - A string is represented by its pointer, which is a multiple of 4,
+    since we store each string word-aligned
+  - Integers are stored left-shifted by one bit, and added to 1. So,
+    integers are 31 bits, with the last bit always being set to 1,
+    which allows to distinguish an integer from a string at run time
+  - =undef= is stored as 2, so that it is distinguishable from
+    integers and from strings
+  - =true= is stored as integer value 1, and =false= as =undef=
+
+During the generation of the code, all the encountered strings are
+stored in a string table. After the code has been generated, it is
+being prepended by the declaration of all those strings. This allow to
+easily manage strings, and to only have one instance of each string,
+even if it appears multiple times in the source code.
+** Variables
+** Binary operations
+** Unary operations
+** Conditions
+** Function calls
+** Function definitions
+** Returns
