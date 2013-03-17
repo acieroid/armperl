@@ -234,12 +234,9 @@ and gen_instr state = function
       else
         gen_assign_global state var value
   | Or (e1, e2) ->
-      gen_instr state (Cond (e1, [Value True],
-                             Cond (e2, [Value True], Value False)))
+      gen_instr state (Cond (e1, [Value True], e2))
   | And (e1, e2) ->
-      gen_instr state (Cond (e1,
-                             [Cond (e2, [Value True], Value False)],
-                             Value False))
+      gen_instr state (Cond (e1, [e2], Value False))
   | UnOp (op, e) ->
       gen_unop state op e
   | Funcall (fname, args) ->

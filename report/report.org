@@ -645,8 +645,16 @@ There are three possible unary operations:
 ** Conditions
 Each condition branch uses two labels: an /alternative/ label, and an
 /end/ label. First, the code for the condition is generated. If the
-result of the condition is false
+result of the condition is false, we jump to the alternative
+label. Then, the code for the /consequent/ is generated (and is thus
+executed if the condition is truu), followed by a jump to the end
+label, the alternative label, the code of the alternative, and finally
+of the end label.
 
-** Function calls
+The special operators =&&= and =||= are generated as conditions:
+  - =a && b= is equivalent to =if (a) { b; } else { false; }
+  - =a || b= is equivalent to =if (a) { true; } else { b; }=
+
 ** Function definitions
+** Function calls
 ** Returns
