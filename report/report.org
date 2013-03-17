@@ -49,68 +49,67 @@
 #+LATEX_HEADER: \newcounter{grammarline}
 #+LATEX_HEADER: \makeatother
 The purpose of this project is to develop a compiler for a simplified
-version of Perl, that compiles to ARM assembler, in order to be able
+version of Perl that compiles to ARM assembler, in order to be able
 to execute compiled Perl code on Android devices. The simplified
 version of Perl to be implemented is described in the project
 statement.
 
-Note that most of the documentation of the code is written in the
-interface files (=.mli=).
+This report describe the implementation of the compiler, written in
+OCaml. Note that most of the documentation of the code is written in
+the interface files (=.mli=).
 * Lexer
 ** Lexical Units
 The lexical units of this simplified version of Perl are given here,
-with their regular expression and and  the corresponding token used in
-the implementation. While each of the lexical unit have a
-different token name, some are grouped into categories for a matter of
-clarity.
+with their regular expression and and the corresponding token used in
+the implementation. Some of the tokens are grouped into categories for
+a matter of clarity.
 
   - *Symbols*:
-    - ={=: =LBRACE=
-    - =}=: =RBRACE=
-    - =(=: =LPAR=
-    - =)=: =RPAR=
-    - =;=: =SEMICOLON=
-    - \texttt{,}: =COMMA=
-    - =&=: =CALL_MARK=
-    - \texttt{\=}: =ASSIGN=
+    - ={= : =LBRACE=
+    - =}= : =RBRACE=
+    - =(= : =LPAR=
+    - =)= : =RPAR=
+    - =;= : =SEMICOLON=
+    - \texttt{,} : =COMMA=
+    - =&= : =CALL_MARK=
+    - \texttt{= }: =ASSIGN=
   - *Operators*:
-    - =+=: =PLUS=
-    - =-=: =MINUS=
-    - =*=: =TIMES=
-    - =/=: =DIVIDE=
-    - =||=: =LAZY_OR=
-    - =&&=: =LAZY_AND=
-    - \texttt{\=\=}: =EQUALS=
-    - \texttt{!=}: =DIFFERENT=
-    - =>=: =GREATER=
-    - =<=: =LOWER=
-    - \texttt{>=}: =GREATER_EQUALS=
-    - \texttt{<=}: =LOWER_EQUALS=
-    - =eq=: =STRING_EQUALS=
-    - =ne=: =STRING_DIFFERENT=
-    - =gt=: =STRING_GREATER=
-    - =ge=: =STRING_GREATER_EQUALS=
-    - =lt=: =STRING_LOWER=
-    - =le=: =STRING_LOWER_EQUALS=
-    - =not=: =NOT_WORD=
-    - =!=: =NOT=
+    - =+= : =PLUS=
+    - =-= : =MINUS=
+    - =*= : =TIMES=
+    - =/= : =DIVIDE=
+    - =||= : =LAZY_OR=
+    - =&&= : =LAZY_AND=
+    - \texttt{== }: \texttt{EQUALS}
+    - \texttt{!= }: =DIFFERENT=
+    - =>= : =GREATER=
+    - =<= : =LOWER=
+    - \texttt{>=} : =GREATER_EQUALS=
+    - \texttt{<=} : =LOWER_EQUALS=
+    - =eq= : =STRING_EQUALS=
+    - =ne= : =STRING_DIFFERENT=
+    - =gt= : =STRING_GREATER=
+    - =ge= : =STRING_GREATER_EQUALS=
+    - =lt= : =STRING_LOWER=
+    - =le= : =STRING_LOWER_EQUALS=
+    - =not= : =NOT_WORD=
+    - =!= : =NOT=
   - *Keywords*:
-    - =if=: =IF=
-    - =unless=: =UNLESS=
-    - =else=: =ELSE=
-    - =elsif=: =ELSEIF=
-    - =return=: =RETURN=
-    - =sub=: =SUB=
-  - *Integer*: =[0-9]+=: =INTEGER=
-  - *String*: =("[^"]"|'[^']')=: =STRING=
-  - *Identifier*: =[a-zA-Z][a-zA-Z0-9]*=: =IDENTIFIER=
-  - *Variable*: =$[a-zA-Z0-9]+=: =VARIABLE=
+    - =if= : =IF=
+    - =unless= : =UNLESS=
+    - =else= : =ELSE=
+    - =elsif= : =ELSEIF=
+    - =return= : =RETURN=
+    - =sub= : =SUB=
+  - *Integer*: =[0-9]+= : =INTEGER=
+  - *String*: =("[^"]"|'[^']')= : =STRING=
+  - *Identifier*: =[a-zA-Z][a-zA-Z0-9]*= : =IDENTIFIER=
+  - *Variable*: =$[a-zA-Z0-9]+= : =VARIABLE=
 ** Deterministic Finite Automaton
 The DFA is divided in multiple figure for a matter of clarity. All the
 following figures have the same start state, and some refer to the
 special state =to identifier=, which /redirects/ the DFA into the
-corresponding figure. The accepting states are represented with states
-with dashed lines.
+corresponding figure. The accepting states are represented with dashed lines.
 
 \begin{figure}
 \centerline{\includegraphics[width=0.7\textwidth]{dfa.png}}
@@ -145,7 +144,7 @@ with dashed lines.
 ** Implementation
 The different tokens are defined as a type (in =token.ml=). The lexer
 (or scanner) is implemented in =hand_lexer.ml= and its implementation
-is a simple translation from the DFA to OCaml code, which looks the
+is a simple translation from the DFA to OCaml code, which looks at the
 next character from the input stream and goes to the corresponding
 state. The main function of the lexer has the following type
 signature:
@@ -162,7 +161,7 @@ string (which describes a lexing error).
 * Parser
 ** Modified grammar
 The grammar used is a modification of the first grammar given (in the
-project statement). This modified is given below.
+project statement). This modified grammar is given below.
 
 \setlength{\grammarparsep}{20pt plus 1pt minus 1pt}
 \setlength{\grammarindent}{12em}
@@ -173,22 +172,23 @@ project statement). This modified is given below.
 The differences between this grammar and the grammar given in the
 project's statement are the following:
   - =<program>=: a program should consist first of the function
-    definition and then of the program instruction, else it would
-    cause problems in the parsing table
+    definition and then of the program instructions, else it would
+    cause conflicts in the parsing table
   - =<instr list>=: every instruction has to end with a semicolon,
     else the first and follow sets of every non-terminals would be
     really big and the chances of having a conflict would grow. This
-    implies a major difference with Perl: conditions also have to end
-    with a semicolon, for example: =if … { … };=
+    implies a minor difference of syntax with Perl: conditions have to
+    end with a semicolon, for example: =if … { … };=
   - =<funcall>=: functions can now be called without being prefixed by a
     =&=
   - =<funcall args>=: function calls now have mandatory parentheses,
-    to avoid conflicts (this conflict should however not arise, due to
-    the mandatory semicolon, but this change was made before)
+    to avoid conflicts (those conflicts should however not arise, due
+    to the mandatory semicolon, but this change was made before having
+    the mandatory semicolon)
   - =<instr>= and =<cond>=: post-condition forms are now in the
     non-terminal =<instr>=, to avoid conflicts (since now =<cond>=
     cannot start with an =<expr>=, which conflicted with the fact that
-    =<instr>= can start with an =<expr>=)
+    =<instr>= can also start with an =<expr>=)
   - =<instr>=: an assignation is now an instruction instead of an
     expression, which makes more sense
   - =<cond end>=: the =else= branch was incorrect
@@ -197,10 +197,10 @@ project's statement are the following:
     precedences
 
 ** LL(1) grammar \label{sec:LL}
-The grammar has been converted to a LL(1) grammar by
-eliminating left-recursion, and the result is given below. A =<S>=
-non-terminal symbol has been added to handle the =EOF= character,
-needed to properly implement the grammar.
+The grammar has been converted to a LL(1) grammar by eliminating
+left-recursion, and the result is given below. A non-terminal symbol
+=<S>= has been added to handle the =EOF= character, needed to properly
+compute the follow sets and thus implement the grammar.
 
 \setlength{\grammarparsep}{20pt plus 1pt minus 1pt}
 \setlength{\grammarindent}{12em}
@@ -209,7 +209,7 @@ needed to properly implement the grammar.
 \end{numberedgrammar}
 
 ** First and follows
-The /first/ and /follow/ sets of the different non-terminal symbol are
+The /first/ and /follow/ sets of the non-terminal symbols are
 given below.
 
 \setlength{\grammarparsep}{20pt plus 1pt minus 1pt}
@@ -219,7 +219,9 @@ given below.
 \end{grammar}
 ** Parsing Table
 The parsing table for the LL(1) grammar is given in tables
-\ref{tbl:ParsingTable1}, \ref{tbl:ParsingTable2} and \ref{tbl:ParsingTable3}.
+\ref{tbl:ParsingTable1}, \ref{tbl:ParsingTable2} and
+\ref{tbl:ParsingTable3}. The numbers refers to the rules of the
+grammar given in section \ref{sec:LL}.
 
 \footnotesize
 #+CAPTION: Parsing table (1)
@@ -456,20 +458,20 @@ The grammar has been decorated to produce an abstract syntax tree. The
 decoration of the grammar is given below (the numbers corresponds to
 the rules of the grammar given in section \ref{sec:LL}), where =[]=
 corresponds to the empty list, and =::= is the /cons/ operation (which
-creates a list from a head and a tail). =inh= is an inherited
-attribute, while =node= is a synthesized attribute. When a
+creates a list from a head and a tail). =inh= is an /inherited/
+attribute, while =node= is a /synthesized/ attribute. When a
 non-terminal has the same name on the left-hand side and right-hand
-side of one rule, those in the right-hand side are numbered
+side of a rule, those in the right-hand side are numbered
 left-to-right, while the one on the left-hand side remains the same.
 
 The resulting abstract syntax tree can then be converted to assembly
-code, which is described in section \ref{sec:Codegen}. The advantage
-of using an abstract syntax tree is that both the decoration of the
-grammar and the code generation are simplified. The decoration of the
-grammar already does some simplifications, which avoid having to take
-lots of different cases into account during code generation (eg. a
-=unless x= condition is translated in the same way as would be an =if
-(not x)= condition).
+code (this process is described in section \ref{sec:Codegen}). The
+advantage of using an abstract syntax tree is that both the decoration
+of the grammar and the code generation are simplified. The decoration
+of the grammar already does some simplifications, which avoid having
+to take lots of different cases into account during code generation
+(eg. a =unless x= condition is translated in the same way as would be
+an =if (not x)= condition).
 
 \footnotesize
   1. =<S>.node= = =<program>.node=
@@ -580,38 +582,50 @@ lots of different cases into account during code generation (eg. a
 The implementation of the parser simply consisted of transcripting the
 combination of the rules of the action table with the decorated
 grammar into OCaml code. The parser is implemented in =parser.ml=, and
-each non-terminal is represented by a function that parses it from a
-stream.
+each non-terminal is represented by a function that parses the
+non-terminal from a stream.
 
-The type signature of the parser is the following:
+The type signature of the parser is:
 
 #+BEGIN_SRC caml
 val parse : token Stream.t -> (expr list * expr list) * Symtable.t
 #+END_SRC
 
 Thus, the parser reads its input from a stream of token (which is the
-stream emitted by the parser, with the errors removed), and returns
-three things: a list of function definitions, a list of instructions,
-and a symbol table. The symbol table contains the list of global
-variables and the arity of the functions, and will be used by the code
-generator.
+stream emitted by the parser, with the errors removed after being
+displayed to the user), and returns three things: a list of function
+definitions, a list of instructions, and a symbol table. The symbol
+table contains the list of global variables and the arity of the
+functions, and will be used by the code generator.
 
 * Code generation \label{sec:Codegen}
 The code generation step consists of converting the abstract syntax
 tree to ARM assembly code.
 
+The code generator is implemented in =codegen.ml=, and its type
+signature is:
+
+#+BEGIN_SRC caml
+val gen : out_channel -> expr list * expr list -> Symtable.t -> unit
+#+END_SRC
+
+Thus, it takes an output channel, a list of function definitions, a
+list of instructions, and an already filled symbol table, writes the
+generated code to the output channel and returns nothing.
+
 The following conventions are used by the code generator:
-  - Every computed value is stored into the =r4= register
-  - Global variables are stored with their name prefixed by
+  - every computed value is stored into the =r4= register
+  - global variables are stored with their name prefixed by
     =perl_global_=, and functions are stored with their name prefixed
     by =perl_fun_=, to allow having the same name for a variable and a
     function
 
 ** Values
-The different values are represented as follow:
-  - A string is represented by its pointer, which is a multiple of 4,
-    since we store each string word-aligned
-  - Integers are stored left-shifted by one bit, and added to 1. So,
+The different values are represented as follows:
+  - a string is represented by its pointer, which is a multiple of 4,
+    since we store each string word-aligned. Thus, the last two bits of a
+    string pointer always are =00=
+  - integers are stored left-shifted by one bit, and added to 1. So,
     integers are 31 bits, with the last bit always being set to 1,
     which allows to distinguish an integer from a string at run time
   - =undef= is stored as 2, so that it is distinguishable from
@@ -620,7 +634,7 @@ The different values are represented as follow:
 
 During the generation of the code, all the encountered strings are
 stored in a string table. After the code has been generated, it is
-being prepended by the declaration of all those strings. This allow to
+prepended by the declaration of all those strings. This allow to
 easily manage strings, and to only have one instance of each string,
 even if it appears multiple times in the source code.
 ** Variables and assignments
@@ -632,10 +646,10 @@ from the =Lglobals= label.
 Local variables (function arguments) are simply stored on the stack,
 and are referred as their address on the stack.
 
-The assignments simply consists of storing a new value into the
-address of the destination variable.
+Assignments simply consists of storing a new value into the address of
+the destination variable.
 ** Binary operations
-A binary operation =BinOp(op, e1, e2)= is computed as follow:
+A binary operation =BinOp(op, e1, e2)= is computed as follows:
   - Compute =e1=, and push it on the stack
   - Compute =e2=, and store it in the =r1= register
   - Restore the computed value of =e1= into the =r0= register
@@ -643,8 +657,8 @@ A binary operation =BinOp(op, e1, e2)= is computed as follow:
   - Move the return value of the function (which is in =r0=) into =r4=
 ** Unary operations
 There are three possible unary operations:
-  - *Unary plus*: it in fact doesn't do anything, so the code
-    generated is the same as the code without this unary operation
+  - *Unary plus*: it doesn't do anything, so the code generated is the
+    same as the code without this unary operation
   - *Unary minus*: the code for =-x= is generated as the code for
     =0-x=, using the binary operation code generation
   - *Not*: the code for the expression is first computed, then the
@@ -655,17 +669,19 @@ Each condition branch uses two labels: an /alternative/ label, and an
 /end/ label. First, the code for the condition is generated. If the
 result of the condition is false, we jump to the alternative
 label. Then, the code for the /consequent/ is generated (and is thus
-executed if the condition is truu), followed by a jump to the end
+executed if the condition is true), followed by a jump to the end
 label, the alternative label, the code of the alternative, and finally
 of the end label.
 
-The special operators =&&= and =||= are generated as conditions:
+The special operators =&&= and =||= are generated as conditions,
+since the last result of a condition remains in the register =r4=:
   - =e1 && e2= is equivalent to =if (e1) { e2; } else { false; };=
   - =e1 || e2= is equivalent to =if (e1) { true; } else { e2; };=
+
 ** Function definitions
 A function definition is generated as follows:
   - a /return/ label is generated and stored in the code generator state
-  - the name of the function arguments are also stored in the code
+  - the names of the function arguments are also stored in the code
     generator state, in order to distinguish local and global variables
   - the body of the function is generated in a separate buffer, in
     order to know by how much bytes the stack should grow (this
@@ -698,6 +714,10 @@ The native functions acts as follows:
     checked, but the function call is generated exactly as a normal
     function call
 
+Natives functions are implemented in C in the file =perl.c=, which
+should be linked with the assembler file produced by the compiler, in
+order to have a working executable.
+
 For user-defined functions, first there is a check to test whether the
 function is called with the correct number of arguments (if this in
 not the case, the code generator reports an error). Then:
@@ -713,18 +733,21 @@ not the case, the code generator reports an error). Then:
 A =return= instruction simply consists of computing the return value,
 and then jumping to the current /return/ label. If there is no such
 label (which means that the code generated is not inside a function
-body), an error is displayed, because return instructions outside
+body) an error is displayed, because return instructions outside
 function definitions are not allowed.
 * Miscellaneous
 The architecture of the program is such that it is easy to extend it
-with another lexer, parser, or code generator. For example, a second
+with another lexer, parser, or code generator. For example a second
 lexer, that uses Ocamllex, is already implemented and can be used
 using the =-l ocamllex= flag.
 
 Also, a Perl evaluator has been implemented, and can be called
 (instead of the code generator) with the =-e= flag. This allowed us to
-first have a working program without needing a code generator, and
-thus refine the grammar and abstract syntax tree early in the
+have a working program without needing a code generator, and
+thus to refine the grammar and the abstract syntax tree early in the
 project. It could be used to automate tests: if the output of the
 evaluated program and the execution of a compiled program is the same,
-then the chances that the generated program is correct are high.
+then the chances that the generated assembly code is correct are high.
+
+The compiler has been tested on multiple examples (in the directory
+=tests/=), and produces the expected result for all of them.
