@@ -1,7 +1,0 @@
-Deleted:
-  - obligatory parenthesis and no more ε in funcall args
-  - removed the ε from <funcall args>
-  - <expr> = <expr>: better compatibility
-
-Bugs:
-  - grammar's TODO
